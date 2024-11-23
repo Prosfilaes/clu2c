@@ -1,0 +1,25 @@
+% de_names.clu - yield directory entry names
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: de_names.clu,v 2.0 1996/06/10 09:02:03 ushijima Exp $
+
+
+directory_entry_names = iter(dir: file_name) yields(string)
+			signals(not_possible(string))
+    as = array[string]
+    dstream = _external_dir
+    dst: dstream := dstream$open(file_name_to_string(dir))
+	resignal not_possible
+    entry_names: as := as$new()
+    while true do
+	as$addh(entry_names, dstream$read(dst))
+    end
+	except when end_of_file: end
+    dstream$close(dst)
+    for entry_name: string in as$elements(entry_names) do
+	yield(entry_name)
+    end
+end directory_entry_names

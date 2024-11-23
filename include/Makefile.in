@@ -1,0 +1,10 @@
+dnl $Id: Makefile.in,v 2.1 1996/10/07 02:37:34 ushijima Exp $
+include(`mk.m4')
+MK_REQUIRE(`hdrsrc')
+MK_CURRENT_DIRECTORY(`include')
+MK_SUBDIRECTORIES(`clu2c config')
+MK_HDR_DIRECTORY(`$(clu2c_includedir)')
+MK_HDR_SOURCES(`clu2c.h')
+MK_DEFINE_ACTION(`all')
+MK_DEFINE_ACTION(`mostlyclean')
+MK_DEFINE_ACTION(`clean')

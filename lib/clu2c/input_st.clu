@@ -1,0 +1,53 @@
+% input_st.clu - input streams
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: input_st.clu,v 2.0 1996/06/10 09:02:17 ushijima Exp $
+
+
+% Yields the primary input stream if INPUTS is empty (the primary
+% input stream is the stream returned by the `stream$primary_input'
+% operation).  Otherwise yields an input stream specified by each
+% element of INPUTS, in order.  If an element of INPUTS is "-", it
+% specifies the primary input stream.  Any other elements specify
+% input streams that result from opening files named by those
+% elements.  If a named file cannot be opened, prints an error message
+% to the primary output stream for error messages (returned by the
+% `stream$error_output' operation) and yields nothing as far as that
+% element of INPUTS is concerend.
+
+input_streams = iter(inputs: ss) yields(stream)
+    ss = sequence[string]
+    if ss$empty(inputs) then
+	yield(stream$primary_input())
+	return
+    end
+    output: stream := stream$error_output()
+    for s: string in ss$elements(inputs) do
+	fn: file_name
+	if s = "-" then
+	    yield(stream$primary_input())
+	else
+	    fn := file_name$parse(s)
+	    input: stream := stream$open(fn, "read")
+	    yield(input)
+	    stream$close(input)
+		except when not_possible(*): end
+	end
+	    except
+	    when bad_format:
+		stream$puts(output, program_name())
+		stream$puts(output, ": ")
+		stream$puts(output, s)
+		stream$putl(output, ": bad format file name")
+	    when not_possible(reason: string):
+		stream$puts(output, program_name())
+		stream$puts(output, ": ")
+		stream$puts(output, file_name$unparse(fn))
+		stream$puts(output, ": ")
+		stream$putl(output, reason)
+	    end
+    end
+end input_streams

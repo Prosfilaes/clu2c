@@ -1,0 +1,194 @@
+% selinst.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: selinst.clu,v 2.0 1996/06/10 09:04:55 ushijima Exp $
+
+
+% A "selinst" is a selector instance.  Selector instance results from
+% the instantiation that gives field specifications to a selector
+% generator.
+
+selinst = cluster is create, get_gen, get_parms, get_typeid,
+		lookup_op, enter_op, get_id, add_tidvar, emit_types,
+		similar, enter_typeid, emit_typeid
+
+    rep = record[
+	gen:      selgen,		% generator
+	parms:    fieldspeclist,	% parameters
+	ops:      optab,		% operations
+	id:       int,			% instance ID
+	tidvars:  as,			% C variables for type ID's
+	printing: bool,			% now printing?
+	typeid:   int			% type ID
+    ]
+    optab = assoc_array[appinstlist]
+    appinstlist = array[appinst]
+
+
+    % Returns the selector instance that results from the
+    % instantiation that gives _parms_ to _gen_.  It is ensured that
+    % there exists only one instance for a <selector generator,
+    % parameter list> pair as far as _parms_ contains no formal
+    % parameters.  In other words, _create_ always returns exactly the
+    % same object for the same arguments with no formal parameters.
+
+    create = proc(gen: selgen, parms: fieldspeclist) returns(selinst)
+	return(selgen$lookup_inst(gen, parms))
+	    except when not_found: end
+	inst: selinst := up(
+	    rep${
+		gen:      gen,
+		parms:    parms,
+		ops:      optab$new(),
+		id:       undef,
+		tidvars:  as$new(),
+		printing: false,
+		typeid:   undef
+	    }
+	)
+	if ~formal_fieldspeclist(parms) then
+	    down(inst).id := selgen$enter_inst(gen, inst)
+	end
+	return(inst)
+    end create
+
+
+    % Returns the selector generator of _inst_.
+
+    get_gen = proc(inst: cvt) returns(selgen)
+	return(inst.gen)
+    end get_gen
+
+
+    % Returns the field specification list of _inst_.
+
+    get_parms = proc(inst: cvt) returns(fieldspeclist)
+	return(inst.parms)
+    end get_parms
+
+
+    % Signals _not_found_ if _inst_ can not find, in its internal
+    % table, the opration instance with _name_ as its name and _parms_
+    % as its parameters; otherwise returns the operation instance that
+    % satisfies the condition.
+
+    lookup_op = proc(inst: cvt, name: str, parms: parmlist) returns(appinst)
+							    signals(not_found)
+	for op: appinst in appinstlist$elements(optab$lookup(inst.ops, name)) do
+	    if parmlist$similar(op.parms, parms) then
+		return(op)
+	    end
+	end
+	    resignal not_found
+	signal not_found
+    end lookup_op
+
+
+    % Signals _exists_ if _inst_ already has an entry for _op_ in its
+    % internal table; otherwise enters _op_ in the table and returns
+    % the unique instance ID for _op_.  It is ensured that the
+    % generator of _op_ "knows" _op_ as far as the parameters of _op_
+    % contains no formal parameters.
+
+    enter_op = proc(inst: cvt, op: appinst) returns(int) signals(exists)
+	name: str := op.gen.name
+	parms: parmlist := op.parms
+	begin
+	    selinst$lookup_op(up(inst), name, parms)
+	    signal exists
+	end
+	    except when not_found: end
+	ops: appinstlist := optab$lookup(inst.ops, name)
+	    except when not_found:
+		ops := appinstlist$new()
+		optab$enter(inst.ops, name, ops)
+	    end
+	id: int
+	if ~formal_fieldspeclist(inst.parms)
+	   cand ~formal_parmlist(op.parms)
+	then
+	    id := appgen$enter_inst(op.gen, op)
+	else
+	    id := undef
+	end
+	appinstlist$addh(ops, op)
+	return(id)
+    end enter_op
+
+
+    % Returns the instance ID of _inst_.
+
+    get_id = proc(inst: cvt) returns(int)
+	return(inst.id)
+    end get_id
+
+
+    % Stores _var_ in _inst_ as a C variable that has the type ID of
+    % _inst_.
+
+    add_tidvar = proc(inst: cvt, var: str)
+	as$addh(inst.tidvars, var)
+    end add_tidvar
+
+
+    % For each C variable stored in _inst_ so far using _add_tidvar_,
+    % writes to _outst_ the declaration of it with the initialization
+    % that gives the type ID of _inst_.
+
+    emit_types = proc(inst: cvt, outst: stream)
+	tid: str := int$unparse(type_id(tparm$make_sel(up(inst))))
+	db:db_env := db_env$get()
+	if db.debug then
+	    for var: str in as$elements(inst.tidvars) do
+		stream$puts(outst, "int ")
+		stream$puts(outst, var)
+		stream$puts(outst, " = ")
+		stream$puts(outst, tid)
+		stream$putl(outst, ";\t" || db_env$tid_info(db, var,tid))
+	    end
+	else
+	    for var: str in as$elements(inst.tidvars) do
+		stream$puts(outst, "int ")
+		stream$puts(outst, var)
+		stream$puts(outst, " = ")
+		stream$puts(outst, tid)
+		stream$putl(outst, ";")
+	    end
+	end
+    end emit_types
+
+
+    % Returns true if _inst1_ and _inst2_ refer to the same object;
+    % otherwise returns false.
+
+    similar = proc(inst1, inst2: cvt) returns(bool)
+	return(inst1 = inst2)
+    end similar
+
+
+    enter_typeid = proc(inst:cvt)
+	inst.typeid := db_env$newid()
+    end enter_typeid
+
+
+    get_typeid = proc(inst:cvt) returns(int)
+	return(inst.typeid)
+    end get_typeid
+
+
+    emit_typeid = proc(inst:cvt,outst:stream)
+	db:db_env := db_env$get()
+	db_env$type_info(
+	    db,
+	    outst,
+	    inst.typeid,
+	    inst.gen.name,
+	    fieldspeclist_unparse(inst.parms)
+	)
+    end emit_typeid
+
+
+end selinst

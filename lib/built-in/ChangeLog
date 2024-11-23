@@ -1,0 +1,689 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Mon Oct  7 07:41:30 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c: Added "out of memory" as a new string literal.
+
+	* any.c: Include <clu2c.h> instead of <clu2c/clu2c.h>,
+	<clu2c/type.h>, and <clu2c/glo.h>.
+	* array.c: Ditto.
+	* bool.c: Ditto.
+	* char.c: Ditto.
+	* int.c: Ditto.
+	* itertype.c: Ditto.
+	* null.c: Ditto.
+	* oneof.c: Ditto.
+	* proctype.c: Ditto.
+	* real.c: Ditto.
+	* record.c: Ditto.
+	* sequence.c: Ditto.
+	* string.c: Ditto.
+	* struct.c: Ditto.
+	* variant.c: Ditto.
+
+Sun Oct  6 12:26:30 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* null.c (print): Avoid the use of `NULL'.
+	* bool.c (print): Ditto.
+	* char.c (print): Ditto.
+	* array.c (print): Ditto.
+	* sequence.c (print, _alloc): Ditto.
+	* record.c (print): Ditto.
+	* struct.c (print): Ditto.
+	* oneof.c (decode, print): Ditto.
+	* variant.c (decode, print): Ditto.
+
+Fri Jun 21 13:55:19 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* int.c (div, mod): Changed according to the changes to macro
+        versions of the corresponding operations.
+
+Thu Jun 20 13:21:34 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* int.c (_div, _mod): New hidden operations.  These are provided
+        for fixing a bug that the result of div/mod is incorrect if an
+        argument has a large negative value.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sun May 12 07:35:01 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* any.c, array.c, bool.c, built-in.spc, char.c, int.c, itertype.c,
+        null.c, oneof.c, proctype.c, real.c, record.c, sequence.c,
+        string.c, struct.c, variant.c: Doc fix.
+
+Sat Apr 27 05:18:14 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed `remove.bat' from the list of non-source
+        files.
+
+Fri Apr  5 10:20:47 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (_huge_val): Declared as static.
+
+Sun Feb 18 09:16:13 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (_huge_val): New internal routine.
+	(_checkrange): Changed accordingly.
+
+Sat Feb  3 10:06:18 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (mpn_t): Modified so that the size of a
+        multiple-precision numbers can vary dynamically.
+	(MPN_SIZE): Removed accordingly.
+	(mpn_init, mpn_add, mpn_sub, mpn_mul, mpn_div10, mpn_divmod,
+        mpn_copy, mpn_cmp): Changed accordingly.
+	(mpn_new, mpn_clear, mpn_resize, mpn_significant_size): New
+        internal functions.
+	(UINT_HIGH, UINT_LOW): New macros.
+	(__unparse): Changed accordingly.
+
+Mon Jan 22 20:42:06 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (parse): Check validity of a pointer stored by strtod.
+
+Sun Jan 14 14:18:54 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in, string.c: Changed according to the changes to the
+        Japanese I/O library.
+
+Wed Jan 10 13:38:35 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c (_cs2s): Changed according to the changes to
+        `JPIO_decode'.
+
+Mon Nov 20 13:37:13 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (_checkrange): New internal routine.
+	(power, parse): Changed accordingly.
+
+Sat Nov 18 10:29:45 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (parse): Simplified using `strtod'.
+
+	* real.c (add, sub, mul, div, power, i2r, r2i, trunc, parse):
+        Signal `overflow' or `underflow' in appropriate conditions.
+	(_approx): New internal routine.
+
+	* real.c (power): Use `modf' to determine whether a number is
+        integral or not.
+	(NONINTEGRAL): Removed.
+
+	* real.c (unparse): Rewritten.
+	(MAX_NUM_LEN): Removed.
+	(MPN_SIZE, UINT_BIT, UINT_HALF_BIT, UINT_HALF_MAX): New macros.
+	(mpn_t): New type name.
+	(initialized, max_width, exp_width, decimal_digits,
+        unparse_buffer): New own variables.
+	(_owninit): New internal routine.
+	(_real_max, _real_min, _max_width, _exp_width, _unparse): New
+        operations.
+	(__unparse): New internal routine.
+	(mpn_init, mpn_add, mpn_sub, mpn_mul, mpn_div10, mpn_divmod,
+        mpn_copy, mpn_cmp): New internal functions.
+	(exponent): Be consistent with `unparse'.
+	(mantissa): Likewise.
+	* built-in.spc (real): Changed accordingly.
+
+Wed Nov  1 05:31:03 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c (_s2cs): Cope with various combinations of char
+        version, string version, and Japanization.
+	(_cs2s): Likewise.
+
+Sun Oct 29 09:49:39 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c, sequence.c, string.c, struct.c: Include
+        <config/string.h> instead of <config/memory.h>.
+
+Sat Oct 28 13:30:08 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c, sequence.c, string.c, struct.c: Do not include
+        <config.h>.  This header is now included from <config/*.h>.
+
+Fri Oct 27 12:52:58 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* sequence.c: Implemented sequence version 2.
+	(_subcopy): New macro.
+
+Tue Oct 17 05:07:28 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c (_alloc): Use STRING_ALLOC_SIZE to determine the size
+        to be allocated.
+	(Strings): Changed according to the changes to string
+        representation.
+
+Sun Sep 24 08:14:22 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* built-in.spc: Doc fix.
+
+Mon Sep 18 14:12:57 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c (_chars): Removed (moved to `include/clu2c/string.h').
+
+Thu Aug 24 07:17:55 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Require `all' and install `built-in.spc'
+        to `$(clu2c_libdir)'.
+
+	* built-in.spc: New file.
+	* Makefile.in: Changed accordingly.
+
+Wed Aug 23 08:10:16 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* strlit.c: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* string.c: Introduced a notion of string version.
+
+Sat Aug 12 14:03:39 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* char.c: Use `int' instead of `char_'.
+
+	* string.c: Use `int' or `char_t' instead of `char_'.
+
+Wed Aug  2 04:51:55 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c (_s2cs): Do code conversion.
+
+Mon Jun 26 03:38:12 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* int.c (INT_MIN): Defined as -INT_MAX - 1, for some C compilers
+	warn against -2147483648.
+
+Fri Jun 23 11:57:44 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (parse): Set exponent correctly.
+
+Thu Jun 22 13:21:10 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (parse): Fixed a bug that the result is incorrect if the
+	number of digits that denotes the mantissa is large to some
+	degree.
+
+Sun Jun 11 06:11:54 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* strlit.c: Added "overflow" and "underflow".
+
+	* int.c (INT_MAX, INT_MIN, INT_BITS): New symbolic constants.
+	(_log2): New internal function.
+	(add, sub, mul, minus, div, power, abs, parse): Signal overflow
+	if the result is not in the representable range.
+
+Sat May 20 11:43:46 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Make use of MK_NON_SOURCES.
+
+Sat May  6 12:31:15 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of miscellaneous
+        source files.
+
+Wed May  3 07:12:44 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c (_s2cs): Do not comment out on MS-DOS and X68000.
+
+Sun Apr 30 12:10:33 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Restricted the use of MK_PATH_NAME.
+
+Thu Apr 20 04:18:10 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (parse): Process a leading minus sign correctly.
+
+	* real.c (_d2r, _r2d): New hidden operations.
+
+Sun Apr  2 07:26:20 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Define MISC_SRC.
+
+	* oneof.c: Declare _equal explicitly as static.
+
+	* variant.c: Declare _similar explicitly as static.
+
+	* array.c (_alloc): Removed the third and fourth arguments.  These
+	are no longer used.
+
+Sat Apr  1 14:08:23 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Fri Mar 24 13:30:10 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c, sequence.c, string.c, struct.c: Changed configuration
+	headers to be included.
+
+	* array.c (trim): Use MEMCLR instead of bzero.
+
+Thu Jan 26 07:08:59 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c (_cs2s): Support for the change of interface of
+        JPIO_decode.
+
+Sat Jan 21 08:14:07 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* any.c, array.c, bool.c, char.c, int.c, itertype.c, null.c,
+        oneof.c, proctype.c, real.c, record.c, sequence.c, string.c,
+        struct.c, variant.c: Doc fix.
+
+	* any.c, bool.c, char.c, int.c, null.c, oneof.c, real.c,
+        sequence.c, string.c, struct.c, variant.c: Use object instead of
+        elt, istream, clus, and gcd_tab.
+
+	* array.c, int.c, oneof.c, real.c, sequence.c, variant.c: Renamed
+        some local variables.
+
+	* any.c, bool.c, itertype.c, null.c, proctype.c, real.c,
+        variant.c: Formatted in the K&R coding style.
+
+	* array.c, record.c, variant.c (_similar): Renamed from
+        similar_body.
+
+	* array.c: Include <config.h>, <c/bzero.h>, and <c/memcpy.h>.
+	* sequence.c, struct.c: Include <config.h> and <c/memcpy.h>.
+
+	* record.c, struct.c (NR_COMPONENTS): New macro.
+
+	* any.c, array.c, bool.c, itertype.c, proctype.c (rcsid): Removed.
+
+	* sequence.c (_equal): New internal routine.
+
+	* oneof.c, struct.c (_equal): Renamed from equal_body.
+
+	* array.c, record.c, struct.c (_alloc): New hidden operation.
+
+	* itertype.c, proctype.c (equal, similar, copy): Use macro version
+        of themselves.
+
+	* bool.c, null.c: Use macro version of operations if available.
+
+	* variant.c: (make, value, encode, decode): Refined.
+	(is, equal): Simplified.
+	(v_gets_v, v_gets_o): Terminate in the normal condition.
+	(copy, copy1, decode): Use variant$make to create variant object.
+
+	* record.c, struct.c: Code refinement.
+
+	* string.c: Include <c/memcpy.h>.
+
+	* sequence.c: (s2a): Use array$_alloc and array$store instead of
+	array$predict and array$addh.
+	(equal, similar): Rewritten using _equal.
+	(decode): Refined.
+
+	* real.c: (conv, f2i, i2f): Moved from the <clu2c/real.h> header.
+	(NONINTEGRAL): New macro.
+	(power): Refined.
+	(abs): Make use of the fabs function.
+	(r2i, mantissa, parse): Rewritten.
+	(exponent): Do well even if the argument is negative.
+
+	* oneof.c: (o2v): Use variant$make to create variant object.
+	(v2o): Use oneof$make to create oneof object.  Do not have direct
+	access to the internal representation of variant object.
+	(copy): Use oneof$make to create oneof object.
+	(encode, decode): Refined code.
+	(print): Typo fix.
+
+	* int.c: Do not include the <math.h> header.  Make use of macro
+	for accessing activation record of iterators.
+
+	* char.c (lit1, lit2): Removed.
+
+	* array.c (INIT_BASE, addh_malloc, addl_malloc): Removed.
+	(MIN_BSIZE): Renamed from INIT_SIZE.
+	(BOTH_SIDE, BOTTOM_SIDE, TOP_SIDE): New macros.
+	(_offset, _bsize): New macros.
+	(BOTTOM, BOUNDS, EMPTY, EQUAL, FETCH, HIGH, LOW, REMH, REML, SET_LOW,
+	SIZE, STORE, TOP, _BSIZE, _OFFSET): New macros, which are
+	abbreviations for array operations.
+	(create, copy, copy1): Rewritten using _alloc.
+	(new): Pass the condition of create to the caller.
+	(predict): Rewritten using _alloc and _shrink.
+	(fill, fill_copy, cons2): Use _alloc instead of predict.
+	(trim): Rewritten using _shrink.
+	(addh, addl): Rewritten using _shift and _extend_buffer.
+	(elements, indexes, encode, decode, print): Refined.
+	(cons2): Do not access directly to rep of sequence.
+	(_shift, _extend_buffer, _shrink): New internal routines.
+
+Mon Jan 16 08:37:32 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c: Include <config.h>.  Include <jpio.h> if Japanized.
+	(decoder, buf, bufsize): New own variables.
+	(_cs2s): Does code conversion.
+
+Thu Oct  6 07:18:44 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c (indexc, indexs): Re-implemented non-Japanized version
+	using the strchr and strncmp functions.
+
+Tue Sep 27 13:13:42 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.c, struct.c, strlit.c, string.c, sequence.c, record.c,
+	real.c, oneof.c, null.c, int.c, char.c, bool.c, array.c: Support
+	for J10N switching.
+
+Mon Jul 12 18:01:37 1993  93M04218 mori akihito  <mori@is.titech.ac.jp>
+
+	* string.c, struct.c: Modified for MSDOS/X68000
+
+	* array.c (trim): Clear unused region of buffer.
+
+Tue Jun 15 04:39:05 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c
+
+	* array.c, sequence.c (fill_copy): New operation.  Moved from
+        builtin_param.c.
+
+	* sequence.c, struct.c, oneof.c (equal, similar, copy, encode,
+        decode): New operations.  Moved from builtin_param.c.
+
+	* array.c, record.c, variant.c (similar, similar1, copy, encode,
+        decode): New operations.  Moved from builtin_param.c.
+
+Tue Jun  1 13:12:35 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* char.c (width): New operation.  Renamed from length.
+	* string.c (width): Likewise.
+
+Sat Apr 17 06:36:48 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.c, struct.c, strlit.c, string.c, sequence.c, record.c,
+	real.c, proctype.c, oneof.c, null.c, itertype.c, int.c, char.c,
+	bool.c, array.c, any.c: Changed the include directory conventions.
+
+Tue Feb 16 12:02:51 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* sequence.c, string.c, int.c, array.c (iter_end): Removed.
+
+Mon Dec 28 03:52:23 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.c, struct.c, record.c, real.c, proctype.c, oneof.c,
+	null.c, itertype.c, int.c, char.c, bool.c, any.c: Changed the
+	naming conventions.
+
+Fri Dec  4 04:19:11 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* array.c (cons2): Bug fix.
+
+Sun Nov 29 01:53:37 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* array.c, sequence.c, string.c: The data structure of array was
+        changed.
+
+Sat Oct 24 13:17:08 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.c, struct.c, string.c, sequence.c, record.c, real.c,
+	oneof.c, null.c, int.c, char.c, bool.c, array.c, any.c: Japanese
+	support.
+
+	* strlit.c: New file.
+
+Wed Sep 23 08:45:58 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* Version 1.1 released.
+
+Thu Jul 16 03:57:40 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c (cons, cons2): New operations.
+
+	* array.c, bool.c, char.c, int.c, null.c, oneof.c, real.c,
+        record.c, sequence.c, string.c, struct.c, variant.c (print): New
+        operation.
+
+	* array.c, bool.c, char.c, int.c, null.c, oneof.c, real.c,
+        record.c, sequence.c, string.c, struct.c, variant.c (_gcd): New
+        operation
+        (stub version).
+
+Thu Jul  9 11:20:04 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* string.c (sc2s): Fixed a bug.
+
+Tue Jul  7 09:13:03 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* int.c (mod): Fixed a bug.
+
+Mon Jun  8 09:42:15 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (lit): Modified.
+
+Wed Jun  3 08:09:28 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (minus): Modified.
+
+	* real.c (lit): New internal operation.
+
+Tue Jun  2 13:54:58 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.c (i2f): This macro doesn't work as expected in a complex
+	expression.  Worked around this problem with temporary
+	variable. (Imaichi!)
+
+Sat Apr 18 20:45:08 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* itertype.c, proctype.c: Include headers.
+
+	* any.c: New file.
+
+Sat Apr  4 20:56:58 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* proctype.c, itertype.c: New files.
+
+Sat Mar 21 19:19:44 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* oneof.c, variant.c: Removed obsolete declarations.
+
+	* struct.c, record.c: Do not include <param.h>.
+
+Thu Mar 19 19:14:56 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* int.c (div, mod): Modified.
+
+Mon Mar 16 18:42:32 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.c, struct.c, string.c, sequence.c, record.c, real.c,
+	oneof.c, null.c, int.c, char.c, bool.c, array.c: Doc fix
+	(copyright notice).
+
+Sat Mar 14 16:48:05 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.c: Various modifications for efficiency (all of this done
+        by T. Ehara).
+	(rest): Bug fix.
+
+Thu Jan  9 16:41:16 1992  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* string.c (substr): Bug fix.
+
+Tue Dec 24 01:13:59 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* array.c, oneof.c, variant.c, struct.c, record.c, sequence.c:
+        Removed parameterized operations.
+
+Wed Dec 18 17:49:34 1991  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* string.c (indexs): Use strncmp.
+	(c2s, append): Simplified size specification for allocation.
+	(rest): Use strcpy.
+	(substr): Use strncpy.
+	(lt, le, gt, ge): Simplified.
+	(equal, similar): Do not cast the result of strcmp.
+
+Tue Dec 10 19:43:40 1991  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* string.c: (empty, indexs, equal, similar): Simplified.
+	(concat): Use strcpy.
+
+Tue Nov 19 22:41:12 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c, variant.c, oneof.c, struct.c, record.c, sequence.c
+        (encode): Modified.
+
+Fri Nov 15 22:25:48 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c, variant.c, oneof.c, struct.c, record.c, sequence.c
+        (encode, decode): Enables to treat cyclic objects.
+
+Fri Nov  8 19:19:25 1991  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* string.c (ge): Bug fix.
+
+Sat Nov  2 18:23:50 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.c, struct.c, string.c, sequence.c, record.c, real.c,
+        null.c, oneof.c, int.c, char.c, bool.c, array.c (encode, decode):
+        New operations.
+
+Fri Jul 19 08:47:15 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* string.c (append): Allocate a result with a correct size.
+
+Sat Jul 13 14:44:42 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* int.c, real.c, string.c: Use malloc_atomic to allocate atomic
+        objects.
+
+Tue Jul  9 18:25:26 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* struct.c: Typo fix.
+
+	* record.c (r_gets_s, similar1): New operations.
+
+	* record.c, struct.c, variant.c: Bug fix about exception handler.
+
+Tue Jul  9 15:59:30 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c (fill_copy): New operation.
+
+Mon Jul  8 18:18:00 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* real.c (exponent, mantissa, parse): Modified.
+
+Sun Jul  7 03:20:08 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* real.c (abs, power, parse): Modified
+
+Sat Jul  6 23:44:23 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* real.c (parse): Modified (not completed).
+
+	* real.c (exponent): Modified.
+
+Fri Jul  5 00:01:28 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* real.c (parse): Modified.
+
+Thu Jul  4 23:58:15 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* real.c (parse): Bug fix.
+
+Thu Jul  4 21:00:57 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* real.c (unparse): Use %e instead of %f for sprintf format
+        specification.
+
+Wed Jul  3 16:51:00 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c (addl): Bug fix.
+
+Tue Jul  2 04:10:29 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* array.c (predict): Do well with negative size.
+
+Tue Jul  2 00:15:35 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* array.c, bool.c, char.c, null.c, oneof.c, real.c, record.c,
+        sequence.c, string.c, struct.c, variant.c: Changed header
+        specification.  C compiler must be given -I option to compile
+        these files.
+
+Mon Jul  1 22:37:53 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c (addh, addl): Bug fix.
+
+Sat Jun 29 22:53:39 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* real.c (power): Modified
+
+	* real.c: Dox fix.
+
+Fri Jun 28 21:33:47 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.c (copy1, similar1): New operations.
+
+Fri Jun 28 21:25:45 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* oneof.c (equal, similar, copy): New operations by Mr. jibiki.
+
+	* variant.c (copy): New operation.
+
+Fri Jun 28 20:29:30 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.c (similar): New operation.
+
+Fri Jun 28 19:14:24 1991  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* string.c (indexs): Bug fix.
+	(append): Use strcpy.
+
+Fri Jun 28 18:44:55 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* struct.c (replace): Bug fix.
+
+Fri Jun 28 18:42:47 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* struct.c (similar, copy): New operations.
+
+Fri Jun 28 16:38:28 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* sequence.c (fill_copy, equal, similar, copy): New operations.
+
+Fri Jun 28 15:18:56 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* sequence.c (e2s): Modified.
+
+Thu Jun 27 20:58:39 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.c (similar, similar1, copy): New operations.
+
+Wed Jun 26 21:18:29 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* record.c: Include "../include/param.h".
+
+	* record.c (similar, copy): New operations.
+
+Wed Jun 26 17:26:32 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* real.c (div): Signal zero_divide if the second argument is zero.
+
+	* real.c: Changed how to apply f2i.
+
+Mon Jun 24 17:54:37 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* real.c, int.c (parse): Corrected exception name ("bat format" ->
+        "bad_format").
+
+Sat Jun 22 23:07:34 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* real.c (mantissa): New operation.
+
+	* sequence.c (indexes): New operation.
+
+	* sequence.c (subseq): Modified.
+
+Sat Jun 22 03:20:12 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* int.c (parse): Fixed a bug that signal bad_format if the
+        argument is "0".
+
+Wed Jun 19 15:59:20 1991  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* variant.c, struct.c, string.c, sequence.c, record.c, real.c,
+	oneof.c, null.c, int.c, char.c, bool.c: New files.

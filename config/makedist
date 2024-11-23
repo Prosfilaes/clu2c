@@ -1,0 +1,112 @@
+#! /bin/sh
+
+# makedist - make distribution
+#
+# Copyright (c) 1996
+#	Department of Mathematical and Computing Sciences,
+#	Tokyo Institute of Technology.  All rights reserved.
+#
+# Usage: makedist [ -d ] [ -p ] distname curdir files...
+#
+# $Id: makedist,v 2.0 1996/06/10 09:06:15 ushijima Exp $
+
+usage='Usage: makedist [ -d ] [ -p ] distname curdir files...'
+dos=no
+pretrans=no
+debug=:
+
+top_srcdir=`expr $0 : '\(.*\)/config/makedist'`
+$debug "top_srcdir=$top_srcdir"
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+	-d)
+		dos=yes
+		;;
+	-p)
+		pretrans=yes
+		;;
+	*)
+		if [ -z "$distname" ]; then
+			distname="$1"
+		elif [ -z "$curdir" ]; then
+			curdir="$1"
+		else
+			break
+		fi
+		;;
+	esac
+	shift
+done
+$debug "dos=$dos"
+$debug "pretrans=$pretrans"
+$debug "distname=$distname"
+$debug "curdir=$curdir"
+
+if [ -z "$distname" -o -z "$curdir" -o $# = 0 ]; then
+	echo $usage 1>&2
+	exit 2
+fi
+
+case "$curdir" in
+.)
+	topdir=.
+	;;
+*)
+	topdir=`echo "$curdir" | sed 's|[^/][^/]*|..|g'`
+	;;
+esac
+$debug "topdir=$topdir"
+
+if [ $curdir = . ]; then
+	dir="$topdir/$distname"
+elif [ $pretrans = yes ]; then
+	dir="$topdir/$distname/$curdir/pretrans"
+else
+	dir="$topdir/$distname/$curdir"
+fi
+$debug "dir=$dir"
+
+if [ $dos = yes ]; then
+	copy="$top_srcdir/config/dosfile"
+else
+	copy='cp -p'
+fi
+$debug "copy=$copy"
+
+echo creating "$dir"
+mkdir "$dir"
+chmod 777 "$dir"
+
+echo -n copying
+for src in "$@"; do
+	echo -n " $src"
+	dst="$dir/$src"
+	case "$src" in
+	*.info)
+		if [ $dos = yes ]; then
+			sed 's/\.info-\([0-9][0-9]*\)/.i\1/' "$src" >"$src.dos"
+			$copy "$src.dos" "$dst"
+			rm -f "$src.dos"
+		else
+			$copy "$src" "$dst"
+		fi
+		;;
+	*.info-*)
+		if [ $dos = yes ]; then
+			dst="$dir/"`echo "$src" | sed s/\.info-/.i/`
+		fi
+		$copy "$src" "$dst"
+		;;
+	*.lib)
+		cp -p "$src" "$dst"
+		;;
+	*)
+		$copy "$src" "$dst"
+		;;
+	esac
+	chmod a+r "$dst"
+done
+echo ''
+
+exit 0

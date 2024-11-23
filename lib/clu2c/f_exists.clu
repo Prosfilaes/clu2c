@@ -1,0 +1,27 @@
+% f_exists.clu - check whether file exists
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: f_exists.clu,v 2.0 1996/06/10 09:02:59 ushijima Exp $
+
+
+% Signals NOT_POSSIBLE if the existence of the file named FN can not
+% be determined due to some errors; returns true if the file named FN
+% exists; otherwise returns false.
+
+file_exists = proc(fn: file_name) returns(bool) signals(not_possible(string))
+    begin
+	_external_stat(file_name_to_string(fn))
+	return(true)
+    end
+	except when not_possible(why: string):
+	    error: string := _external_errname()
+	    if error = "ENOENT" | error = "ENOTDIR" then
+		return(false)
+	    else
+		signal not_possible(why)
+	    end
+	end
+end file_exists

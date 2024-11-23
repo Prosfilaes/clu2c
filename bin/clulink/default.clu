@@ -1,0 +1,204 @@
+% default.clu - system default
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: default.clu,v 2.2 1996/08/07 14:15:56 ushijima Exp $
+
+
+system_default = cluster is create, get_cc, get_cc_flags,
+		 get_lib_dirs, get_libs, get_output, get_coff2exe
+
+
+    % Representation.
+
+    rep = record[
+	cc:       string,	% C compiler
+	cc_flags: string,	% flags to C compiler
+	lib_dirs: sf,		% library directories
+	libs:     ss,		% libraries used when linking
+	output:   file_name,	% name of the output file
+	coff2exe: string	% COFF-to-EXE converter (DJGPP only)
+    ]
+
+    sf = sequence[file_name]
+    ss = sequence[string]
+
+    % Support for read_definition.
+
+    definition = record[
+	cc:       string,	% C compiler
+	libs:     ss,		% flags to C compiler
+	coff2exe: string	% COFF-to-EXE converter (DJGPP only)
+    ]
+
+
+    % Operations.
+
+
+    % Signals NOT_POSSIBLE if the definition file can not be read;
+    % otherwise returns the system default.
+
+    create = proc() returns(cvt) signals(not_possible(string))
+	def: definition := read_definition()
+	    resignal not_possible
+	default: rep := rep${
+	    cc:       def.cc,
+	    cc_flags: default_cc_flags(),
+	    lib_dirs: default_lib_dirs(),
+	    libs:     default_libs() || def.libs,
+	    output:   default_output(),
+	    coff2exe: def.coff2exe
+	}
+	return(default)
+    end create
+
+
+    % Returns the name of the default C compiler.
+
+    get_cc = proc(default: cvt) returns(string)
+	return(default.cc)
+    end get_cc
+
+
+    % Returns the default flags to the C compiler.
+
+    get_cc_flags = proc(default: cvt) returns(string)
+	return(default.cc_flags)
+    end get_cc_flags
+
+
+    % Returns the default library directories.
+
+    get_lib_dirs = proc(default: cvt) returns(sf)
+	return(default.lib_dirs)
+    end get_lib_dirs
+
+
+    % Returns the default library specification for linking.
+
+    get_libs = proc(default: cvt) returns(ss)
+	return(default.libs)
+    end get_libs
+
+
+    % Returns the default name of the output file.
+
+    get_output = proc(default: cvt) returns(file_name)
+	return(default.output)
+    end get_output
+
+
+    % Returns the default name of the COFF-to-EXE converter.
+
+    get_coff2exe = proc(default: cvt) returns(string)
+	return(default.coff2exe)
+    end get_coff2exe
+
+
+    % Internal routines.
+
+
+    % Returns the default flags to the C compiler.
+
+    default_cc_flags = proc() returns(string)
+	includedir: file_name := file_name$create("~CLU", "include", "", "")
+	includedir := file_name_expand_home_directory(includedir)
+	return("-I" || file_name$unparse(includedir) || " -w")
+    end default_cc_flags
+
+
+    % Returns the default library directories.
+
+    default_lib_dirs = proc() returns(sf)
+	return(sf$[file_name$create("~CLU", "lib", "" , "")])
+    end default_lib_dirs
+
+
+    % Returns the default library specification.
+
+    default_libs = proc() returns(ss)
+	return(ss$["clu2c"])
+    end default_libs
+    
+
+    % Returns the default name of the output file.
+
+    default_output = proc() returns(file_name)
+	output: file_name := file_name$create("", "a", "out", "")
+	return(output)
+    end default_output
+
+
+    % Signals NOT_POSSIBLE if the definition file can not be read for
+    % some reason; otherwise returns the definition described in the
+    % definition file.
+
+    read_definition = proc() returns(definition) signals(not_possible(string))
+	cc: string := "cc"
+	libs: ss := ss$["m"]
+	coff2exe: string := ""
+	fn: file_name := definition_file_name()
+	input: stream := stream$open(fn, "read")
+	    except when not_possible(why: string):
+		signal not_possible(file_name$unparse(fn) || ": " || why)
+	    end
+	while true do
+	    line: string := stream$getl(input)
+	    i: int := string$indexc('=', line)
+	    if i = 0 then
+		continue
+	    end
+	    name: string := string$substr(line, 1, i - 1)
+	    value: string := string$rest(line, i + 1)
+	    if name = "CC" then
+		cc := value
+	    elseif name = "LIBS" then
+		libs := ss$new()
+		for s: string in words(value) do
+		    if string$size(s) > 2 cand string$indexs("-l", s) = 1 then
+			libs := ss$addh(libs, string$rest(s, 3))
+		    end
+		end
+	    elseif name = "COFF2EXE" then
+		coff2exe := value
+	    end
+	end
+	    except when end_of_file: end
+	stream$close(input)
+	return(definition${cc: cc, libs: libs, coff2exe: coff2exe})
+    end read_definition
+
+
+    % Splits string into words.
+
+    words = iter(s: string) yields(string)
+	i: int := 1
+	while true do
+	    while s[i] = ' ' do
+		i := i + 1
+	    end
+	    j: int := i + 1
+	    while s[j] ~= ' ' do
+		j := j + 1
+	    end
+		except when bounds:
+		    yield(string$rest(s, i))
+		    return
+		end
+	    yield(string$substr(s, i, j - i))
+	    i := j + 1
+	end
+	    except when bounds: end
+    end words
+
+
+    % Returns the name of the definition file.
+
+    definition_file_name = proc() returns(file_name)
+	return(file_name$create("~CLU/lib", "clulink", "def", ""))
+    end definition_file_name
+
+
+end system_default

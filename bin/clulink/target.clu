@@ -1,0 +1,167 @@
+% target.clu - target that depends on other targets
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: target.clu,v 2.0 1996/06/10 09:05:20 ushijima Exp $
+
+
+% TARGET is a mutable object that corresponds to a file.  A TARGET
+% depends on zero or more prerequisite targets.  A TARGET also has an
+% action which is executed when making the file corresponding to the
+% target up to date.
+
+target = cluster is create, get_name, add_prereq, set_action, make
+
+
+    % Representation.
+
+    rep = record[
+	name:   file_name,	% name of the target file
+	prereq: target_list,	% list of prerequsite targets
+	action: string		% action to be taken when updating the target
+    ]
+
+    target_list = array[target]
+
+
+    % Operations.
+
+
+    % Returns a new target that corrensponds to the file named NAME.
+
+    create = proc(name: file_name) returns(cvt)
+	prereq: target_list := target_list$new()
+	t: rep := rep${name: name, prereq: prereq, action: ""}
+	return(t)
+    end create
+
+
+    % Returns the name of the file that corresponds to T.
+
+    get_name = proc(t: cvt) returns(file_name)
+	return(t.name)
+    end get_name
+
+
+    % Modifies T.  Add PREREQ to the list of prerequisite targets of
+    % T.
+
+    add_prereq = proc(t: cvt, prereq: target)
+	target_list$addh(t.prereq, prereq)
+    end add_prereq
+
+
+    % Modifies T so that the action to be executed when making the
+    % file correspoding to T up to date is ACTION.
+
+    set_action = proc(t: cvt, action: string)
+	t.action := action
+    end set_action
+
+
+    % Tries to make the file corresponding to T up to date.  Puts the
+    % course of the making process to LOG.  Signals UP_TO_DATE if the
+    % file corresponding to T is already up to date; signals
+    % NOT_POSSIBLE if the file corresponding to T or at least of of
+    % its prerequisite targets could not be made up to date.
+
+    make = proc(t: cvt, log: logger, forced: bool)
+	   signals(up_to_date, not_possible(string))
+	system = _external_system
+	up_to_date: bool := false
+	if file_exists(t.name) then
+	    up_to_date := true
+	end
+	for prereq: target in target_list$elements(t.prereq) do
+	    target$make(prereq, log, forced)
+		except
+		when up_to_date:
+		when not_possible(why: string):
+		    signal not_possible(why)
+		end
+	    if ~file_is_newer_than_file(t.name, prereq.name) then
+		up_to_date := false
+	    end
+	end
+	name: string := file_name$unparse(t.name)
+	if up_to_date cand ~forced then
+	    signal up_to_date
+	elseif ~string$empty(t.action) then
+	    logger$message(log, log_normal, "creating " || name)
+	    action: string := expand_action(t)
+	    logger$message(log, log_verbose, action)
+	    system(action)
+	    if ~file_exists(t.name) then
+		logger$message(log, log_silent, "couldn't create " || name)
+		signal not_possible("compilation failure")
+	    end
+	elseif ~file_exists(t.name) then
+	    signal not_possible(name || ": nonexistent")
+	end
+    end make
+
+
+    % Return true if two files named FN1 and FN2 exist and the file
+    % named FN1 is newer than the file named FN2; otherwise returns
+    % false.
+
+    file_is_newer_than_file = proc(fn1, fn2: file_name) returns(bool)
+			      signals(not_possible(string))
+	date1, date2: date
+	begin
+	    date1 := file_date(fn1, false)
+	    date2 := file_date(fn2, false)
+	end
+	    except when not_possible(*):
+		return(false)
+	    end
+	return(date1 > date2)
+    end file_is_newer_than_file
+
+
+    % Here makefile convention is used: `$@' expands to the name of
+    % the target; `$<' expands to the names of prerequisites.  A `$'
+    % character followed by any other character or a `$' character at
+    % the end of the format string has no effect.
+
+    expand_action = proc(t: rep) returns(string)
+	format: string := t.action
+	result: string := ""
+	while ~string$empty(format) do
+	    i: int := string$indexc('$', format)
+	    if i = 0 then
+		result := result || format
+		break
+	    end
+	    result := result || string$substr(format, 1, i - 1)
+	    format := string$rest(format, i + 1)
+	    c: char := format[1]
+		except when bounds:
+		    result := string$append(result, '$')
+		    break
+		end
+	    if c = '@' then
+		result := result || file_name$unparse(t.name)
+		format := string$rest(format, 2)
+	    elseif c = '<' then
+		first: bool := true
+		for prereq: target in target_list$elements(t.prereq) do
+		    if first then
+			first := false
+		    else
+			result := string$append(result, ' ')
+		    end
+		    result := result || file_name$unparse(prereq.name)
+		end
+		format := string$rest(format, 2)
+	    else
+		result := string$append(result, '$')
+	    end
+	end
+	return(result)
+    end expand_action
+
+
+end target

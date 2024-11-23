@@ -1,0 +1,23 @@
+% objects.clu - object targets
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: objects.clu,v 2.0 1996/06/10 09:05:13 ushijima Exp $
+
+
+% Yields each target that corresponds to an object file.
+
+object_targets = iter(u: user) yields(target)
+    for source: target in source_targets(u) do
+	name: file_name := file_name$create("", source.name.name, "o", "")
+	object: target := target$create(name)
+	target$add_prereq(object, source)
+	object.action := u.cc || " " || u.cc_flags || " -c $<"
+	yield(object)
+    end
+    for fn: file_name in user$objects(u) do
+	yield(target$create(fn))
+    end
+end object_targets

@@ -1,0 +1,52 @@
+% sources.clu - source targets
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: sources.clu,v 2.1 1996/08/07 14:15:57 ushijima Exp $
+
+
+% Yields each target that corresponds to C source file.
+
+source_targets = iter(u: user) yields(target)
+    pout: target := target$create(file_name$create("", "op-table", "c", ""))
+    for name: file_name in user$sources(u) do
+	if name = pout.name then
+	    continue
+	end
+	source: target := target$create(name)
+	yield(source)
+	target$add_prereq(pout, source)
+    end
+    for name: file_name in user$objects(u) do
+	source: file_name
+	    := file_name$create(name.dir, name.name, "c", name.other)
+	if file_exists(source) then
+	    target$add_prereq(pout, target$create(source))
+	end
+	    except when not_possible(*): end
+    end
+    for lib: string in user$libs(u) do
+	archive: file_name := file_name$create("", "lib" || lib, "a", "")
+	for dir: file_name in user$lib_dirs(u) do
+	    archive := file_name$create(file_name_to_string(dir),
+					archive.name,
+					archive.suffix,
+					archive.other)
+	    if file_exists(archive) then
+		fn: file_name := file_name$create(archive.dir,
+						  archive.name,
+						  "c",
+						  archive.other)
+		if file_exists(fn) then
+		    target$add_prereq(pout, target$create(fn))
+		    break
+		end
+	    end
+		except when not_possible(*): end
+	end
+    end
+    pout.action := u.plink || " $<"
+    yield(pout)
+end source_targets

@@ -1,0 +1,139 @@
+
+
+######################################################################
+#
+# Makefile.dos.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = lib\built-in
+
+# Top-level build directory
+topdir = ../..
+
+# Default flags to the C compiler
+DEFAULT_CFLAGS = -I$(top_srcdir)/include -I$(topdir)
+
+# All the flags to the C compiler
+ALL_CFLAGS = $(DEFAULT_CFLAGS) $(CFLAGS)
+
+# Archive file
+ARCHIVE = ../libclu2c.a
+
+
+#### Source files ####
+
+# C source files
+C_SRC = $(C_SRC_1) $(C_SRC_2) $(C_SRC_3)
+C_SRC_1 = null.c bool.c int.c real.c char.c string.c any.c
+C_SRC_2 = array.c sequence.c record.c struct.c oneof.c variant.c
+C_SRC_3 = proctype.c itertype.c
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README built-in.spc
+
+# All the source files
+ALL_SRC = $(C_SRC) $(MISC_SRC)
+
+
+#### Created files ####
+
+# Object files compiled from C source files
+C_OBJ = $(C_OBJ_1) $(C_OBJ_2) $(C_OBJ_3)
+C_OBJ_1 = null.o bool.o int.o real.o char.o string.o any.o
+C_OBJ_2 = array.o sequence.o record.o struct.o oneof.o variant.o
+C_OBJ_3 = proctype.o itertype.o
+
+# All the object files
+ALL_OBJ = $(C_OBJ)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all: archive
+
+# Copies all the products
+install: all
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)\built-in.spc $(clu2c_libdir)\built-in.spc
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove archive
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_3)
+
+# Makes clean
+clean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove archive
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_3)
+
+# Makes clean as disributed
+distclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove Makefile Makefile.top
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove archive
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_3)
+
+# Makes really clean
+realclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove Makefile Makefile.top
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove archive
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_3)
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+
+# Does some check
+check:
+
+
+#### Rules specific to this directory ####
+
+# string.c requires additional header directory
+string.o: $(srcdir)/string.c
+	$(CC) $(ALL_CFLAGS) -I$(top_srcdir)/lib/jaio -c $(srcdir)/string.c
+
+# Archives object files in this directory
+archive: $(ALL_OBJ)
+	$(AR) $(ARFLAGS) $(ARCHIVE) $(C_OBJ_1)
+	$(AR) $(ARFLAGS) $(ARCHIVE) $(C_OBJ_2)
+	$(AR) $(ARFLAGS) $(ARCHIVE) $(C_OBJ_3)
+	$(RANLIB) $(ARCHIVE)
+	echo archive > archive
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	copy Makefile.top+$(config_mk)+$(srcdir)\Makefile.dos Makefile
+
+# Forces a particular target to be made
+always:
+
+
+#### Suffix rules ####
+
+.SUFFIXES:
+.SUFFIXES: .o .c
+
+# Compiles C file to get object file
+.c.o:
+	$(CC) $(ALL_CFLAGS) -c $<

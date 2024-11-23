@@ -1,0 +1,17 @@
+% wdir.clu - get working directory
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: wdir.clu,v 2.3 1996/05/12 06:38:49 ushijima Exp $
+
+
+working_dir = proc() returns(string)
+    e: rt_env := rt_env$one()
+    work_dir: string := file_name$unparse(e.working_directory)
+	except when undefined:
+	    work_dir := ""
+	end
+    return(work_dir)
+end working_dir

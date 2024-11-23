@@ -1,0 +1,210 @@
+This is Info file clu2c.info, produced by Makeinfo-1.64 from the input
+file ./clu2c.texi.
+
+START-INFO-DIR-ENTRY
+* clu2c: (clu2c.info).  CLU2C User's Manual.
+END-INFO-DIR-ENTRY
+
+   CLU2C User's Manual, by Tetsu Ushijima.
+
+   This file documents CLU2C, an implementation of the programming
+language CLU.
+
+   Copyright (C) 1996, 1997 Department of Mathematical and Computing
+Sciences, Tokyo Institute of Technology.  All rights reserved.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+
+Indirect:
+clu2c.info-1: 852
+clu2c.info-2: 50817
+clu2c.info-3: 100678
+
+Tag Table:
+(Indirect)
+Node: Top852
+Node: Introduction1454
+Node: Basic Usage2072
+Node: Getting Started2703
+Node: Input Files4577
+Node: Invoking clu2c6673
+Node: Options for clu2c7401
+Node: Specifying Input Files11794
+Node: Default Suffix12789
+Node: Globbing Input Files13730
+Node: Indirect Specifications14282
+Node: Compiler Behavior15301
+Node: Invoking clulink16102
+Node: Advanced Usage17008
+Node: Command Syntax18291
+Node: Invocation Revisited19404
+Node: Options Conversion20186
+Node: Input Files Conversion21109
+Node: Compilation Environment22059
+Node: ce22897
+Node: xce23164
+Node: Interface Spec Lib23346
+Node: specs24160
+Node: dump24477
+Node: merge24720
+Node: unmerge25078
+Node: forget25456
+Node: newlib25684
+Node: Compilation Commands25858
+Node: compile26071
+Node: check26435
+Node: parse26616
+Node: Code Generator Options26800
+Node: allow27093
+Node: binsuf27577
+Node: char-version27938
+Node: debug28258
+Node: optimize28405
+Node: safe29003
+Node: string-version29390
+Node: Misc Commands29704
+Node: expunge30046
+Node: externals30316
+Node: force30602
+Node: help30827
+Node: locals31001
+Node: quit31225
+Node: xfile31395
+Node: Invoking plink31640
+Node: Changes to CLU32737
+Node: Lexical Changes32987
+Node: Start-up Procedure35921
+Node: Object-Oriented Invocation36783
+Node: Failure Result37596
+Node: Notes on File Names38625
+Node: File Name Components39223
+Node: Parsing Strings as File Names40824
+Node: Library42186
+Node: Directory Entries42488
+Node: directory_entry_names42784
+Node: File Operations43117
+Node: Kinds of Files43411
+Node: file_is_block_device43710
+Node: file_is_character_device44065
+Node: file_is_directory44449
+Node: file_is_fifo44787
+Node: file_is_regular45115
+Node: file_is_symbolic_link45445
+Node: File Name Handling45773
+Node: Accessing Components46130
+Node: file_name_nondirectory46414
+Node: file_name_drive47143
+Node: file_name_proper_directory47600
+Node: Transforming File Names47943
+Node: file_name_fill_directory48382
+Node: file_name_fill_suffix49000
+Node: file_name_apply_directory49580
+Node: file_name_absolutize49889
+Node: file_name_is_absolute50177
+Node: file_name_simplify50531
+Node: file_name_expand_home_directory50817
+Node: file_name_as_directory51241
+Node: directory_file_name51541
+Node: Specific File Names51792
+Node: current_directory51989
+Node: home_directory52317
+Node: Integer Handling52933
+Node: int_hex_parse53347
+Node: int_hex_unparse53826
+Node: int_oct_parse54250
+Node: int_oct_unparse54583
+Node: Mathematical Functions54862
+Node: Trigonometric Functions55475
+Node: acos55844
+Node: asin56195
+Node: atan56538
+Node: atan256795
+Node: cos57132
+Node: sin57360
+Node: tan57584
+Node: Hyperbolic Functions57819
+Node: cosh58055
+Node: sinh58309
+Node: tanh58545
+Node: Exponential and Logarithmic Functions58751
+Node: exp59012
+Node: log59298
+Node: log1059673
+Node: Power Functions60043
+Node: sqrt60299
+Node: Program Environment60598
+Node: Argument Vector61007
+Node: program_name61229
+Node: program_arguments61504
+Node: input_streams61807
+Node: Option Handling62688
+Node: getopt$create65902
+Node: getopt$create_long66577
+Node: getopt$options68111
+Node: getopt$get_optname68921
+Node: getopt$get_optarg69239
+Node: getopt$optarg_is_empty69622
+Node: getopt$optarg_is_full69980
+Node: getopt$get_optind70325
+Node: getopt$get_opterr70655
+Node: getopt$set_opterr71005
+Node: getopt$set_output71500
+Node: getopt$get_non_options71826
+Node: getopt$non_options72258
+Node: Environment Variables72692
+Node: System Command Execution73104
+Node: Program Termination73489
+Node: Misc Abstractions73879
+Node: Unsigned Integers74054
+Node: uint$create75105
+Node: uint$to_int75466
+Node: uint$add75834
+Node: uint$sub76085
+Node: uint$mul76333
+Node: uint$div76581
+Node: uint$mod76936
+Node: uint$max77306
+Node: uint$min77532
+Node: uint$lt77758
+Node: uint$le77996
+Node: uint$ge78250
+Node: uint$gt78507
+Node: uint$and78748
+Node: uint$or78977
+Node: uint$xor79213
+Node: uint$not79452
+Node: uint$shift79677
+Node: uint$parse80115
+Node: uint$hex_parse80520
+Node: uint$oct_parse80988
+Node: uint$unparse81446
+Node: uint$hex_unparse81753
+Node: uint$oct_unparse82200
+Node: uint$equal82528
+Node: uint$similar82816
+Node: uint$copy83065
+Node: Installation83262
+Node: Basic Installation83849
+Node: Configurations85027
+Node: Options85809
+Node: Presetting88350
+Node: MS-DOS Installation89580
+Node: Requirements90278
+Node: From Binary90804
+Node: From Source92287
+Node: Other Directory94566
+Node: Common Targets95866
+Node: Makefile Structure97404
+Node: Distribution98878
+Node: Copying99614
+Node: Index100678
+
+End Tag Table

@@ -1,0 +1,191 @@
+This is Info file clu2c.info, produced by Makeinfo-1.64 from the input
+file ./clu2c.texi.
+
+START-INFO-DIR-ENTRY
+* clu2c: (clu2c.info).  CLU2C User's Manual.
+END-INFO-DIR-ENTRY
+
+   CLU2C User's Manual, by Tetsu Ushijima.
+
+   This file documents CLU2C, an implementation of the programming
+language CLU.
+
+   Copyright (C) 1996, 1997 Department of Mathematical and Computing
+Sciences, Tokyo Institute of Technology.  All rights reserved.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+
+File: clu2c.info,  Node: Index,  Prev: Copying,  Up: Top
+
+Index
+*****
+
+* Menu:
+
+* ?:                                    help.
+* acos:                                 acos.
+* add on uint:                          uint$add.
+* allow:                                allow.
+* and on uint:                          uint$and.
+* arc cosine:                           acos.
+* arc sine:                             asin.
+* arc tangent <1>:                      atan2.
+* arc tangent:                          atan.
+* asin:                                 asin.
+* atan:                                 atan.
+* atan2:                                atan2.
+* base-ten logarithm:                   log10.
+* binsuf:                               binsuf.
+* ce:                                   ce.
+* CE:                                   Compilation Environment.
+* char-version:                         char-version.
+* check:                                check.
+* clu:                                  compile.
+* compilation environment:              Compilation Environment.
+* compile:                              compile.
+* copy on uint:                         uint$copy.
+* cos:                                  cos.
+* cosh:                                 cosh.
+* cosine:                               cos.
+* cosine, arc:                          acos.
+* cosine, hyperbolic:                   cosh.
+* create on getopt:                     getopt$create.
+* create on uint:                       uint$create.
+* create_long on getopt:                getopt$create_long.
+* current_directory:                    current_directory.
+* debug:                                debug.
+* directory_entry_names:                directory_entry_names.
+* directory_file_name:                  directory_file_name.
+* div on uint:                          uint$div.
+* drive specification:                  File Name Components.
+* dump:                                 dump.
+* equal on uint:                        uint$equal.
+* exp:                                  exp.
+* exponential functions:                Exponential and Logarithmic Functions.
+* expunge:                              expunge.
+* externals:                            externals.
+* file_is_block_device:                 file_is_block_device.
+* file_is_character_device:             file_is_character_device.
+* file_is_directory:                    file_is_directory.
+* file_is_fifo:                         file_is_fifo.
+* file_is_regular:                      file_is_regular.
+* file_is_symbolic_link:                file_is_symbolic_link.
+* file_name_absolutize:                 file_name_absolutize.
+* file_name_apply_directory:            file_name_apply_directory.
+* file_name_as_directory:               file_name_as_directory.
+* file_name_drive:                      file_name_drive.
+* file_name_expand_home_directory:      file_name_expand_home_directory.
+* file_name_fill_directory:             file_name_fill_directory.
+* file_name_fill_suffix:                file_name_fill_suffix.
+* file_name_is_absolute:                file_name_is_absolute.
+* file_name_nondirectory:               file_name_nondirectory.
+* file_name_proper_directory:           file_name_proper_directory.
+* file_name_simplify:                   file_name_simplify.
+* force:                                force.
+* forget:                               forget.
+* functions, exponential:               Exponential and Logarithmic Functions.
+* functions, hyperbolic:                Hyperbolic Functions.
+* functions, logarithmic:               Exponential and Logarithmic Functions.
+* functions, mathematical:              Mathematical Functions.
+* functions, power:                     Power Functions.
+* functions, trigonometric:             Trigonometric Functions.
+* ge on uint:                           uint$ge.
+* get_code on stream:                   Lexical Changes.
+* get_non_options on getopt:            getopt$get_non_options.
+* get_optarg on getopt:                 getopt$get_optarg.
+* get_opterr on getopt:                 getopt$get_opterr.
+* get_optind on getopt:                 getopt$get_optind.
+* get_optname on getopt:                getopt$get_optname.
+* getenv:                               Environment Variables.
+* getopt:                               Option Handling.
+* gt on uint:                           uint$gt.
+* help:                                 help.
+* hex_parse on uint:                    uint$hex_parse.
+* hex_unparse on uint:                  uint$hex_unparse.
+* home_directory:                       home_directory.
+* hyperbolic cosine:                    cosh.
+* hyperbolic functions:                 Hyperbolic Functions.
+* hyperbolic sine:                      sinh.
+* hyperbolic tangent:                   tanh.
+* input_streams:                        input_streams.
+* int_hex_parse:                        int_hex_parse.
+* int_hex_unparse:                      int_hex_unparse.
+* int_oct_parse:                        int_oct_parse.
+* int_oct_unparse:                      int_oct_unparse.
+* kill:                                 quit.
+* le on uint:                           uint$le.
+* locals:                               locals.
+* log:                                  log.
+* log10:                                log10.
+* logarithm, base-ten:                  log10.
+* logarithm, natural:                   log.
+* logarithmic functions:                Exponential and Logarithmic Functions.
+* lt on uint:                           uint$lt.
+* mathematical functions:               Mathematical Functions.
+* max on uint:                          uint$max.
+* merge:                                merge.
+* min on uint:                          uint$min.
+* mod on uint:                          uint$mod.
+* mul on uint:                          uint$mul.
+* natural logarithm:                    log.
+* newlib:                               newlib.
+* non_options on getopt:                getopt$non_options.
+* not on uint:                          uint$not.
+* oct_parse on uint:                    uint$oct_parse.
+* oct_unparse on uint:                  uint$oct_unparse.
+* optarg_is_empty on getopt:            getopt$optarg_is_empty.
+* optarg_is_full on getopt:             getopt$optarg_is_full.
+* optimize:                             optimize.
+* options on getopt:                    getopt$options.
+* or on uint:                           uint$or.
+* parse:                                parse.
+* parse on uint:                        uint$parse.
+* PI:                                   Trigonometric Functions.
+* power functions:                      Power Functions.
+* program_arguments:                    program_arguments.
+* program_name:                         program_name.
+* quit:                                 quit.
+* safe:                                 safe.
+* set_code on stream:                   Lexical Changes.
+* set_opterr on getopt:                 getopt$set_opterr.
+* set_output on getopt:                 getopt$set_output.
+* shift on uint:                        uint$shift.
+* similar on uint:                      uint$similar.
+* sin:                                  sin.
+* sine:                                 sin.
+* sine, arc:                            asin.
+* sine, hyperbolic:                     sinh.
+* sinh:                                 sinh.
+* specs:                                specs.
+* sqrt:                                 sqrt.
+* square root:                          sqrt.
+* string-version:                       string-version.
+* sub on uint:                          uint$sub.
+* system:                               System Command Execution.
+* tan:                                  tan.
+* tangent:                              tan.
+* tangent, arc <1>:                     atan2.
+* tangent, arc:                         atan.
+* tangent, hyperbolic:                  tanh.
+* tanh:                                 tanh.
+* terminate:                            Program Termination.
+* to_int on uint:                       uint$to_int.
+* trigonometric functions:              Trigonometric Functions.
+* uint:                                 Unsigned Integers.
+* unmerge:                              unmerge.
+* unparse on uint:                      uint$unparse.
+* width on char:                        Lexical Changes.
+* width on string:                      Lexical Changes.
+* xce:                                  xce.
+* xfile:                                xfile.
+* xor on uint:                          uint$xor.
+
+

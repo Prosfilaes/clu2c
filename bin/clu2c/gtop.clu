@@ -1,0 +1,302 @@
+% gtop.clu - top-level generator
+%
+% Copyright (c) 1992, 1996, 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: gtop.clu,v 2.16 1997/02/05 09:55:36 ushijima Exp $
+
+
+% Generates code for a module definition.
+
+g_definition = proc(e: g_env, def: definition)
+    tagcase def
+    tag apply(d: applydefn):
+ 	g_applydefn(e, d)
+    tag cluster_(d: typedefn):
+	g_typedefn(e, d)
+    others:
+	% no code generation for equates, selector, and applytype.
+    end
+end g_definition
+
+
+% Generates code for procedure or iterator definition.
+
+g_applydefn = proc(e: g_env, def: applydefn)
+    co: code_man := e.co
+
+    info: str := " depend," || def.idn.str
+    for r: str in as$elements(def.references) do
+	info := info || "," || r
+    end
+    code_man$info(co, info)
+
+    % generate code
+    code_man$putl(co, "\n/* begin module */")
+    g_apply(e, def)
+    code_man$putl(co, "/* end module */")
+
+    % error check.
+    if e.err > none then
+	g_env$err(e, "\n** generator failed ** module name is " || e.rname)
+    end
+
+end g_applydefn
+
+
+% Genetates code for procedure or iterator.
+
+g_apply = proc(e: g_env, def: applydefn)
+    co: code_man := e.co
+    db: dbinfo := e.db 
+
+    % initialize environments.
+    g_env$begin_apply(e, def)
+    lv$begin_scope()
+    func_name: str := g_name_routine(e.rname) 
+    dbinfo$begin_routine(db, def.idn.str, e.rtype, def.start_line, def.end_line)
+    code_man$putl(co, "/* c_function_name, " || func_name || " */")
+    code_man$putl(co, "/* clu_operation_name, " || e.rname || " */")
+    code_man$begin_func(co, func_name)
+
+    % arguments.
+    g_args(e, def.args, def.start_line, def.end_line)
+
+    code_man$begin_block(co)
+
+    % declare routine own variables.
+    routine_own$declare(e, def.init , def.end_line)
+
+    % initialize own variables of the current cluster (if any).  Note
+    % that initialization code is not generated if this routine is a
+    % initialization routine, in order to avoid infinite loop.
+    if g_env$in_cluster(e) cand def.idn.str ~= "#initown" then
+	cluster_own$put_init(e)
+	    except when no_init: end
+    end    
+
+    % initialize routine own variables (if any).
+    routine_own$put_init(e, def.end_line)
+	except when no_init: end
+
+    code_man$putl(co, "/* begin body */")
+    if cmpvar$debug() then
+	code_man$putl(co, "nop();")
+    end
+
+    % generate code for each statement.
+    for s: stmt in stmtlist$elements(def.body) do
+	g_stmt(e, s, stmtlist$top(def.body).line)
+    end
+    code_man$putl(co, "/* end body */")
+
+    % debugging information for the position of the end of routine.
+    dbinfo$line_info(db, def.end_line)
+
+    % determine the name of this routine for the result of the failure
+    % exception for unhandled exception and/or no return values.  In
+    % optimizing mode, the name is set to the empty string.
+    rname: str
+    if cmpvar$optimize() then
+	rname := string_expr(e, "")
+    else
+	rname := string_expr(e, e.rname)
+    end
+
+    % generate code for returning to caller.
+    if e.rtype = "itertype" then
+	code_man$putl(co, "return(RET);")
+    elseif typelist$empty(def.vals) then
+	code_man$putl(co, "return(RET);")
+    else
+	% signal `failure' if the routine is a procedure with some
+	% results and the control reaches here (i.e., no return
+	% value).
+	begin
+	    tagcase stmtlist$top(def.body).abs
+	    tag return_:
+		exit explicit_return
+	    others:
+	    end
+		except when bounds: end
+	    code_man$putl(co, "noretval(" || rname || ");")
+	    code_man$putl(co, "return(SIG);")
+	end
+	    except when explicit_return: end
+    end
+
+    % generate declarations of top-level local variables and all
+    % temporary variables.
+    lv$put_all_decls(e)
+
+    % generate prologue (iterator only).
+    if e.rtype = "itertype" then
+	g_iter_prologue(e, def.args)
+    end
+
+    % generate the outermost exception handler.
+    code_man$put_label(co, e.current_handler)
+    if cmpvar$debug() then
+	code_man$putl(co, "catch_failure(ivk_name, ivk_line);")
+    end
+    code_man$putl(co, "out_handler(" || rname || ");")
+    code_man$putl(co, "return(SIG);")
+
+    lv$end_scope()
+    code_man$end_block(co)			% end of function body
+
+    if e.rtype = "itertype" then
+	for name, val: str in lv$iter_defs() do
+	    code_man$putl(co, "#undef " || name)
+	end
+    end
+
+    routine_own$undeclare()
+    g_env$end_apply(e)
+    dbinfo$end_routine(db)
+
+end g_apply
+
+
+% Generates argument declarations specified in `args'.  `parmed'
+% specifies whether the current routine is parameterized.  `rtype'
+% specifies the type of the current routine, whose value is either
+% "proctype" or "itertype".
+
+g_args = proc(e: g_env, args: decllist, scope_start: int, scope_end: int)
+    co: code_man := e.co
+    db: dbinfo := e.db
+
+    if e.routine_parmed then
+	code_man$add_arg(co, "param_info", "*", "pi", "", "")
+    end
+    if e.rtype = "itertype" then
+	code_man$add_arg(co, "bool", "", "init", "", "")
+	code_man$add_arg(co, "int", "**", "ivarp", "", "")
+    end
+    for d: decl in decllist$elements(args) do
+	t: typespec := g_normalize_type(e, d.type_, cvt_down)
+	ctype: str := g_name_type(g_cluname_type(t))
+	for i: idn in idnlist$elements(d.idns) do
+	    argname: str := i.str
+	    vi: str := ""
+	    if cmpvar$debug() then
+		dbinfo$type_info(db, e,t)
+		vi := dbinfo$local_var_info(
+		    db,
+		    argname, 
+		    conv_localvar(argname), 
+		    t.id, 
+		    scope_start,
+		    scope_end
+		)
+	    end
+	    code_man$add_arg(co, ctype, "", conv_localvar(i.str), "", vi)
+	    lv$decl(i, t, ARG, e.rtype, scope_start, scope_end)
+	end
+    end
+    code_man$flush_arg(co)
+end g_args
+
+
+% Generates code for iterator prologue.
+
+g_iter_prologue = proc(e: g_env, args: decllist)
+    co: code_man := e.co
+
+    code_man$iter_top(co, "if (init)")
+    code_man$iter_top(co, "  {")
+
+    % code for allocating activation record.
+    code_man$iter_top(co, "    *ivarp = (int*) malloc(WORK_SIZE*sizeof(int));")
+
+    % code for saving arguments in heap-allocated activation record.
+    cnt: int := 1
+    for d: decl in decllist$elements(args) do
+	for i: idn in idnlist$elements(d.idns) do
+	    argname: str := i.str
+	    code_man$iter_top(co, "    (*ivarp)[" || int$unparse(cnt) || "] = "
+				  || conv_localvar(argname) || ";")
+	    cnt := cnt + 1
+	end
+    end
+
+    code_man$iter_top(co, "  }")
+
+    nr_yield: int := lb$get("yield")
+    if nr_yield > 0 then
+	code_man$iter_top(co, "else")
+	code_man$iter_top(co, "  {")
+	code_man$iter_top(co, "    switch ((*ivarp)[0])")
+	code_man$iter_top(co, "\t{")
+	for i:int in int$from_to(1, nr_yield) do
+	    y: str := int$unparse(i)
+	    code_man$iter_top(co, "\t  case " || y || ": goto yield" || y || ";")
+	end
+	code_man$iter_top(co, "\t}")
+	code_man$iter_top(co, "  }")
+    end
+
+    % generate information about layout of activation record.
+    for name, val: str in lv$iter_defs() do
+	code_man$iter_def(co, "#define " || name || " " || val)
+    end
+
+end g_iter_prologue
+
+
+% Generates code for a cluster definition.
+
+g_typedefn = proc(e: g_env, def: typedefn)
+    co: code_man := e.co
+    db: dbinfo := e.db
+
+    info: str := " depend," || def.idn.str
+    for r: str in as$elements(def.references) do
+	info := info || "," || r
+    end
+    code_man$info(co, info)
+
+    % initialize environment.
+    code_man$putl(co, "\n/* begin module */")
+    g_env$begin_cluster(e, def)
+
+    % declare cluster own variables.
+    cluster_own$declare(e, def.init)
+
+    % debugging information about the mapping between ADT and its
+    % representation.
+    dbinfo$cluster_info(db, e, def.up_, def.down_)
+
+    % generate code for each operation.
+    for d: applydefn in applydefnlist$elements(def.body) do
+	g_apply(e, d)
+    end
+
+    % generate own variable initialization routine.
+    g_apply(e, cluster_own$initializer())
+	except when no_init: end
+
+    % error check.
+    if e.err > none then
+	g_env$err(e, "\n** generate failed ** module name is " || e.rname)
+    end
+
+    % reset environments.
+    cluster_own$undeclare()
+    g_env$end_cluster(e)
+    code_man$putl(co, "/* end module */")
+
+end g_typedefn
+
+
+% Returns the number of identifiers in a given decllist.
+
+g_nr_idns = proc(decls: decllist) returns(int)
+    n: int := 0
+    for d: decl in decllist$elements(decls) do
+	n := n + idnlist$size(d.idns)
+    end
+    return(n)
+end g_nr_idns

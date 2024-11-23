@@ -1,0 +1,165 @@
+% init.clu - initialization routines
+%
+% This file was derived from PCLU distribution (as of 11/18/93), and
+% has been modified by Department of Mathematical and Computing
+% Sciences, Tokyo Institute of Technology.
+%
+% Conditions for using, copying, modifying, and distributing this
+% file are the same as those of PCLU.
+%
+% $Id: init.clu,v 2.11 1997/01/16 14:09:43 ushijima Exp $
+
+
+%  Copyright	Massachusetts Institute of Technology     1989
+%	INIT CLU
+%
+%	CLU Compiler: initialization routines
+
+initialize_compiler = proc () returns (bool)
+    cmpvar$set_version(get_compiler_version())
+    cmpvar$set_date(date$unparse(now()))
+    XLIB$init()
+    comp: CE := CE$create()
+    fn: fname := fname$parse(nul_dev())
+    inst: stream := stream$open(fn, "read")
+    outst: stream := stream$open(fn, "write")
+    ep: p_env := p_env$create(comp, inst, outst)
+    ec: c_env := c_env$create(comp, outst)
+    stream$close(inst)
+    stream$close(outst)
+    exts: xref := xref$create()
+    undefs: xref := xref$create()
+    e: stuff := stuff${ce:          comp,
+		       ce_reset:    true,
+		       ce_empty:    true,
+		       penv:        ep,
+		       cenv:        ec,
+		       genv:        maybe_g_env$make_none(nil),
+		       mode:        parse_,
+		       inst:        inst,
+		       outst:       outst,
+		       genst:       outst,
+		       names:       as$new(),
+		       exts:        exts,
+		       undefs:      undefs,
+		       % following fields are added for clu2c.
+		       menv:        maybe_m_env$make_none(nil),
+		       basic_mods:  as$new(),
+		       kind:        _clu,
+		       id:          ""}
+    cmpvar$set_stuffs(e)
+    initialize_commands()
+    initialize_specs()
+    e.genv := maybe_g_env$make_one(g_env$create(comp, outst, fn))
+    % compiler state is not saved.  Instead, DU specs of the
+    % built-in types are dumped to a file.  See `initialize_specs'
+    % for this modification.
+    %save_compiler()
+    return(true)
+    end initialize_compiler
+
+initialize_specs = proc ()
+    fn: fname := basic_name()
+    if ~file_exists(fn) then
+       po: stream := stream$primary_output()
+       stream$putl(po, "Can't find "
+		       || fname$unparse(fn)
+		       || ": please setenv CLU2CROOT to an appropriate value")
+       signal failure("initialization failed")
+       end
+    ofn: fname := fname$make_output(fn, JUNK_SUFFIX)
+    % read DU specs of the built-in types.  If there exists a
+    % dumped library, we use it.
+    libfn: fname := fname$create(fn.dir, fn.name, "lib", "")
+    from_lib: bool
+    jcl: str
+    if file_exists(libfn)  cand
+       file_date(libfn, false) > file_date(fn, false)
+       then from_lib := true
+	    jcl := "merge " || fname$unparse(libfn)
+       else from_lib := false
+	    jcl := "specs " || fname$unparse(fn)
+       end
+    tyo: stream := fake_stream()
+    process_commands(command_line$create(jcl), tyo, from_internal_)
+	except when unsuccessful:
+			po: stream := stream$primary_output()
+			stream$puts(po, tyo.contents)
+			signal failure("initialization failed")
+	       end
+    stream$reset(tyo)
+    % If DU specs of the built-in types are read from .spc file,
+    % dump it for the compiler to start up faster next time.
+    if ~from_lib
+       then jcl := "dump " || fname$unparse(libfn)
+	    process_commands(command_line$create(jcl), tyo, from_internal_)
+		except when unsuccessful:
+				po: stream := stream$primary_output()
+				stream$puts(po, tyo.contents)
+		       end
+	    stream$reset(tyo)
+       end
+    ce$keep(cmpvar$stuffs().ce)
+    DU$keep()
+    % record the names of basic modules to avoid module
+    % dependencies include these modules.
+    e: stuff := cmpvar$stuffs()
+    basics: as := as$new()
+    for d: DU in CE$all_dus(e.ce) do
+	as$addh(basics, d.unique)
+	end
+    e.basic_mods := basics	
+    end initialize_specs
+
+reset_compiler = proc ()
+    e: stuff := cmpvar$stuffs()
+    fn: fname := fname$parse(nul_dev())
+    inst: stream := stream$open(fn, "read")
+    outst: stream := stream$open(fn, "write")
+    comp: CE := e.ce
+    CE$reset(comp)
+    e.ce_reset := true
+    p_env$reset(e.penv, comp, inst, outst)
+    c_env$reset(e.cenv, comp, outst)
+    g_env$reset(maybe_g_env$value_one(e.genv), comp, outst, fn)
+    stream$close(inst)
+    stream$close(outst)
+    xref$flush(e.exts)
+    xref$flush(e.undefs)
+    as$trim(e.names, 1, 0)
+    end reset_compiler
+
+initialize_commands = proc ()
+    command$register("binsuf",    binsuf_execute)
+    command$register("ce",        ce_execute)
+    command$register("char-version", char_version_execute)
+    command$register("check",     check_execute)
+    command$register("compile",   compile_execute)
+    command$register("debug",     debug_execute)
+    command$register("dump",      dump_execute)
+    command$register("expunge",   expunge_execute)
+    command$register("externals", externals_execute)
+    command$register("forget",    forget_execute)
+    command$register("help",      help_execute)
+    command$register("locals",    locals_execute)
+    command$register("make",      make_execute)
+    command$register("merge",     merge_execute)
+    command$register("newlib",    newlib_execute)
+    command$register("optimize",  optimize_execute)
+    command$register("parse",     parse_execute)
+    command$register("quit",      quit_execute)
+    command$register("safe",      safe_execute)
+    command$register("scompile",  scompile_execute)
+    command$register("specs",     specs_execute)
+    command$register("string-version", string_version_execute)
+    command$register("unmerge",   unmerge_execute)
+    command$register("xce",       xce_execute)
+    command$register("xfile",     xfile_execute)
+    % non-recommended commands
+    command$register("allow",     allow_execute)
+    command$register("force",     force_execute)
+    % aliases
+    command$add_alias(command$create("help",    as$new()), "?")
+    command$add_alias(command$create("compile", as$new()), "clu")
+    command$add_alias(command$create("quit",    as$new()), "kill")
+    end initialize_commands

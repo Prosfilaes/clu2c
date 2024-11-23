@@ -1,0 +1,54 @@
+% gentab.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: gentab.clu,v 2.0 1996/06/10 09:04:49 ushijima Exp $
+
+
+% A "gentab" is a table of generators.
+
+gentab = cluster is init, enter, lookup, generators
+
+    rep = assoc_array[generator]
+
+    own tab: rep := rep$new()
+
+
+    % Initializes the table.
+
+    init = proc()
+	rep$reset(tab)
+    end init
+
+
+    % Signals _not_found_ if there is no entry for a generator named
+    % _name_ in the table; otherwise returns the generator named
+    % _name_.
+ 
+    lookup = proc(name: str) returns(generator) signals(not_found)
+	return(rep$lookup(tab, name))
+	    resignal not_found
+    end lookup
+
+
+    % Signals _exists_ if an entry for a generator named _name_
+    % already exists; otherwise enters _gen_ in the table.
+
+    enter = proc(name: str, gen: generator) signals(exists)
+	rep$enter(tab, name, gen)
+	    resignal exists
+    end enter
+
+
+    % Yields all generators stored in the table in an arbitrary order.
+
+    generators = iter() yields(generator)
+	for gen: generator in rep$values(tab) do
+	    yield(gen)
+	end
+    end generators
+
+
+end gentab

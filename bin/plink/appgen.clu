@@ -1,0 +1,494 @@
+% appgen.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: appgen.clu,v 2.0 1996/06/10 09:04:42 ushijima Exp $
+
+
+% A "appgen" is a apply generator.  Although the term "apply
+% generator" usually refers to parameterized procedures/iterators,
+% here nonparameterized procedures/iterators are also appgen's, in
+% which case the corresponding type is considered to be derived from
+% the instantiation that gives empty parameter list to the appgen.
+
+% appgen maintains the table of (1) its own variables, and (2) its
+% instances.
+
+appgen = cluster is
+	create,
+	create_cluop,
+	create_selop,
+	create_formalop,
+	lookup_inst,
+	enter_inst,
+	get_name,
+	add_invoke,
+	add_type,
+	get_clu_name,
+	get_fun_name,
+	set_nr_args,
+	get_nr_args,
+	add_own_var,
+	fix_invokes,
+	emit_fundecl,
+	emit_ptrdefn,
+	emit_fundefn,
+	emit_types,
+	similar
+
+    rep = record[
+	name:     str,
+	owns:     as,
+	provider: op_provider,
+	insts:    appinstlist,
+	invokes:  appinstlist,
+	nr_args:  int,
+	tidvars:  as,
+	types:    tparmlist,
+	printing: bool
+    ]
+    op_provider = oneof[
+	none:  null,	% not an operation
+	clu:   clugen,	% cluster operation
+	sel:   selgen,	% selector-type operation
+	fparm: int	% operation of formal parameter
+    ]
+    appinstlist = array[appinst]
+
+
+    % Signals _conflict_ if _name_ is already used for another kind of
+    % generator (i.e., cluster generator or selector generator);
+    % otherwise returns a non-operation apply generator named _name_.
+    % It is ensured that there exists only one non-operation apply
+    % generator named _name_.  In other words, _create_ returns the
+    % same object for the same name.
+
+    create = proc(name: str) returns(appgen) signals(conflict)
+	begin
+	    gen: generator := gentab$lookup(name)
+	    tagcase gen
+	    tag app(g: appgen):
+		return(g)
+	    others:
+		signal conflict
+	    end
+	end
+	    except when not_found: end
+	res: rep := create0(name, op_provider$make_none(nil))
+	gentab$enter(name, generator$make_app(up(res)))
+	return(up(res))
+    end create
+
+
+    % Returns the apply generator named _name_ that is a cluster
+    % operation of _gen_.  It is ensured that there exists only one
+    % operation generator named _name_ for _gen_.  In other words,
+    % _create_cluop_ returns the same object for the same arguments.
+
+    create_cluop = proc(name: str, gen: clugen) returns(appgen)
+	return(clugen$lookup_op(gen, name))
+	    except when not_found: end
+	ag: rep := create0(name, op_provider$make_clu(gen))
+	clugen$enter_op(gen, up(ag))
+	return(up(ag))
+    end create_cluop
+
+
+    % Returns the apply generator named _name_ that is a selector
+    % operation of _gen_.  It is ensured that there exists only one
+    % operation generator named _name_ for _gen_.  In other words,
+    % _create_selop_ returns the same object for the same arguments.
+
+    create_selop = proc(name: str, gen: selgen) returns(appgen)
+	return(selgen$lookup_op(gen, name))
+	    except when not_found: end
+	ag: rep := create0(name, op_provider$make_sel(gen))
+	selgen$enter_op(gen, up(ag))
+	if need_sel_id(name) then
+	    ag.nr_args := selgen$lookup_op(gen, discard_sel(name)).nr_args
+	end
+	return(up(ag))
+    end create_selop
+
+
+    % Returns the apply generator named _name_ that is an operation of
+    % the formal type parameter whose position in its declaration is
+    % _id_.
+    
+    create_formalop = proc(name: str, id: int) returns(cvt)
+	return(create0(name, op_provider$make_fparm(id)))
+    end create_formalop
+
+
+    % Internal routine for _create_, _create_cluop_, _create_selop_,
+    % and _create_formalop_.
+
+    create0 = proc(name: str, provider: op_provider) returns(rep)
+	return(
+	    rep${
+		name:     name,
+		owns:     as$new(),
+		provider: provider,
+		insts:    appinstlist$create(0),
+		invokes:  appinstlist$new(),
+		nr_args:  0,
+		tidvars:  as$new(),
+		types:    tparmlist$new(),
+		printing: false
+	    }
+	)
+    end create0
+
+
+    % Signals _operation_ if _gen_ is an operation generator (in this
+    % case a parameter list is not sufficient to identify one apply
+    % instance); signals _not_found_ if _gen_ is not an operation
+    % generator and _gen_ has no entry for an instance with _parms_;
+    % otherwise returns the apply instance whose parameter list is
+    % _parms_.
+
+    lookup_inst = proc(gen: cvt, parms: parmlist) returns(appinst)
+						  signals(operation, not_found)
+	tagcase gen.provider
+	tag none:
+	    for inst: appinst in appinstlist$elements(gen.insts) do
+		if parmlist$similar(inst.parms, parms) then
+		    return(inst)
+		end
+	    end
+	    signal not_found
+	others:
+	    signal operation
+	end
+    end lookup_inst
+
+
+    % Signals _exists_ if _gen_ is not an operation generator and an
+    % entry for _inst_ already exists; otherwise enters _inst_ in the
+    % internal table for instances of _gen_ and returns the unique
+    % instance ID for _inst_.  Note that no care is taken about
+    % duplicates (i.e., existence check) for operations.  To identify
+    % an operation instance, both parameters of the opration and
+    % parameters of its provider are needed.  Thus this is the
+    % business of cluinst/selinst.  So any operation instance must be
+    % canonicalized via _cluinst$enter_op_ or _selinst$enter_op_
+    % before passed to here.
+
+    enter_inst = proc(gen: cvt, inst: appinst) returns(int)
+						  signals(exists)
+	insts: appinstlist := gen.insts
+	tagcase gen.provider
+	tag none:
+	    % _gen_ is responsible for assuring that there exists only
+	    % one instance for each parameter list.
+	    begin
+		appgen$lookup_inst(up(gen), inst.parms)
+		signal exists
+	    end
+		except when not_found: end
+	tag clu, sel:
+	    % _gen_ is not responsible for identity of a instance: it
+	    % is a business of cluinst/selinst.
+	others:
+	    % can't happen...
+	    ee: e_env := e_env$get()
+	    e_env$interr1(ee, "appgen$enter_inst", "operation of formal parameter")
+	end
+	appinstlist$addh(insts, inst)
+	return(appinstlist$high(insts))
+    end enter_inst
+
+
+    % Returns the name of _gen_.
+
+    get_name = proc(gen: cvt) returns(str)
+	return(gen.name)
+    end get_name
+
+
+    % Stores _inv_ in _gen_ as an invocation from _gen_.
+
+    add_invoke = proc(gen: cvt, inv: appinst)
+	appinstlist$addh(gen.invokes, inv)
+    end add_invoke
+
+
+    % Stores _tp_ and _var_ in _gen_.  _Var_ is the name of a C
+    % variable that has type ID's of types resulting from replacing
+    % formal parameters in _tp_ with each corresponding actual
+    % parameter.
+
+    add_type = proc(gen: cvt, tp: tparm, var: str)
+	tparmlist$addh(gen.types, tp)
+	as$addh(gen.tidvars, var)
+    end add_type
+
+
+    % Returns the CLU level name of _gen_.
+
+    get_clu_name = proc(gen: cvt) returns(str)
+	tagcase gen.provider
+	tag none:
+	    return(gen.name)
+	tag clu(g: clugen):
+	    return(op_cluname(g.name, gen.name))
+	tag sel(g: selgen):
+	    return(op_cluname(g.name, gen.name))
+	others:
+	    % can't happen...
+	    return(op_cluname("???", gen.name))
+	end
+    end get_clu_name
+
+
+    % Returns the name of the C function corresponding to _gen_.
+
+    get_fun_name = proc(gen: cvt) returns(str)
+	tagcase gen.provider
+	tag none:
+	    return(conv_appfun(gen.name))
+	tag clu(g: clugen):
+	    return(conv_opfun(g.name, gen.name))
+	tag sel(g: selgen):
+	    return(conv_opfun(g.name, gen.name))
+	others:
+	    % can't happen...
+	    ee: e_env := e_env$get()
+	    e_env$interr1(ee, "appgen$get_fun_name", "operation of formal parameter")
+	end
+    end get_fun_name
+
+
+    % Stores _decl_ in _gen_ as a declaration of an own variable in C.
+
+    add_own_var = proc(gen: cvt, decl: str)
+	as$addh(gen.owns, decl)
+    end add_own_var
+
+
+    % Fixes the invocations from the instances of _gen_.
+  
+    fix_invokes = proc(gen: cvt)
+	insts: appinstlist := gen.insts
+	invokes: appinstlist := gen.invokes
+	seed: appinst
+	tagcase gen.provider
+	tag sel:
+	    % It is assumed that the size of _invokes_ is 0 or 1.
+	    seed := invokes[1]
+		except when bounds:
+		    return
+		end
+	others:
+	end
+	while true do
+	    appgenlist = array[appgen]
+	    inst: appinst := pick_one_inst(insts)
+	    all_parms: parmlist := inst.all_parms
+	    newinvokes: appinstlist
+	    tagcase gen.provider
+	    tag sel:
+		newinvokes := expand_invoke(seed, parmlist$size(all_parms))
+	    others:
+		newinvokes := invokes
+	    end
+	    grown_gens: appgenlist := appgenlist$new()
+	    for invoke: appinst in appinstlist$elements(newinvokes) do
+		newinst: appinst := appinst$replace(invoke, all_parms)
+		appinst$add_invoke(inst, newinst)
+		appgenlist$addh(grown_gens, newinst.gen)
+	    end
+	    for tp: tparm in tparmlist$elements(gen.types) do
+		appinst$add_type(inst, replace_tparm(tp, all_parms))
+	    end
+	    inst.fixed := true
+	    for grown: appgen in appgenlist$elements(grown_gens) do
+		appgen$fix_invokes(grown)
+	    end
+	end
+	    except when none: end
+    end fix_invokes
+
+
+    % Internal routine for _fix_invokes_.  Signals _none_ if there is
+    % no instance not fixed in _insts_; otherwise selects one instance
+    % not fixed from _insts_ and returns it.
+
+    pick_one_inst = proc(insts: appinstlist) returns(appinst) signals(none)
+	for inst: appinst in appinstlist$elements(insts) do
+	    if ~inst.fixed then
+		return(inst)
+	    end
+	end
+	signal none
+    end pick_one_inst
+
+
+    % Internal routine for _fix_invokes_.  Returns the list of
+    % operation instances derived from replacing the provider of
+    % _seed_ with formal parameters whose positions are 1.._nr_parms_.
+
+    % For example, consider the record with 3 components and suppose
+    % this record is a cluster with 3 formal parameters _t1_, _t2_,
+    % and _t3_ for simplicity.  If the _copy_ operation of this record
+    % is invoked, three operations _t1$copy_, _t2$copy_, and _t3$copy_
+    % are needed.  _Expand_invoke_ does this work, that is, returns
+    % _t1$copy_, _t2$copy_, and _t3$copy_ for _seed_ = _t0$copy_,
+    % where _t0_ is a virtual formal parameter, and _nr_parms_ = 3.
+
+    expand_invoke = proc(seed: appinst, nr_parms: int)
+		    returns(appinstlist)
+	res: appinstlist := appinstlist$new()
+	for i: int in int$from_to(1, nr_parms) do
+	    appinstlist$addh(
+		res,
+		appinst$create_formalop(
+		    i,
+		    appgen$create_formalop(seed.gen.name, i),
+		    seed.parms
+		)
+	    )
+	end
+	return(res)
+    end expand_invoke
+
+
+    % Puts, to _outst_, the declarations of C functions corresponding
+    % to the instances of _gen_.
+
+    emit_fundecl = proc(gen: cvt, outst: stream)
+	for inst: appinst in appinstlist$elements(gen.insts) do
+	    appinst$emit_fundecl(inst, outst)
+	end
+    end emit_fundecl
+ 
+
+    % Puts, to _outst_, the definitions of entry pointers that point
+    % to the C functions corresponding to the instances of _gen_.
+
+    emit_ptrdefn = proc(gen: cvt, outst: stream)
+	for inst: appinst in appinstlist$elements(gen.insts) do
+	    appinst$emit_ptrdefn(inst, outst)
+	end
+    end emit_ptrdefn
+
+
+    % Puts, to _outst_, the definitions of own variables of _gen_ (if
+    % any) and the definitions of the C functions corresponding to the
+    % instances of _gen_ if it they are entry functions.
+
+    emit_fundefn = proc(gen: cvt, outst: stream)
+	insts: appinstlist := gen.insts
+	owns: as := gen.owns
+	if as$empty(owns) cand no_entry(gen) then
+	    return
+	end
+	stream$putc(outst, '\n')
+	stream$putl(outst, "/*")
+	stream$puts(outst, " * ")
+	stream$putl(outst, up(gen).clu_name)
+	stream$putl(outst, " */")
+	nr_insts: int := appinstlist$size(insts)
+	if nr_insts = 0 then
+	    tagcase gen.provider
+	    tag clu(provider: clugen):
+		nr_insts := provider.nr_insts
+	    others:
+	    end
+	end
+	emit_owns("", gen.owns, nr_insts, outst)
+	for inst: appinst in appinstlist$elements(insts) do
+	    stream$putc(outst, '\n')
+	    appinst$emit_fundefn(inst, outst)
+	end
+    end emit_fundefn
+
+
+    % Internal routine for _emit_fundefn_.  Returns true if there is
+    % no entry function for _gen_; otherwise returns false.
+
+    no_entry = proc(gen: rep) returns(bool)
+	no_insts: bool := appinstlist$empty(gen.insts)
+	tagcase gen.provider
+	tag none:
+	    return(no_insts)
+	tag clu(provider: clugen):
+	    return(clugen$nonparmed(provider) cand no_insts)
+	tag sel:
+	    return(
+		no_insts cor
+		appinstlist$empty(gen.invokes) cand ~need_sel_id(gen.name)
+	    )
+	tag fparm:
+	    return(false)
+	end
+    end no_entry
+
+
+    % Puts, to _outst_, the definitions of the C variables that have
+    % the type ID's of the types refered from _gen_.
+
+    emit_types = proc(gen: cvt, outst: stream)
+	tiddeflist = array[tiddef]
+	tiddef = record[var: str, tids: ai]
+	tiddefs: tiddeflist := tiddeflist$new()
+	for var: str in as$elements(gen.tidvars) do
+	    tiddeflist$addh(tiddefs, tiddef${var: var, tids: ai$create(0)})
+	end
+	nr_vars: int := as$size(gen.tidvars)
+	for inst: appinst in appinstlist$elements(gen.insts) do
+	    types: tparmlist := inst.types
+	    for i: int in int$from_to(1, nr_vars) do
+		ai$addh(tiddefs[i].tids, type_id(types[i]))
+	    end
+	end
+	for t: tiddef in tiddeflist$elements(tiddefs) do
+	    stream$puts(outst, "int ")
+	    stream$puts(outst, t.var)
+	    stream$puts(outst, "[] = {")
+	    for tid: int in ai$elements(t.tids) do
+		stream$puts(outst, int$unparse(tid))
+		stream$puts(outst, ", ")
+	    end
+	    stream$putl(outst, "};")
+	end
+	db:db_env := db_env$get()
+	if db.debug then
+	    for t: tiddef in tiddeflist$elements(tiddefs) do
+		for tid: int in ai$elements(t.tids) do
+		    stream$putl(
+			outst,
+			"\t" || db_env$tid_info(db, t.var, int$unparse(tid))
+		    )
+		end
+	    end
+	end
+    end emit_types
+
+
+    % Sets the number of arguments of _gen_ to _nr_args_.
+
+    set_nr_args = proc(gen: cvt, nr_args: int)
+	gen.nr_args := nr_args
+    end set_nr_args
+
+
+    % Returns the number of arguments of _gen_.  It is required that
+    % the _set_nr_args_ opration has been invoked on _gen_.
+
+    get_nr_args = proc(gen: cvt) returns(int)
+	return(gen.nr_args)
+    end get_nr_args
+
+
+    % Returns true if _gen1_ and _gen2_ refer to the same object;
+    % otherwise returns false.
+
+    similar = proc(gen1, gen2: cvt) returns(bool)
+	return(gen1 = gen2)
+    end similar
+    
+
+end appgen

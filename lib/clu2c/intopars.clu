@@ -1,0 +1,41 @@
+% intopars.clu - convert octal notation to integer
+%
+% Copyright (c) 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: intopars.clu,v 1.2 1997/02/05 09:55:52 ushijima Exp $
+
+
+% Equivalent to int$parse except that each digit in S shall be octal.
+
+int_oct_parse = proc(s: string) returns(int) signals(bad_format, overflow)
+    start: int := 1
+    sign: int := 1
+    c: char := s[1]
+	except when bounds:
+	    signal bad_format
+	end
+    if c = '+' | c = '-' then
+	start := 2
+	if string$size(s) < 2 then
+	    signal bad_format
+	end
+	if c = '-' then
+	    sign := -1
+	end
+    end
+    value: int := 0
+    for i: int in int$from_to(start, string$size(s)) do
+	c := s[i]
+	digit: int
+	if c >= '0' & c <= '7' then
+	    digit := char$c2i(c) - char$c2i('0')
+	else
+	    signal bad_format
+	end
+	value := value * 8 + sign * digit
+	    resignal overflow
+    end
+    return(value)
+end int_oct_parse

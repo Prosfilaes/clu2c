@@ -1,0 +1,41 @@
+% config.equ - various configurations
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: config.equ,v 2.4 1996/05/12 06:43:48 ushijima Exp $
+
+
+SYSTEM_NAME	= "clu2c"
+%SYSTEM_NAME	= "clu2c for X68000"
+%SYSTEM_NAME	= "clu2c for PC-9801"
+
+XLOAD_SUFFIX	= "xld"
+%XLOAD_SUFFIX	= "xload"
+XFILE_SUFFIX	= "xf"
+%XFILE_SUFFIX	= "xfile"
+JUNK_SUFFIX	= "jnk"
+%JUNK_SUFFIX	= "junk"
+BASIC_SUFFIX	= "spc"
+%BASIC_SUFFIX	= "types"
+
+SAFETY_FNAME	= "sysnames"
+SAFETY_SUFFIX	= ""
+%SAFETY_FNAME	= "system"
+%SAFETY_SUFFIX	= "names"
+
+HELP_FNAME	= "clu2c"
+HELP_SUFFIX	= "hlp"
+%HELP_FNAME	= "clu"
+%HELP_SUFFIX	= "order"
+
+% Japanization Support.
+
+kindlist	= jkindlist
+init_kindlist	= jkindlist$new
+%kindlist	= klist
+%init_kindlist	= init_klist
+
+conv_idn	= conv_idn_j10n
+%conv_idn	= conv_idn_noj10n

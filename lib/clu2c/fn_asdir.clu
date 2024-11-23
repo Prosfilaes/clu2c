@@ -1,0 +1,16 @@
+% fn_asdir.clu - converto file name to directory name
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: fn_asdir.clu,v 2.0 1996/06/10 09:02:07 ushijima Exp $
+
+
+file_name_as_directory = proc(fn: file_name) returns(file_name)
+    if string$empty(fn.name) then
+	% FN is already a directory name.
+	return(fn)
+    end
+    return(file_name$create(file_name$unparse(fn), "", "", ""))
+end file_name_as_directory

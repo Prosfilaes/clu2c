@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# mkmkmfbat - create mkmf.bat 
+#
+# Copyright (c) 1996
+#	Department of Mathematical and Computing Sciences,
+#	Tokyo Institute of Technology.  All rights reserved.
+#
+# $Id: mkmkmfbat,v 2.0 1996/06/10 09:06:19 ushijima Exp $
+
+echo creating mkmf.bat
+
+cat <<EOT >mkmf.bat.new
+echo off
+
+rem mkmf.bat.  Generated automatically by mkmkmfbat.
+
+if not x%1==x goto else
+set systype=dos
+goto endif
+:else
+set systype=%1
+:endif
+
+EOT
+
+for i in `sed '/^#/d' ALLDIRS`; do
+	dir=`echo $i | sed 's:/:\\\\:g'`
+	topdir=`echo $dir | sed 's:[^.\\\\][^\\\\]*:..:g'`
+	echo command /c config\\mkmf1 %systype% $dir $topdir >>mkmf.bat.new
+done
+
+echo '' >>mkmf.bat.new
+echo set systype= >>mkmf.bat.new
+
+if cmp -s mkmf.bat mkmf.bat.new 2>/dev/null; then
+	echo mkmf.bat is unchanged
+	rm -f mkmf.bat.new
+else
+	rm -f mkmf.bat
+	mv mkmf.bat.new mkmf.bat
+fi

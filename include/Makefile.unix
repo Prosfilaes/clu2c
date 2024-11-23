@@ -1,0 +1,155 @@
+
+
+######################################################################
+#
+# Makefile.unix.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = include
+
+# Top-level build directory
+topdir = ..
+
+# Subdirectories
+subdirs = clu2c config
+
+
+#### Source files ####
+
+# Interface specification files
+HDR_SRC = $(HDR_SRC_1)
+HDR_SRC_1 = clu2c.h
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README
+
+# All the source files
+ALL_SRC = $(HDR_SRC) $(MISC_SRC)
+
+
+#### Variables for source code maintenance ####
+
+# Non-source files included in the distribution
+NON_SRC = Makefile.dos Makefile.unix
+
+# All the files included in the distribution
+DIST = $(ALL_SRC) $(NON_SRC)
+
+# Default flags to m4
+DEFAULT_M4FLAGS = -I$(top_srcdir)/mk
+
+# All the flags to m4
+ALL_M4FLAGS = $(DEFAULT_M4FLAGS) $(M4FLAGS)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all:
+	
+
+# Copies all the products
+install: installdirs
+	@for i in $(HDR_SRC); do \
+		echo $(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/$$i $(clu2c_includedir)/$$i; \
+		$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/$$i $(clu2c_includedir)/$$i; \
+	done
+	for d in $(subdirs); do (cd $$d && $(MAKE) install); done
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+	
+
+# Makes clean
+clean:
+	
+
+# Makes clean as disributed
+distclean:
+	rm -f Makefile Makefile.top
+	for d in $(subdirs); do (cd $$d && $(MAKE) distclean); done
+
+# Makes really clean
+realclean:
+	rm -f Makefile Makefile.top
+	for d in $(subdirs); do (cd $$d && $(MAKE) realclean); done
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+	for d in $(subdirs); do (cd $$d && $(MAKE) dist); done
+
+# Does some check
+check:
+
+
+#### Rules specific to this directory ####
+
+# Prepares installation directory
+installdirs:
+	test -d $(clu2c_rootdir) || mkdir $(clu2c_rootdir)
+	test -d $(clu2c_includedir) || mkdir $(clu2c_includedir)
+	test -d $(clu2c_includedir) || mkdir $(clu2c_includedir)
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	cat Makefile.top $(topdir)/config.mk $(srcdir)/Makefile.unix > Makefile
+	for d in $(subdirs); do (cd $$d && $(MAKE) mkfiles); done
+
+# Forces a particular target to be made
+always:
+
+
+#### Rules for source code maintenance ####
+
+# Processes m4 files
+m4:
+	@for os in unix dos; do					\
+	    mk=Makefile.$$os;						\
+	    echo creating $$mk;						\
+	    $(M4) $(ALL_M4FLAGS) -DOSTYPE=$$os Makefile.in >$$mk.new;	\
+	    if test ! $$?; then						\
+		echo $$mk is unchanged;					\
+		rm -f $$mk.new;						\
+		exit 1;							\
+	    elif cmp -s $$mk $$mk.new 2>/dev/null; then			\
+		echo $$mk is unchanged;					\
+		rm -f $$mk.new;						\
+	    else							\
+		rm -f $$mk;						\
+		mv $$mk.new $$mk;					\
+	    fi;								\
+	done
+	for d in $(subdirs); do (cd $$d && $(MAKE) m4); done
+
+# Creates dos distribution
+dosdist: $(DIST)
+	@$(top_srcdir)/config/makedist -d $(dos_distname) $(curdir) $(DIST)
+	for d in $(subdirs); do (cd $$d && $(MAKE) dosdist); done
+
+# Creates the list of source files
+source-list:
+	@if [ $(curdir) = . ]; then\
+	    cp /dev/null source-list;\
+	    for i in $(ALL_SRC); do\
+		echo $$i >>source-list;\
+	    done;\
+	else\
+	    for i in $(ALL_SRC); do\
+		echo $(curdir)/$$i >>$(topdir)/source-list;\
+	    done;\
+	fi
+	for d in $(subdirs); do (cd $$d && $(MAKE) source-list); done

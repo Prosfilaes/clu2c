@@ -1,0 +1,106 @@
+#!/bin/sh
+
+# fakeclu.sh.  @configure_input@
+#
+# Copyright (c) 1996
+#	Department of Mathematical and Computing Sciences,
+#	Tokyo Institute of Technology.  All rights reserved.
+#
+# Identification for fakeclush.in is:
+#	$Id: fakeclush.in,v 2.0 1996/06/10 09:06:13 ushijima Exp $
+
+
+# "ln -s" or "ln"
+LN_S='@LN_S@'
+
+ex_success=0
+ex_failure=1
+
+status=$ex_success
+
+bindir=.
+dir=.
+optimize=false
+
+while test $# -gt 0; do
+	case "$1" in
+	--bindir|--bindi|--bind|-B)
+		case "$2" in
+		-*)
+			bindir=.
+			;;
+		?*)
+			shift
+			bindir="$1"
+			;;
+		*)
+			bindir=.
+			;;
+		esac
+		;;
+	--dir|--di|-D)
+		case "$2" in
+		-*)
+			dir=.
+			;;
+		?*)
+			shift
+			dir="$1"
+			;;
+		*)
+			dir=.
+			;;
+		esac
+		;;
+	--make|--mak|--ma|-M)
+		for clufile in $dir/*.clu; do
+			cfile=`expr "$clufile" : '.*/\(.*\)\.clu'`.c
+			src=$dir/pretrans/$cfile
+			dst=$bindir/$cfile
+			test -f $dst && continue
+			echo preparing $cfile
+			for cmd in "$LN_S" cp; do
+				$cmd $src $dst >/dev/null 2>&1 && break
+			done
+			if test ! -f $dst; then
+				echo Couldn\'t prepare $dst
+				status=$ex_failure
+			fi
+		done
+		;;
+	--optimize|--optimiz|--optimi|--optim|--opti|--opt|--op|--o|-O)
+		case "$2" in
+		-*)
+			optimize=time
+			;;
+		false|fals|fal|fa|f)
+			shift
+			optimize=false
+			;;
+		time|tim|ti|t)
+			shift
+			optimize=time
+			;;
+		space|spac|spa|sp|s)
+			shift
+			optimize=space
+			;;
+		?*)
+			shift
+			echo optimize: "$1": bad argument
+			status=$ex_failure
+			;;
+		*)
+			optimize=time
+			;;
+		esac
+		;;
+	*)
+		echo "$1": unknown option
+		status=$ex_failure
+		;;
+	esac
+	shift
+done
+
+exit $status

@@ -1,0 +1,46 @@
+% fn_apply.clu - apply directory to file name
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: fn_apply.clu,v 2.0 1996/06/10 09:02:06 ushijima Exp $
+
+
+file_name_apply_directory = proc(fn, base: file_name) returns(file_name)
+
+    % There is nothing to be done if FN is an absolute file name.
+    if file_name_is_absolute(fn) then
+	return(fn)
+    end
+
+    % Checks for drive specifications.  If both FN and BASE have drive
+    % specifications, they must be the same, or returns FN unchanged.
+    % If either FN or BASE has drive specification, it becomes the
+    % drive of the result.
+    drive: string
+    if string$empty(file_name_drive(fn)) then
+	drive := file_name_drive(base)
+    elseif string$empty(file_name_drive(base))
+	   cor file_name_drive(fn) = file_name_drive(base)
+    then
+	drive := file_name_drive(fn)
+    else
+	% Cannot apply BASE: drive mismatch.
+	return(fn)
+    end
+
+    basedir: string := file_name_proper_directory(file_name_as_directory(base))
+
+    dir: string := file_name_proper_directory(fn)
+    if string$empty(dir) then
+	dir := basedir
+    elseif ~string$empty(basedir) then
+	dir := string$append(basedir, _path_delimiter()) || dir
+    end
+    if ~string$empty(drive) then
+	dir := drive || dir
+    end
+
+    return(file_name$create(dir, fn.name, fn.suffix, fn.other))
+end file_name_apply_directory

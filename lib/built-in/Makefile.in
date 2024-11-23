@@ -1,0 +1,20 @@
+dnl $Id: Makefile.in,v 2.0 1996/06/10 09:01:30 ushijima Exp $
+include(mk.m4)
+MK_REQUIRE(`archive')
+MK_REQUIRE(`csrc')
+MK_CURRENT_DIRECTORY(`lib', `built-in')
+MK_ARCHIVE_NAME(`../libclu2c.a')
+MK_C_SOURCES(null.c bool.c int.c real.c char.c string.c any.c)
+MK_C_SOURCES(array.c sequence.c record.c struct.c oneof.c variant.c)
+MK_C_SOURCES(proctype.c itertype.c)
+MK_MISC_SOURCES(`built-in.spc')
+MK_APPEND_VARIABLE(`DEFAULT_CFLAGS', `-I$(topdir)')
+MK_APPEND_PREREQ(`install', `all')
+MK_APPEND_ACTION(`install',
+	`MK_INSTALL_SOURCE_DATA(`built-in.spc', `$(clu2c_libdir)')')
+MK_DEFINE_RULE(`string_o', `string.o',
+	`$(srcdir)/string.c',
+	`$(CC) $(ALL_CFLAGS) -I$(top_srcdir)/lib/jaio -c $(srcdir)/string.c')
+MK_SPECIFIC_RULES
+MK_RULE_DEFINITION(`string_o', `string.c requires additional header directory')
+MK_END

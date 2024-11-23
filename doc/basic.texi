@@ -1,0 +1,602 @@
+@c basic.texi
+@c
+@c Copyright (c) 1996, 1997
+@c      Department of Mathematical and Computing Sciences, Tokyo
+@c      Institute of Technology.  All rights reserved.
+@c
+@c This is part of CLU2C User's Manual.  For copying conditions, see
+@c the file clu2c.texi.
+@c
+@c $Id: basic.texi,v 2.3 1997/02/05 09:55:42 ushijima Exp $
+
+
+@c *******************************************************************
+@c                            Basic Usage
+@c *******************************************************************
+
+@node Basic Usage, Advanced Usage, Introduction, Top
+@chapter Basic Usage
+
+The @code{clu2c} program translates
+CLU source files to the equivalent C source files.
+The resulting C source files are then compiled and linked
+by another program called @code{clulink}.
+This chapter describes the basic usage of these two programs.
+
+We often refer to
+the @code{clu2c} program as @dfn{the compiler}
+and the @code{clulink} program as @dfn{the linker}
+in this chapter.
+
+@menu
+* Getting Started::             
+* Input Files::                 
+* Invoking clu2c::              
+* Compiler Behavior::           How input files are processed
+* Invoking clulink::            
+@end menu
+
+
+@c ===================================================================
+@c                          Getting Started
+@c ===================================================================
+
+@node Getting Started, Input Files, Basic Usage, Basic Usage
+@section Getting Started
+
+There are two executable programs
+named @code{clu2c} and @code{clulink}
+available to the user.
+Use @code{clu2c} for compiling CLU source files
+to get intermediate C source files.
+Then use @code{clulink} for compiling these intermediate C source files
+to get an executable file.
+
+For example,
+a shell session that compiles a CLU source file named @file{hello.clu}
+to get an executable file named @file{a.out}
+might look like as follows:
+
+@example
+% clu2c hello.clu
+Creating DU specs from hello.clu
+time = 0.010
+Compiling hello.clu
+time = 0.010
+% clulink hello.c
+creating hello.o
+creating op-table.c
+creating op-table.o
+creating a.out
+%
+@end example
+
+@noindent
+You can see several points from this simple example.
+
+@itemize @bullet
+@item
+By convention,
+source files written in CLU have a name with @samp{clu} as a suffix.
+@item
+The @code{clu2c} program takes names of CLU files as arguments.
+@item
+The @code{clu2c} program creates C files,
+whose name is the same as that of CLU file
+except that the suffix is replaced with @samp{c}.
+@item
+The @code{clulink} program takes names of C files as arguments.
+@item
+The @code{clulink} program creates an executable program named @file{a.out}.
+@footnote{On MS-DOS systems,
+the @code{clulink} program further creates @file{a.exe} from @file{a.out}.}
+@item
+The @code{clulink} program creates auxiliary files,
+that is,
+object files that correspond to input C files,
+a C file named @file{op-table.c},
+and an object file that corresponds to @file{op-table.c}.
+@end itemize
+
+You might want to rename @file{a.out} as a more appropriate name,
+say @file{hello}.
+You can give @samp{-o} option to @code{clulink} for this purpose:
+
+@example
+% clulink -o hello hello.c
+@end example
+
+@noindent
+This invocation of @code{clulink}
+creates an executable program named @file{hello}
+instead of @file{a.out}.
+
+
+@c ===================================================================
+@c                            Input Files
+@c ===================================================================
+
+@node Input Files, Invoking clu2c, Getting Started, Basic Usage
+@section Input Files
+
+The compiler accepts several kinds of input files.
+At the minimum,
+you need to prepare one or more CLU source files.
+The other kinds of input files are optional.
+By convention,
+each kind of input files should have a specific suffix.
+
+@table @file
+
+@item @var{name}.clu
+
+This is a CLU source file,
+which consists of one or more modules.
+The primary task of the compiler is
+to translate this file
+to an equivalent C source file named @file{@var{name}.c}.
+
+@item @var{name}.equ
+
+This is an equate file,
+which consists of one or more equates.
+Equates in this file work
+as if they were placed at the beginning of the pseudo top-level scope
+that contains the entire source program.
+This top-level scope is special in the sense
+that identifiers introduced in it may be redefined in its nested scopes.
+
+@item @var{name}.spc
+
+This is an interface specification file,
+which consists of one or more interface specifications.
+An @dfn{interface specification} is a module
+that suppresses all constructs
+that would not affect the interface of the abstraction
+the module would implement.
+In other words,
+it is something like a module but lacks the following constructs:
+
+@itemize @bullet
+@item
+declarations for own variables in procedures, iterators, and clusters
+@item
+statements in procedures, iterators, and cluster operations
+@item
+definitions for @code{rep} in clusters
+@end itemize
+
+@noindent
+Strictly speaking,
+such constructs are accepted but simply discarded.
+This file become needed when the compiler has no access to CLU source files
+that contain modules of which the compiler wants to know interfaces.
+
+@item @var{name}.lib
+
+This is an interface specification library file.
+This is not a text file.
+Usually this file is created when @code{clu2c} is invoked
+with the @code{-d} option.
+This file may be used in order to collect interface specifications
+from CLU source files and interface specification files
+and arrange them into a single file.
+
+@end table
+
+
+@c ===================================================================
+@c                          Invoking `clu2c'
+@c ===================================================================
+
+@node Invoking clu2c, Compiler Behavior, Input Files, Basic Usage
+@section Invoking @code{clu2c}
+
+An invocation of @code{clu2c} has either of the following two forms:
+
+@example
+clu2c [@var{option}@dots{}] @var{input_spec}@dots{}
+clu2c [@var{command_invocation}@dots{}]
+@end example
+
+@noindent
+where @samp{[@var{a}]} means that @var{a} is optional
+and @samp{@var{a}@dots{}} means a sequence of one or more @var{a}'s.
+This section describes only the first form of invocations;
+description about the second form is deferred to @ref{Advanced Usage}.
+For the time being,
+all you should know about the second form is
+that you can terminate @code{clu2c} by typing @samp{quit}
+when it is unintentionally invoked with no arguments.
+
+@menu
+* Options for clu2c::           
+* Specifying Input Files::      
+@end menu
+
+
+@c -------------------------------------------------------------------
+@c                         Options for clu2c
+@c -------------------------------------------------------------------
+
+@node Options for clu2c, Specifying Input Files, Invoking clu2c, Invoking clu2c
+@subsection Options for @code{clu2c}
+
+The compiler recognizes the following options in the command line.
+Most options have both short forms (single hyphen followed by one character)
+and a long forms (double hyphens followed by option name).
+In this chapter options are generally referred in a short form only.
+
+@table @samp
+
+@item -c
+@itemx --compile-only
+Normally CLU source files specified in a command line
+undergo two stages of processes:
+extraction of interfaces and compilation.
+This option inhibits the first stage from taking place.
+This option may be used
+when the interfaces of the modules
+defined in the specified CLU source files
+are given to the compiler from other input files
+(i.e., interface specification files or interface specification library files).
+
+@item -d @var{file}
+@itemx --dump=@var{file}
+The compiler gathers intefaces of the abstractions
+from various input files
+during processing them.
+This option causes these intefaces to be dumped,
+after all the compilation is completed,
+to the file specified by @var{file}
+as an interface specification library file.
+If @var{file} has no suffix,
+it specifies the file @file{@var{file}.lib}.
+This option corresponds to the @code{dump} command of the compiler
+@iftex
+(@pxref{Interface Spec Lib,, Interface Specification Library}).
+@end iftex
+@ifinfo
+(@pxref{dump}).
+@end ifinfo
+
+@item -F
+@itemx --force-code-generation
+Produce C source files even if any error is detected during compilation.
+This option is intended to be used by the
+developer and the use by the user is generally discouraged.
+This option corresponds to the @code{allow} command of the compiler
+@iftex
+(@pxref{Code Generator Options,, Changing Code Generator's Behavior}).
+@end iftex
+@ifinfo
+(@pxref{allow}).
+@end ifinfo
+
+@item -f @var{file}
+@itemx --xfile=@var{file}
+Executes commands of the compiler in the file specified by @var{file}.
+If @var{file} has no suffix,
+the compiler first attempts to read the file @file{@var{file}.xfile}.
+This option corresponds to the @code{xfile} command of the compiler
+@iftex
+(@pxref{Misc Commands,, Miscellaneous Commands}).
+@end iftex
+@ifinfo
+(@pxref{xfile}).
+@end ifinfo
+
+@item -g
+@itemx --debug
+Produce debugging information and inlay it into the generated C source files.
+This information will be used by the debugger
+(We are developing a source-level CLU debugger called @code{cludb},
+which is not yet publicly available).
+This option corresponds to the @code{debug} command of the compiler
+@iftex
+(@pxref{Code Generator Options,, Changing Code Generator's Behavior}).
+@end iftex
+@ifinfo
+(@pxref{debug}).
+@end ifinfo
+
+@item -h
+@itemx --help
+Display a brief summary of the usage of the compiler.
+This option corresponds to the @code{help} command of the compiler
+@iftex
+(@pxref{Misc Commands,, Miscellaneous Commands}).
+@end iftex
+@ifinfo
+(@pxref{help}).
+@end ifinfo
+
+@item -M
+@itemx --make
+Run the compiler in the `make' mode.
+In this mode,
+the compiler automatically detects CLU source files
+that need to be compiled in the working directory
+and compiles them.
+The compiler maintains three auxiliary files:
+@file{Depend},
+@file{Location},
+and @file{SPC.lib}.
+These files are created in the same directory
+where C source files are created.
+See @dots{} for more detail.
+
+@item -n
+@itemx --dry-run
+Display the commands of the compiler
+that would be executed unless this option is specified.
+
+@item -O
+@itemx --optimize[=@var{mode}]
+Specifies @var{mode} as an optimization mode.
+There are three optimization modes:
+@code{false},
+@code{time},
+and @code{space}.
+The optimization mode is set to @code{false} unless this option is specified.
+If @var{mode} is omitted,
+then @code{time} is assumed.
+This option corresponds to the @code{optimize} command of the compiler
+@iftex
+(@pxref{Code Generator Options,, Changing Code Generator's Behavior}).
+@end iftex
+@ifinfo
+(@pxref{optimize}).
+@end ifinfo
+
+@item -p
+@itemx --syntax-only
+Check the code for syntactic errors,
+and do not process any further.
+
+@item -S
+@itemx --safe
+
+@item -s
+@itemx --spec-only
+Normally CLU source files specified in a command line
+undergo two stages of processes:
+extraction of interfaces and compilation.
+This option inhibits the second stage from taking place.
+
+@item -t
+@itemx --type-check-only
+Check the code for syntactic and semantic errors,
+and do not process any further.
+
+@item -x
+@itemx --externals
+Output cross-reference table for external names.
+
+@item --char-version=@var{number}
+Tells the compiler
+that the version @var{number} of @code{char} will be used
+with the generated C files.
+This command is primarily for developers only.
+
+@item --string-version=@var{number}
+Tells the compiler
+that the version @var{number} of @code{string} will be used
+with the generated C files.
+This command is primarily for developers only.
+
+@end table
+
+Some options are exclusive:
+you must not specify two or more among the @samp{-p} option,
+the @samp{-s} option,
+and the @samp{-t} option.
+
+
+@c -------------------------------------------------------------------
+@c                       Specifying Input Files
+@c -------------------------------------------------------------------
+
+@node Specifying Input Files,  , Options for clu2c, Invoking clu2c
+@subsection Specifying Input Files
+
+You can specify input files by simply listing their names.
+For example,
+suppose that you have three CLU source files
+named @file{foo.clu}, @file{bar.clu}, and @file{baz.clu}
+in the current working directory.
+You can directly specify these files by listing their names as:
+
+@example
+foo.clu bar.clu baz.clu
+@end example
+
+@noindent
+Generally speaking,
+the compiler receives a list of input specifications.
+An @dfn{input specification} is either a file specification
+or an indirect specification.
+A @dfn{file specification} is a file name
+except that @samp{*} is treated as a wild card character as in most shells.
+An @dfn{indirect specification} is @samp{@@} followed by a file name.
+The named file must contain input specifications, one for each line.
+In either case,
+an input specification expands to a list of file names.
+
+@menu
+* Default Suffix::              
+* Globbing Input Files::        
+* Indirect Specifications::     
+@end menu
+
+
+@node Default Suffix, Globbing Input Files, Specifying Input Files, Specifying Input Files
+@subsubheading Default Suffix
+
+There is a default suffix specific to the context
+where input specifications are interpreted.
+Any input file name with a default suffix can be specified without a suffix.
+When an input specification does not have a suffix apparently,
+a file name derived by appending a default suffix is tried first.
+If such a file exists,
+the specification is interpreted as specifying this file;
+otherwise it is treated as is with respect to the suffix.
+
+The default suffix is @samp{clu}
+for input specifications in a shell command line
+that invokes @code{clu2c},
+except for file names in indirect specifications.
+For example,
+when @code{clu2c} is invoked as
+
+@example
+clu2c foo
+@end example
+
+@noindent
+then the compiler first checks if @file{foo.clu} exists.
+If it does, the compiler reads @file{foo.clu};
+otherwise it reads @file{foo}.
+
+
+@node Globbing Input Files, Indirect Specifications, Default Suffix, Specifying Input Files
+@subsubheading Globbing Input Files
+
+The @samp{*} character is treated as a meta-character
+that matches zero or more sequence of any characters,
+as in most shells.
+Although your shell probably
+expands @samp{*} in a shell command line by itself,
+the compiler expands @samp{*} wherever an input specification is expected.
+
+For example,
+you can specify all CLU source files in the current working directory as:
+
+@example
+*.clu
+@end example
+
+
+@node Indirect Specifications,  , Globbing Input Files, Specifying Input Files
+@subsubheading Indirect Specifications
+
+You can specify input files indirectly through a file.
+If an input specification begins with @samp{@@},
+the rest of the specification is treated
+as specifying a file that contains a list of input specifications,
+one specification per line.
+The default suffix for this file,
+sometimes called a `response file',
+is @samp{xload}.
+
+Note that each line in this file is not just a file name but an input specification:
+the default suffix and file name globbing still work.
+
+For example,
+suppose you have a file named @file{sources.xload}
+that consists of the following three lines:
+
+@example
+foo.clu
+bar.clu
+baz.clu
+@end example
+
+@noindent
+Then the specification
+
+@example
+@@sources.xload
+@end example
+
+@noindent
+is completely equivalent to the following input specifications
+
+@example
+foo.clu bar.clu baz.clu
+@end example
+
+The default suffix for a file that follows @samp{@@} is @samp{xload}.
+Thus you can also specify as:
+
+@example
+@@sources
+@end example
+
+
+@c ===================================================================
+@c                         Compiler Behavior
+@c ===================================================================
+
+@node Compiler Behavior, Invoking clulink, Invoking clu2c, Basic Usage
+@section Compiler Behavior
+
+Normally CLU source files undergo two stages of processes.
+In the first stage,
+interface specifications are extracted;
+in the second stage,
+code generation takes place.
+Some options change this behavior.
+If you specify the @code{-t} option,
+the second stage stops
+when type-checking and some other validity-checking have been completed.
+If you specify the @code{-s} option,
+the second stage is not performed.
+If you specify the @code{-p} option,
+only syntactic validity is checked.
+If you specify one of these options,
+no code is generated.
+
+Equate files are @dots{}
+
+Interface specification files are @dots{}
+
+Interface specification library files are @dots{}
+
+
+@c ===================================================================
+@c                           Invoking clulink
+@c ===================================================================
+
+@node Invoking clulink,  , Compiler Behavior, Basic Usage
+@section Invoking @code{clulink}
+
+The @code{clulink} program recognizes the following options
+to control how it operates:
+
+@table @samp
+@item -V
+@itemx --version
+Print the version of @code{clulink}.
+@item -g
+@itemx --debug
+Generate debugging information,
+as in the C compiler.
+@item -h
+@itemx --help
+Print the brief description of the usage.
+@item -v
+@itemx --verbose
+Print additional messages.
+@item -o @var{file}
+@itemx --output=@var{file}
+Specify the name of the output file.
+@item -L@var{directory}
+@itemx --libdir=@var{directory}
+Append @var{directory} to the library search path.
+@item -l@var{name}
+@itemx --lib=@var{name}
+Link an archive associated with @var{name}.
+@item -c @var{compiler}
+@itemx --cc=@var{compiler}
+Use @var{compiler} as a C compiler.
+@item -F @var{flag}
+@itemx --cc-flag=@var{flag}
+Pass @var{flag} to the C compiler.
+@item -P @var{plink}
+@itemx --plink=@var{plink}
+Use @var{plink} as a pre-linker.
+@item -f
+@itemx --force
+Force compilation.
+@end table

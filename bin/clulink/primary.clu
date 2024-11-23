@@ -1,0 +1,28 @@
+% primary.clu - primary target
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: primary.clu,v 2.0 1996/06/10 09:05:17 ushijima Exp $
+
+
+% Returns the primary target to be made.
+
+primary_target = proc(u: user) returns(target)
+    primary: target
+    if string$empty(u.coff2exe) then
+	primary := output_target(u, u.output)
+    else
+	fn: file_name := u.output
+	if fn.suffix = "exe" then
+	    fn := file_name$create(fn.dir, fn.name, "", fn.other)
+	end
+	coff: target := output_target(u, fn)
+	fn := file_name$create(fn.dir, fn.name, "exe", fn.other)
+	primary := target$create(fn)
+	target$add_prereq(primary, coff)
+	primary.action := u.coff2exe || " $<"
+    end
+    return(primary)
+end primary_target

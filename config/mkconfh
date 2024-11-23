@@ -1,0 +1,56 @@
+#! /usr/local/bin/perl
+
+# mkconfh - create configuration header
+#
+# Copyright (c) 1996
+#	Department of Mathematical and Computing Sciences,
+#	Tokyo Institute of Technology.  All rights reserved.
+#
+# $Id: mkconfh,v 2.0 1996/06/10 09:06:16 ushijima Exp $
+
+
+# usage: mkconfh SYSTEM-TYPE
+
+
+$def_file = "defs.$ARGV[0]";
+$header_input = "../configh.in";
+$header_output = "configh.$ARGV[0]";
+
+
+# Read definition file
+
+open(DEF, $def_file) || die "Can't open $def_file: $!\n";
+while (<DEF>) {
+    next if /^$/ || /^#/;
+    chop;
+    ($name, $value) = split(/\t+/);
+    $def{$name} = $value;
+}
+close DEF;
+
+
+# Create header
+
+print "creating $header_output\n";
+open(INPUT, $header_input) || die "Can't open $header_input: $!\n";
+open(OUTPUT, ">$header_output") || die "Can't open $header_output: $!\n";
+print OUTPUT "/* $header_output.  Generated from $header_input.  */\n";
+while (<INPUT>) {
+    if (/^#undef (\S+)/) {
+	$var = $1;
+	if (!defined($def{$var})) {
+	    print STDERR "warning: $var is not defined in $def_file\n";
+	    s%^.*$%/* $& */%;
+	} elsif ($def{$var} eq 'undef') {
+	    s%^.*$%/* $& */%;
+	} else {
+	    $_ = "#define $var $def{$var}\n";
+	}
+    }
+    print OUTPUT;
+}
+close INPUT;
+close OUTPUT;
+
+
+exit 0;

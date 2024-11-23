@@ -1,0 +1,237 @@
+% xlib.clu - CLU library
+%
+% This file was derived from PCLU distribution (as of 11/18/93), and
+% has been modified by Department of Mathematical and Computing
+% Sciences, Tokyo Institute of Technology.
+%
+% Conditions for using, copying, modifying, and distributing this
+% file are the same as those of PCLU.
+%
+% $Id: xlib.clu,v 2.6 1996/05/12 07:33:23 ushijima Exp $
+
+
+%  Copyright	Massachusetts Institute of Technology     1989
+%	XLIB CLU
+%
+%	CLU Compiler Version 3:  hack library
+
+XLIB = cluster is	init,		% ->
+			lookup,		% pathname -> DU => not_found
+			bind,		% pathname, DU -> exists
+			get_DU,		% name -> DU
+			dump,		% fname -> fname => not_possible(str)
+			merge,		% fname => not_possible(str)
+			unmerge%,	% fname => not_possible(str)
+%			import,		% fname -> as, as  => not_possible(str)
+%			all_names	% fname ->> name
+
+tabsize		= 300
+rep		= table[pathname, DU]
+
+liblist		= array[libform]
+nliblist	= array[nlibform]
+an		= array[name]
+libform		= record[path:  pathname,
+			 name:  name,
+			 specs: DUspecs]
+nlibform	= record[path:  pathname,
+			 name:  name,
+			 specs: DUspecs,
+			 kind:  int,
+			 cdate: date,
+			 pdate: date]
+typelist	= array[typeabs]
+
+own tab: rep := rep$create(tabsize, hash, pathname$equal)
+own FAR_FUTURE:date := date$create(1,1,9999,1,1,1) % 1/1/9999 1:01:01
+
+init = proc ()
+	bind("null",     DU$create("null"))
+	bind("bool",     DU$create("bool"))
+	bind("int",      DU$create("int"))
+	bind("real",     DU$create("real"))
+	bind("char",     DU$create("char"))
+	bind("string",   DU$create("string"))
+	bind("array",    DU$create("array"))
+	bind("record",   DU$create("record"))
+	bind("oneof",    DU$create("oneof"))
+	bind("sequence", DU$create("sequence"))
+	bind("struct",   DU$create("struct"))
+	bind("variant",  DU$create("variant"))
+	bind("proctype", DU$create("proctype"))
+	bind("itertype", DU$create("itertype"))
+	bind("type",     DU$create("type"))
+	end init
+
+lookup = proc (path: pathname) returns (DU) signals (not_found)
+	return(rep$lookup(tab, path))
+	   resignal not_found
+	end lookup
+
+bind = proc (path: pathname, d: DU) signals (exists)
+	rep$bind(tab, path, d)
+	   resignal exists
+	end bind
+
+get_DU = proc (n: name) returns (DU)
+	return(rep$lookup(tab, n))
+	   except when not_found: d: DU := DU$create(n)
+				  rep$bind(tab, n, d)
+				  return(d)
+		  end
+	end get_DU
+
+dump = proc (fn: fname) returns (fname) signals (not_possible(str))
+
+	% Gathers to-be-dumped information into LIST.
+
+	list: nliblist := nliblist$new()
+	for path: pathname, d: DU in rep$elements(tab) do
+		specs: DUspecs, ok: bool := DU$get_dump_info(d)
+		if ok  cand  ~DUspecs$is_none(specs)
+		   then	nliblist$addh(list, nlibform${path:  path,
+						      name:  d.unique,
+						      kind:  d.kind,
+						      cdate: d.cdate,
+						      pdate: d.pdate,
+						      specs: specs})
+		   end
+		end
+
+	% Complains if there is no information to be dumped.
+
+	if nliblist$empty(list)
+	   then signal not_possible("nothing to dump") end
+
+	% Does dump. 
+
+	tmp: fname := fname$create(fn.dir, fn.name, "_l_", "")
+	ist: istream := istream$open(tmp, "write")
+	    resignal not_possible
+	begin
+	nliblist$encode(list, ist)
+	istream$close(ist)
+	rename_file(tmp, fn)
+	end
+	except when not_possible(why: string):
+		if ~istream$is_closed(ist)
+		   then istream$abort(ist) end
+		if file_exists(tmp)
+		   then delete_file(tmp)
+		   end except when not_possible(*): end
+		signal not_possible(why)
+	       end		
+	return(fn)
+	end dump
+
+merge = proc (fn: fname) signals (not_possible(str))
+	ist: istream := istream$open(fn, "read")
+	    resignal not_possible
+	e: c_env := cmpvar$stuffs().cenv
+	for form: nlibform in nliblist$elements(nliblist$decode(ist)) do
+		d: DU := rep$lookup(tab, form.name)
+		   except when not_found: d := DU$create(form.name)
+					  rep$bind(tab, d.unique, d)
+			  end
+		DU$update_specs(d, form.specs)
+		d.kind := form.kind
+		d.cdate := form.cdate
+		d.pdate := form.pdate
+		if d.unique ~= form.path
+		   then rep$mbind(tab, form.path, d) end
+		f_DUspecs(e, form.specs, false)
+		end resignal not_possible
+	end merge
+
+
+unmerge = proc (fn: fname) signals (not_possible(str))
+	ist: istream := istream$open(fn, "read")
+	    resignal not_possible
+	for form: nlibform in nliblist$elements(nliblist$decode(ist)) do
+		DU$forget_specs(rep$lookup(tab, form.name))
+		    except when not_found: end
+		end resignal not_possible
+	end unmerge
+
+%    all_names = iter (fn: fname) yields(name) signals(not_possible(str))
+%        if fn.suffix = "nlib" then
+%            for form: nlibform in nliblist$elements(gc_read[nliblist](fn)) do
+%            	yield(form.name)
+%	    	end
+%	else
+%            for form: libform in liblist$elements(gc_read[liblist](fn)) do
+%                yield(form.name)
+%	    	end
+%	    end RESIGNAL not_possible
+%        end all_names
+%
+%    %-------- import returns (names is lib, duplicate names in lib)
+%    import = proc(fn:fname, new:bool)returns(an, an)signals(not_possible(str))
+%	if fn.suffix ~= "nlib" then
+%	    an1:an, an2:an := old_import(fn, new)
+%	    return(an1, an2)
+%	    end RESIGNAL not_possible
+%        dup:an := an$predict(1, 10)
+%        names:an := an$predict(1, 30)
+%    	for form:nlibform in nliblist$elements(gc_read[nliblist](fn)) do
+%	    aName:name := form.name    	    
+%	    d:DU := rep$lookup(tab, aName)
+%	        EXCEPT when not_found:
+%	            d := DU$create(aName)
+%	            rep$bind(tab, d.unique, d)
+%	            end
+%	    if DU$is_none(d) then
+%	        an$addh(names, aName)
+%	        DU$update_specs(d, form.specs)
+%	        if new then d.cdate := FAR_FUTURE
+%	               else d.cdate := form.cdate end
+%	        d.kind := form.kind
+%	        if d.unique ~= form.path then
+%	            rep$mbind(tab, form.path, d) end
+%	    else
+%	        an$addh(dup, aName)
+%	        end
+%    	    end RESIGNAL not_possible
+%    	return(names, dup)
+%    	end import
+%
+%    old_import = proc(fn:fname, new:bool)returns(an, an)
+%    					 signals(not_possible(str))
+%	dat:date
+%	if new then
+%	    dat := FAR_FUTURE
+%	else
+%	    dat := file_date(fn, false) RESIGNAL not_possible
+%	    end
+%        dup:an := an$predict(1, 10)
+%        names:an := an$predict(1, 30)
+%    	for form:libform in liblist$elements(gc_read[liblist](fn)) do
+%	    aName:name := form.name    	    
+%	    d:DU := rep$lookup(tab, aName)
+%	        EXCEPT when not_found:
+%	            d := DU$create(aName)
+%	            rep$bind(tab, d.unique, d)
+%	            end
+%	    if DU$is_none(d) then
+%	        an$addh(names, aName)
+%	        DU$update_specs(d, form.specs)
+%	        d.cdate := dat  d.kind := _clu
+%	        if d.unique ~= form.path then
+%	            rep$mbind(tab, form.path, d) end
+%	    else
+%	        an$addh(dup, aName)
+%	        end
+%    	    end RESIGNAL not_possible
+%    	return(names, dup)
+%    	end old_import
+
+    kind2s = proc(k:int)returns(string)
+        if k = _spc then return("_spc") end
+        if k = _clu then return("_clu") end
+        %  if k = _imp then return("_imp") end
+        return("_???")
+        end kind2s
+        
+    end XLIB
+
+

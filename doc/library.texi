@@ -1,0 +1,1468 @@
+@c library.texi
+@c
+@c Copyright (c) 1996, 1997
+@c      Department of Mathematical and Computing Sciences, Tokyo
+@c      Institute of Technology.  All rights reserved.
+@c
+@c This is part of CLU2C User's Manual.  For copying conditions, see
+@c the file clu2c.texi.
+@c
+@c $Id: library.texi,v 2.6 1997/02/05 09:55:45 ushijima Exp $
+
+
+@c *******************************************************************
+@c                        Library Abstractions
+@c *******************************************************************
+
+@node Library, Installation, Changes to CLU, Top
+@chapter Library Abstractions
+
+@menu
+* Directory Entries::           
+* File Operations::             
+* File Name Handling::          
+* Integer Handling::            
+* Mathematical Functions::      
+* Program Environment::         
+* Misc Abstractions::           
+@end menu
+
+
+@c ===================================================================
+@c                         Directory Entries
+@c ===================================================================
+
+@node Directory Entries, File Operations, Library, Library
+@section Directory Entries
+
+You can merge @file{~CLU/lib/dirent.lib}
+to get the interface specifications of the abstractions
+described in this section.
+
+@menu
+* directory_entry_names::       
+@end menu
+
+@ifinfo
+@node directory_entry_names,  , Directory Entries, Directory Entries
+@subheading directory_entry_names
+@end ifinfo
+@deffn Routine directory_entry_names @r{= @b{iter} (@var{dir}: file_name) @w{@b{yields} (string)} @w{@b{signals} (not_possible (string))}}
+@strong{effects}
+Yields names of the entry in @var{dir} in an arbitrary order.
+@end deffn
+
+
+@c ===================================================================
+@c                          File Operations
+@c ===================================================================
+
+@node File Operations, File Name Handling, Directory Entries, Library
+@section File Operations
+
+You can merge @file{~CLU/lib/file.lib}
+to get the interface specifications of the abstractions
+described in this section.
+
+@menu
+* Kinds of Files::              
+@end menu
+
+
+@c -------------------------------------------------------------------
+@c                   Distinguishing Kinds of Files
+@c -------------------------------------------------------------------
+
+@node Kinds of Files,  , File Operations, File Operations
+@subsection Distinguishing Kinds of Files
+
+@menu
+* file_is_block_device::        
+* file_is_character_device::    
+* file_is_directory::           
+* file_is_fifo::                
+* file_is_regular::             
+* file_is_symbolic_link::       
+@end menu
+
+@ifinfo
+@node file_is_block_device, file_is_character_device, Kinds of Files, Kinds of Files
+@subsubheading file_is_block_device
+@end ifinfo
+@deffn Routine file_is_block_device @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true} if a file named @var{fn} exists
+and it is a block device;
+otherwise returns @code{false}.
+@end deffn
+
+@ifinfo
+@node file_is_character_device, file_is_directory, file_is_block_device, Kinds of Files
+@subsubheading file_is_character_device
+@end ifinfo
+@deffn Routine file_is_character_device @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true} if a file named @var{fn} exists
+and it is a character device;
+otherwise returns @code{false}.
+@end deffn
+
+@ifinfo
+@node file_is_directory, file_is_fifo, file_is_character_device, Kinds of Files
+@subsubheading file_is_directory
+@end ifinfo
+@deffn Routine file_is_directory @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true} if a file named @var{fn} exists
+and it is a directory;
+otherwise returns @code{false}.
+@end deffn
+
+@ifinfo
+@node file_is_fifo, file_is_regular, file_is_directory, Kinds of Files
+@subsubheading file_is_fifo
+@end ifinfo
+@deffn Routine file_is_fifo @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true} if a file named @var{fn} exists
+and it is a fifo (i.e., named pipe);
+otherwise returns @code{false}.
+@end deffn
+
+@ifinfo
+@node file_is_regular, file_is_symbolic_link, file_is_fifo, Kinds of Files
+@subsubheading file_is_regular
+@end ifinfo
+@deffn Routine file_is_regular @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true} if a file named @var{fn} exists
+and it is a regular file;
+otherwise returns @code{false}.
+@end deffn
+
+@ifinfo
+@node file_is_symbolic_link,  , file_is_regular, Kinds of Files
+@subsubheading file_is_symbolic_link
+@end ifinfo
+@deffn Routine file_is_symbolic_link @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true} if a file named @var{fn} exists
+and it is a symbolic link;
+otherwise returns @code{false}.
+@end deffn
+
+
+@c ===================================================================
+@c                         File Name Handling
+@c ===================================================================
+
+@node File Name Handling, Integer Handling, File Operations, Library
+@section File Name Handling
+
+You can merge @file{~CLU/lib/filename.lib}
+to get interface specifications of the abstractions
+described in this section.
+
+@menu
+* Accessing Components::        
+* Transforming File Names::     
+* Specific File Names::         
+@end menu
+
+
+@c -------------------------------------------------------------------
+@c                        Accessing Components
+@c -------------------------------------------------------------------
+
+@node Accessing Components, Transforming File Names, File Name Handling, File Name Handling
+@subsection Accessing File Name Components
+
+@menu
+* file_name_nondirectory::      
+* file_name_drive::             
+* file_name_proper_directory::  
+@end menu
+
+@ifinfo
+@node file_name_nondirectory, file_name_drive, Accessing Components, Accessing Components
+@subsubheading file_name_nondirectory
+@end ifinfo
+@deffn Routine file_name_nondirectory @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (string)}}
+@strong{effects}
+This procedure is equivalent to the following:
+
+@example
+file_name_nondirectory = proc(fn: fname) returns(string)
+    fname = file_name
+    entry: fname := fname$create("", fn.name, fn.suffix, fn.other)
+    return(fname$unparse(entry))
+end file_name_nondirectory
+@end example
+
+@noindent
+This procedure transforms @var{fn}
+in a string representation like @code{file_name$unparse}
+as if the @emph{directory} component of @var{fn} was empty.
+@end deffn
+
+@ifinfo
+@node file_name_drive, file_name_proper_directory, file_name_nondirectory, Accessing Components
+@subsubheading file_name_drive
+@end ifinfo
+@deffn Routine file_name_drive @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (string)}}
+@strong{effects}
+On UNIX this procedure returns an empty string.
+On MS-DOS this procedure returns a drive specification in the @emph{directory} component of @var{fn} if it exists;
+otherwise returns an empty string.
+@end deffn
+
+@ifinfo
+@node file_name_proper_directory,  , file_name_drive, Accessing Components
+@subsubheading file_name_proper_directory
+@end ifinfo
+@deffn Routine file_name_proper_directory @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (string)}}
+@strong{effects}
+On UNIX this procedure is equivalent to @code{file_name$get_dir}.
+On MS-DOS 
+@end deffn
+
+
+@c -------------------------------------------------------------------
+@c                      Transforming File Names
+@c -------------------------------------------------------------------
+
+@node Transforming File Names, Specific File Names, Accessing Components, File Name Handling
+@subsection Transforming File Names
+
+@menu
+* file_name_fill_directory::    
+* file_name_fill_suffix::       
+* file_name_apply_directory::   
+* file_name_absolutize::        
+* file_name_is_absolute::       
+* file_name_simplify::          
+* file_name_expand_home_directory::  
+* file_name_as_directory::      
+* directory_file_name::         
+@end menu
+
+@ifinfo
+@node file_name_fill_directory, file_name_fill_suffix, Transforming File Names, Transforming File Names
+@subsubheading file_name_fill_directory
+@end ifinfo
+@deffn Routine file_name_fill_directory @r{= @b{proc} (@var{fn}: file_name) @b{returns} (file_name)}
+@strong{effects}
+This procedure fills in or fixes up the directory component of @var{fn}
+if it is empty or relative;
+otherwise merely returns @var{fn}.
+The result may or may not be absolute.
+If the result is not absolute,
+it will be treated as relative to the current working directory
+associated with the current process.
+@end deffn
+
+@ifinfo
+@node file_name_fill_suffix, file_name_apply_directory, file_name_fill_directory, Transforming File Names
+@subsubheading file_name_fill_suffix
+@end ifinfo
+@deffn Routine file_name_fill_suffix @r{= @b{proc} (@var{fn}: file_name, @var{suffix}: string) @w{@b{returns} (file_name)}}
+@strong{effects}
+If the @code{suffix} component of @var{fn} is empty
+and @var{suffix} is valid as a @code{suffix} component,
+an invocation of this procedure is equivalent to the following invocation:
+
+@example
+file_name$create(@var{fn}.dir, @var{fn}.name, @var{suffix}, @var{fn}.other)
+@end example
+
+@noindent
+Otherwise simply returns @var{fn}.
+@end deffn
+
+@ifinfo
+@node file_name_apply_directory, file_name_absolutize, file_name_fill_suffix, Transforming File Names
+@subsubheading file_name_apply_directory
+@end ifinfo
+@deffn Routine file_name_apply_directory @r{= @b{proc} (@var{fn}, @var{base}: file_name) @w{@b{returns} (file_name)}}
+@strong{effects}
+@end deffn
+
+@ifinfo
+@node file_name_absolutize, file_name_is_absolute, file_name_apply_directory, Transforming File Names
+@subsubheading file_name_absolutize
+@end ifinfo
+@deffn Routine file_name_absolutize @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (file_name)}}
+@strong{effects}
+@end deffn
+
+@ifinfo
+@node file_name_is_absolute, file_name_simplify, file_name_absolutize, Transforming File Names
+@subsubheading file_name_is_absolute
+@end ifinfo
+@deffn Routine file_name_is_absolute @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true} if @var{fn} represents an absolute file name;
+otherwise returns false.
+@end deffn
+
+@ifinfo
+@node file_name_simplify, file_name_expand_home_directory, file_name_is_absolute, Transforming File Names
+@subsubheading file_name_simplify
+@end ifinfo
+@deffn Routine file_name_simplify @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (file_name)}}
+@strong{effects}
+@end deffn
+
+@ifinfo
+@node file_name_expand_home_directory, file_name_as_directory, file_name_simplify, Transforming File Names
+@subsubheading file_name_expand_home_directory
+@end ifinfo
+@deffn Routine file_name_expand_home_directory @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (file_name)}}
+@strong{effects}
+@end deffn
+
+Directory names are file names
+such that all the components other than @emph{directory} are empty.
+
+@ifinfo
+@node file_name_as_directory, directory_file_name, file_name_expand_home_directory, Transforming File Names
+@subsubheading file_name_as_directory
+@end ifinfo
+@deffn Routine file_name_as_directory @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (file_name)}}
+@strong{effects}
+@end deffn
+
+@ifinfo
+@node directory_file_name,  , file_name_as_directory, Transforming File Names
+@subsubheading directory_file_name
+@end ifinfo
+@deffn Routine directory_file_name @r{= @b{proc} (@var{fn}: file_name) @w{@b{returns} (file_name)}}
+@strong{effects}
+@end deffn
+
+
+@c -------------------------------------------------------------------
+@c                        Specific File Names
+@c -------------------------------------------------------------------
+
+@node Specific File Names,  , Transforming File Names, File Name Handling
+@subsection Specific File Names
+
+@menu
+* current_directory::           
+* home_directory::              
+@end menu
+
+@ifinfo
+@node current_directory, home_directory, Specific File Names, Specific File Names
+@subsubheading current_directory
+@end ifinfo
+@deffn Routine current_directory @r{= @b{proc} () @w{@b{returns} (file_name)}}
+@strong{effects}
+Returns the current working directory
+associated with the currently executing process.
+@end deffn
+
+@ifinfo
+@node home_directory,  , current_directory, Specific File Names
+@subsubheading home_directory
+@end ifinfo
+@deffn Routine home_directory @r{= @b{proc} (@var{user}: string) @w{@b{returns} (file_name)} @w{@b{signals} (not_found)}}
+@strong{effects}
+Returns @var{user}'s home directory if it can be determined;
+otherwise signals @code{not_found}.
+An empty @var{user} implies the user associated with the currently executing process.
+The "CLU" user is treated as to have the CLU system root directory as its home directory.
+The result is a directory name,
+i.e., all the components other than @emph{directory} are empty.
+@end deffn
+
+
+@c ===================================================================
+@c                          Integer Handling
+@c ===================================================================
+
+@node Integer Handling, Mathematical Functions, File Name Handling, Library
+@section Integer Handling
+
+This section describes some auxiliary operations on @code{int}.
+You can merge @file{~CLU/lib/int.lib}
+to get interface specifications of the abstractions
+described in this section.
+
+@menu
+* int_hex_parse::               
+* int_hex_unparse::             
+* int_oct_parse::               
+* int_oct_unparse::             
+@end menu
+
+@ifinfo
+@node int_hex_parse, int_hex_unparse, Integer Handling, Integer Handling
+@subheading int_hex_parse
+@end ifinfo
+
+@deffn Routine int_hex_parse @r{= @b{proc} (@var{s}: string) @w{@b{returns} (int)} @w{@b{signals} (bad_format, overflow)}}
+@strong{effects}
+Equivalent to @code{int$parse}
+except that each digit in @var{s} shall be hexadecimal.
+The letters from @samp{a} (or @samp{A}) through @samp{f} (or @samp{F})
+are used as hexadecimal digits
+with values from 10 through 15,
+respectively.
+@end deffn
+
+@ifinfo
+@node int_hex_unparse, int_oct_parse, int_hex_parse, Integer Handling
+@subheading int_hex_unparse
+@end ifinfo
+
+@deffn Routine int_hex_unparse @r{= @b{proc} (@var{i}: int) @w{@b{returns} (string)}}
+@strong{effects}
+Equivalent to @code{int$unparse}
+except that each digit in the result is hexadecimal.
+The letters from @samp{a} through @samp{f}
+are used for hexadecimal digits
+with values from 10 to 15,
+respectively.
+@end deffn
+
+@ifinfo
+@node int_oct_parse, int_oct_unparse, int_hex_unparse, Integer Handling
+@subheading int_oct_parse
+@end ifinfo
+
+@deffn Routine int_oct_parse @r{= @b{proc} (@var{s}: string) @w{@b{returns} (int)} @w{@b{signals} (bad_format, overflow)}}
+@strong{effects}
+Equivalent to @code{int$parse}
+except that each digit in @var{s} shall be octal.
+@end deffn
+
+@ifinfo
+@node int_oct_unparse,  , int_oct_parse, Integer Handling
+@subheading int_oct_unparse
+@end ifinfo
+
+@deffn Routine int_oct_unparse @r{= @b{proc} (@var{i}: int) @w{@b{returns} (string)}}
+@strong{effects}
+Equivalent to @code{int$unparse}
+except that each digit in the result is octal.
+@end deffn
+
+
+@c ===================================================================
+@c                       Mathematical Functions
+@c ===================================================================
+
+@node Mathematical Functions, Program Environment, Integer Handling, Library
+@section Mathematical Functions
+@cindex mathematical functions
+@cindex functions, mathematical
+
+The @code{overflow} exception occurs
+if the magnitude of the result is greater than Real_Max,
+unless otherwise specified.
+The @code{underflow} exception occurs
+if the magnitude of the result is less than Real_Min,
+unless otherwise specified.
+
+Interface specifications of these functions
+are contained in @file{~CLU/lib/math.spc}.
+
+@menu
+* Trigonometric Functions::     
+* Hyperbolic Functions::        
+* Exponential and Logarithmic Functions::  
+* Power Functions::             
+@end menu
+
+
+@c -------------------------------------------------------------------
+@c                      Trigonometric Functions
+@c -------------------------------------------------------------------
+
+@node  Trigonometric Functions, Hyperbolic Functions, Mathematical Functions, Mathematical Functions
+@subsection Trigonometric Functions
+@cindex trigonometric functions
+@cindex functions, trigonometric
+
+@cindex PI
+In the following descriptions, `PI' denotes the ratio of the
+circumference of a circle to its diameter.
+
+@menu
+* acos::                        
+* asin::                        
+* atan::                        
+* atan2::                       
+* cos::                         
+* sin::                         
+* tan::                         
+@end menu
+
+@ifinfo
+@node acos, asin, Trigonometric Functions, Trigonometric Functions
+@subsubheading acos
+@end ifinfo
+@cindex arc cosine
+@cindex cosine, arc
+@deffn Routine acos @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (bounds, overflow)}}
+@strong{effects}
+Signals @code{bounds} if @var{x} is less than -1 or greater than 1;
+otherwise returns the arc cosine of @var{x} in the range [0, PI] radians.
+@end deffn
+
+@ifinfo
+@node asin, atan, acos, Trigonometric Functions
+@subsubheading asin
+@end ifinfo
+@cindex arc sine
+@cindex sine, arc
+@deffn Routine asin @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (bounds, underflow)}}
+@strong{effects}
+Signals @code{bounds} if @var{x} is less than -1 or greater than 1;
+otherwise returns the arc sine of @var{x} in the range [@minus{}PI/2, +PI/2] radians.
+@end deffn
+
+@ifinfo
+@node atan, atan2, asin, Trigonometric Functions
+@subsubheading atan
+@end ifinfo
+@cindex arc tangent
+@cindex tangent, arc
+@deffn Routine  atan @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (underflow)}}
+@strong{effects}
+Returns the arc tangent of @var{x} in the range [@minus{}PI/2, +PI/2] radians.
+@end deffn
+
+@ifinfo
+@node atan2, cos, atan, Trigonometric Functions
+@subsubheading atan2
+@end ifinfo
+@cindex arc tangent
+@cindex tangent, arc
+@deffn Routine atan2 @r{= @b{proc} (@var{y}, @var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (undefined, underflow)}}
+@strong{effects}
+Signals @code{undefined} if both @var{x} and @var{y} are zero;
+otherwise returns the arc tangent of @var{y}/@var{x} in the range [@minus{}PI, +PI] radians.
+@end deffn
+
+@ifinfo
+@node cos, sin, atan2, Trigonometric Functions
+@subsubheading cos
+@end ifinfo
+@cindex cosine
+@deffn Routine  cos @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (underflow)}}
+@strong{effects}
+Returns the cosine of @var{x} (measured in radians).
+@end deffn
+
+@ifinfo
+@node sin, tan, cos, Trigonometric Functions
+@subsubheading sin
+@end ifinfo
+@cindex sine
+@deffn Routine  sin @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (underflow)}}
+@strong{effects}
+Returns the sine of @var{x} (measured in radians).
+@end deffn
+
+@ifinfo
+@node tan,  , sin, Trigonometric Functions
+@subsubheading tan
+@end ifinfo
+@cindex tangent
+@deffn Routine tan @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (overflow, underflow)}}
+@strong{effects}
+Returns the tangent of @var{x} (measured in radians).
+@end deffn
+
+
+@c -------------------------------------------------------------------
+@c                        Hyperbolic Functions
+@c -------------------------------------------------------------------
+
+@node  Hyperbolic Functions, Exponential and Logarithmic Functions, Trigonometric Functions, Mathematical Functions
+@subsection Hyperbolic Functions
+@cindex hyperbolic functions
+@cindex functions, hyperbolic
+
+@menu
+* cosh::                        
+* sinh::                        
+* tanh::                        
+@end menu
+
+@ifinfo
+@node cosh, sinh, Hyperbolic Functions, Hyperbolic Functions
+@subsubheading cosh
+@end ifinfo
+@cindex hyperbolic cosine
+@cindex cosine, hyperbolic
+@deffn Routine cosh @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (overflow, underflow)}}
+@strong{effects}
+Returns the hyperbolic cosine of @var{x}.
+@end deffn
+
+@ifinfo
+@node sinh, tanh, cosh, Hyperbolic Functions
+@subsubheading sinh
+@end ifinfo
+@cindex hyperbolic sine
+@cindex sine, hyperbolic
+@deffn Routine sinh @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (overflow, underflow)}}
+@strong{effects}
+Returns the hyperbolic sine of @var{x}.
+@end deffn
+
+@ifinfo
+@node tanh,  , sinh, Hyperbolic Functions
+@subsubheading tanh
+@end ifinfo
+@cindex hyperbolic tangent
+@cindex tangent, hyperbolic
+@deffn Routine tanh @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (underflow)}}
+@strong{effects}
+Returns the hyperbolic tangent of @var{x}.
+@end deffn
+
+
+@c -------------------------------------------------------------------
+@c               Exponential and Logarithmic Functions
+@c -------------------------------------------------------------------
+
+@node  Exponential and Logarithmic Functions, Power Functions, Hyperbolic Functions, Mathematical Functions
+@subsection Exponential and Logarithmic Functions
+@cindex exponential functions
+@cindex logarithmic functions
+@cindex functions, exponential
+@cindex functions, logarithmic
+
+@menu
+* exp::                         
+* log::                         
+* log10::                       
+@end menu
+
+@ifinfo
+@node exp, log, Exponential and Logarithmic Functions, Exponential and Logarithmic Functions
+@subsubheading exp
+@end ifinfo
+@deffn Routine exp @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (overflow, underflow)}}
+@strong{effects}
+Returns the exponential function of @var{x}.
+@end deffn
+
+@ifinfo
+@node log, log10, exp, Exponential and Logarithmic Functions
+@subsubheading log
+@end ifinfo
+@cindex natural logarithm
+@cindex logarithm, natural
+@deffn Routine log @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (complex_result, undefined, overflow, underflow)}}
+@strong{effects}
+Signals @code{complex_result} if @var{x} is negative;
+signals @code{undefined} if @var{x} is zero;
+otherwise returns the natural logarithm of @var{x}.
+@end deffn
+
+@ifinfo
+@node log10,  , log, Exponential and Logarithmic Functions
+@subsubheading log10
+@end ifinfo
+@cindex base-ten logarithm
+@cindex logarithm, base-ten
+@deffn Routine log10 @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (complex_result, undefined, overflow, underflow)}}
+@strong{effects}
+Signals @code{complex_result} if @var{x} is negative;
+signals @code{undefined} if @var{x} is zero;
+otherwise returns the base-ten logarithm of @var{x}.
+@end deffn
+
+
+@c -------------------------------------------------------------------
+@c                          Power Functions
+@c -------------------------------------------------------------------
+
+@node  Power Functions,  , Exponential and Logarithmic Functions, Mathematical Functions
+@subsection Power Functions
+@cindex power functions
+@cindex functions, power
+
+Note that a general power function is implemented as the @code{real$power} operation.
+
+@menu
+* sqrt::                        
+@end menu
+
+@ifinfo
+@node sqrt,  , Power Functions, Power Functions
+@subsubheading sqrt
+@end ifinfo
+@cindex square root
+@deffn Routine sqrt @r{= @b{proc} (@var{x}: real) @w{@b{returns} (real)} @w{@b{signals} (complex_result, overflow, underflow)}}
+@strong{effects}
+Signals @code{complex_result} if @var{x} is negative;
+otherwise returns the square root of @var{x}.
+@end deffn
+
+
+@c ===================================================================
+@c                        Program Environment
+@c ===================================================================
+
+@node Program Environment, Misc Abstractions, Mathematical Functions, Library
+@section Program Environment
+
+You can merge @file{~CLU/lib/progenv.lib}
+to get interface specifications of the abstractions
+described in this section.
+
+@menu
+* Argument Vector::             
+* Option Handling::             
+* Environment Variables::       
+* System Command Execution::    
+* Program Termination::         
+@end menu
+
+@c -------------------------------------------------------------------
+@c                          Argument Vector
+@c -------------------------------------------------------------------
+
+@node Argument Vector, Option Handling, Program Environment, Program Environment
+@subsection Argument Vector
+
+@menu
+* program_name::                
+* program_arguments::           
+* input_streams::               
+@end menu
+
+@ifinfo
+@node program_name, program_arguments, Argument Vector, Argument Vector
+@subsubheading program_name
+@end ifinfo
+
+@deffn Routine program_name @r{= @b{proc} () @b{returns} (string)}
+@strong{effects}
+Returns the program name associated with the current process.
+@end deffn
+
+@ifinfo
+@node program_arguments, input_streams, program_name, Argument Vector
+@subsubheading program_arguments
+@end ifinfo
+
+@deffn Routine program_arguments @r{= @b{proc} () @w{@b{returns} (sequence[string])}}
+@strong{effects}
+Returns the program arguments associated with the current process.
+@end deffn
+
+@ifinfo
+@node input_streams,  , program_arguments, Argument Vector
+@subsubheading input_streams
+@end ifinfo
+
+@deffn Routine input_streams @r{= @b{iter} (@var{inputs}: sequence[string]) @w{@b{yields} (stream)}}
+@strong{effects}
+Yields the primary input stream if @var{inputs} is empty
+(the primary input stream is the stream
+returned by the @code{stream$primary_input} operation).
+Otherwise yields an input stream specified by each element of @var{inputs},
+in order.
+If an element of @var{inputs} is @samp{-},
+it specifies the primary input stream.
+Any other elements specify input streams
+that result from opening files named by those elements.
+If a named file cannot be opened,
+prints an error message to the primary output stream for error messages
+(returned by the @code{stream$error_output} operation)
+and yields nothing as far as that element of @var{inputs} is concerned.
+@end deffn
+
+@c -------------------------------------------------------------------
+@c                          Option Handling
+@c -------------------------------------------------------------------
+
+@node Option Handling, Environment Variables, Argument Vector, Program Environment
+@subsection Option Handling
+
+@deftp {Data type} getopt @r{= @b{data type is} create, create_long, options, get_optname, get_optarg, optarg_is_empty, optarg_is_full, get_optind, get_opterr, set_opterr, set_output, get_non_options, non_options}
+@end deftp
+
+@subsubheading Overview
+
+The @code{getopt} type provides the means
+to analyze the argument vector (sometimes called an @dfn{argv})
+supplied to a program when it was invoked.
+
+From the point of view of @code{getopt},
+an argument vector consists of zero or more option arguments
+followed by zero or more non-option arguments.
+Option arguments specify a set of options.
+An option can take an argument for itself.
+
+The argument that starts with a minus sign (@code{-})
+followed by one or more characters
+is an option argument unless otherwise specified.
+It specifies one or more options.
+If an option specified by an option argument takes an argument
+and an argument to the option is not specified in the option argument,
+the next argument in the argument vector
+is taken as an argument to the option.
+
+At the minimum,
+an option argument consists of a minus sign
+followed by a single character (e.g., @code{-a}),
+which specifies a single option.
+If an option takes an argument,
+the argument to the option can be specified in the same option argument.
+For example,
+suppose that the @code{-o} option takes an argument.
+The argument to this option,
+say @code{foo},
+can be specified as @code{-ofoo},
+as well as @code{-o foo},
+as mentioned above.
+
+Options specified by a single character can be grouped into a single option argument.
+For example,
+the three options @code{-a}, @code{-b}, and @code{-c} can be specified as @code{-abc}.
+Note that an argument-taking option eats up an option argument.
+For example,
+if the @code{-o} option takes an argument as before,
+the option argument @code{-aobc}
+is equivalent to the tree option arguments @code{-a -o bc}.
+
+An @code{getopt} object can be made tailored
+to recognize long-form options
+(in contrast to short-form options described so far).
+The form of an long-form option is
+
+@display
+@code{--}@var{name}[@code{=}@var{argument}]
+@end display
+
+@noindent
+where @var{name} can be specified with an unambiguous prefix.
+
+A special option argument
+that consists of two minus signs (i.e., @code{--}),
+unless taken as an argument for the preceding option,
+does not modify the program behavior
+but modifies the way the argument vector is analyzed:
+it specifies the end of option arguments.
+That is,
+all the arguments that follows this argument
+are taken as non-option arguments,
+even if they start with a minus sign.
+
+An @code{getopt} object is mutable.
+The state of an @code{getopt} object changes
+during the execution of the @code{options} operation.
+No other operations change the state.
+Each time the @code{options} operation yields,
+it sets the current option to the yielded one.
+
+@subsubheading Operations
+
+@menu
+* getopt$create::               
+* getopt$create_long::          
+* getopt$options::              
+* getopt$get_optname::          
+* getopt$get_optarg::           
+* getopt$optarg_is_empty::      
+* getopt$optarg_is_full::       
+* getopt$get_optind::           
+* getopt$get_opterr::           
+* getopt$set_opterr::           
+* getopt$set_output::           
+* getopt$get_non_options::      
+* getopt$non_options::          
+@end menu
+
+@ifinfo
+@noindent
+end getopt
+@end ifinfo
+
+@ifinfo
+@node getopt$create, getopt$create_long, Option Handling, Option Handling
+@subsubheading getopt$create
+@end ifinfo
+@defop Operation getopt create @r{= @b{proc} (@var{argv}: sequence[string], @var{optstring}: string) @w{@b{returns} (getopt)} @w{@b{signals} (bad_format)}}
+@strong{effects}
+Returns a new @code{getopt} object
+that analyzes short-form options in @var{argv}.
+The legitimate characters for the options are listed in @var{optstring}.
+If a character is followed by a colon (@code{:}),
+the option specified by the character takes an argument.
+The other options does not take an argument.
+Signals @code{bad_format} if @var{optstring} is empty
+or it starts with a colon.
+@end defop
+
+@ifinfo
+@node getopt$create_long, getopt$options, getopt$create, Option Handling
+@subsubheading getopt$create_long
+@end ifinfo
+@defop Operation getopt create_long @r{= @b{proc} (@w{@var{argv}: sequence[string]}, @w{@var{shortopts}: string}, @w{@var{longopts}: long_option_list}) @w{@b{returns} (getopt)} @w{@b{signals} (bad_format)}@*@w{long_option_list = sequence[long_option]}@*@w{long_option = struct[name: string, arg: int, val: char]}@*@w{no_argument = 0}@*@w{required_argument = 1}@*@w{optional_argument = 2}}
+@strong{effects}
+Returns a new @code{getopt} object
+that analyzes short-form options as well as long-form options in @var{argv}.
+The @code{shortopts} argument
+is the same as @var{optstring} for @code{create}
+except that it can be empty,
+in this case only long-form options are analyzed.
+The @var{longopts} argument specifies a set of legitimate long-form options.
+Each element specifies a single long-form option.
+The @code{name} component is the name of the option.
+The @code{arg} component specifies whether the option takes an argument:
+@code{no_argument} means that the option does not take an argument;
+@code{required_argument} means that the option takes an argument;
+@code{optional_argument} means that the option takes an argument
+but the argument can be omitted.
+The @code{val} component specifies the character
+yielded by the @code{options} operation when the option is encountered.
+Signals @code{bad_format} if @var{shortops} starts with a colon
+or @var{longopts} is not in the form mentioned above.
+@end defop
+
+@ifinfo
+@node getopt$options, getopt$get_optname, getopt$create_long, Option Handling
+@subsubheading getopt$options
+@end ifinfo
+@defop Operation getopt options @r{= @b{iter} (@var{go}: getopt) @w{@b{yields} (char)}}
+@strong{requires}
+The @code{options} operation has not been invoked on @var{go}.@*
+@strong{modifies}
+@var{go}.@*
+@strong{effects}
+Analyzes the argument vector and yields a character
+that corresponds to the option encountered.
+If the option is in short form,
+yields the character that specifies the option.
+If the option is in long form,
+yields the @code{val} component that corresponds to the option.
+If the specified option is not legitimate,
+is ambiguous,
+or lacks a required argument,
+yields a question mark (@code{?}).
+In the last case an error message is printed to the standard error.
+@end defop
+
+@ifinfo
+@node getopt$get_optname, getopt$get_optarg, getopt$options, Option Handling
+@subsubheading getopt$get_optname
+@end ifinfo
+@defop Operation getopt get_optname @r{= @b{proc} (@var{go}: getopt) @w{@b{returns} (string)}}
+@strong{effects}
+Returns the name of the current option such as "-a" or "--verbose".
+@end defop
+
+@ifinfo
+@node getopt$get_optarg, getopt$optarg_is_empty, getopt$get_optname, Option Handling
+@subsubheading getopt$get_optarg
+@end ifinfo
+@defop Operation getopt get_optarg @r{= @b{proc} (@var{go}: getopt) @w{@b{returns} (string)} @w{@b{signals} (no_argument)}}
+@strong{effects}
+If the current option has an argument,
+returns the argument.
+Otherwise signals @code{no_argument}.
+@end defop
+
+@ifinfo
+@node getopt$optarg_is_empty, getopt$optarg_is_full, getopt$get_optarg, Option Handling
+@subsubheading getopt$optarg_is_empty
+@end ifinfo
+@defop Operation getopt optarg_is_empty @r{= @b{proc} (@var{go}: getopt) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true}
+if and only if the current option does not have an argument.
+@end defop
+
+@ifinfo
+@node getopt$optarg_is_full, getopt$get_optind, getopt$optarg_is_empty, Option Handling
+@subsubheading getopt$optarg_is_full
+@end ifinfo
+@defop Operation getopt optarg_is_full @r{= @b{proc} (@var{go}: getopt) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true} if and only if the current option has an argument.
+@end defop
+
+@ifinfo
+@node getopt$get_optind, getopt$get_opterr, getopt$optarg_is_full, Option Handling
+@subsubheading getopt$get_optind
+@end ifinfo
+@defop Operation getopt get_optind @r{= @b{proc} (@var{go}: getopt) @w{@b{returns} (int)}}
+@strong{effects}
+Returns the index of the next argument to be processed in the argument vector.
+@end defop
+
+@ifinfo
+@node getopt$get_opterr, getopt$set_opterr, getopt$get_optind, Option Handling
+@subsubheading getopt$get_opterr
+@end ifinfo
+@defop Operation getopt get_opterr @r{= @b{proc} (@var{go}: getopt) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns whether an error message is printed
+when an option is unknown or without a required argument.
+@end defop
+
+@ifinfo
+@node getopt$set_opterr, getopt$set_output, getopt$get_opterr, Option Handling
+@subsubheading getopt$set_opterr
+@end ifinfo
+@defop Operation getopt set_opterr @r{= @b{proc} (@var{go}: getopt, @var{opterr}: bool)}
+@strong{modifies}
+@var{go}.@*
+@strong{effects}
+If @var{opterr} is @code{true},
+changes @var{go} so that an error message is printed
+when an option is unknown or without a required argument
+(this is the default behavior).
+Otherwise changes @var{go} so that no error messages are printed.
+@end defop
+
+@ifinfo
+@node getopt$set_output, getopt$get_non_options, getopt$set_opterr, Option Handling
+@subsubheading getopt$set_output
+@end ifinfo
+@defop Operation getopt set_output @r{= @b{proc} (@var{go}: getopt, @var{output}: stream)}
+@strong{modifies}
+@var{go}.@*
+@strong{effects}
+Changes @var{go} so that error messages are printed to @var{output}.
+@end defop
+
+@ifinfo
+@node getopt$get_non_options, getopt$non_options, getopt$set_output, Option Handling
+@subsubheading getopt$get_non_options
+@end ifinfo
+@defop Operation getopt get_non_options @r{= @b{proc} (@var{go}: getopt) @w{@b{returns} (sequence[string])}}
+@strong{requires}
+The @code{options} operation has been invoked on @var{go}
+and it terminated normally.@*
+@strong{effects}
+Returns the sequence of the non-option arguments.
+@end defop
+
+@ifinfo
+@node getopt$non_options,  , getopt$get_non_options, Option Handling
+@subsubheading getopt$non_options
+@end ifinfo
+@defop Operation getopt non_options @r{= @b{iter} (@var{go}: getopt) @w{@b{yields} (string)}}
+@strong{requires}
+The @code{options} operation has been invoked on @var{go}
+and it terminated normally.@*
+@strong{effects}
+Yields each non-option argument in the same order
+as in the argument vector that is used for creating @var{go}.
+@end defop
+
+@iftex
+@noindent
+@b{end} getopt
+@end iftex
+
+@c -------------------------------------------------------------------
+@c                       Environment Variables
+@c -------------------------------------------------------------------
+
+@node Environment Variables, System Command Execution, Option Handling, Program Environment
+@subsection Environment Variables
+
+@deffn Routine getenv @r{= @b{proc} (@var{name}: string) @w{@b{returns} (string)} @w{@b{signals} (not_found)}}
+@strong{effects}
+Returns the value of the environment variable associated with @var{name}
+if such a variable exists;
+otherwise signals @code{not_found}.
+@end deffn
+
+@c -------------------------------------------------------------------
+@c                      System Command Execution
+@c -------------------------------------------------------------------
+
+@node System Command Execution, Program Termination, Environment Variables, Program Environment
+@subsection System Command Execution
+
+@deffn Routine system @r{= @b{proc} (@var{command}: string) @b{returns} (int)}
+@strong{effects}
+Invokes an implementation-defined command processor to interpret @var{command}
+and returns an implementation-defined value.
+@end deffn
+
+@c -------------------------------------------------------------------
+@c                        Program Termination
+@c -------------------------------------------------------------------
+
+@node Program Termination,  , System Command Execution, Program Environment
+@subsection Program Termination
+
+@deffn Routine terminate @r{= @b{proc} (@var{status}: int)}
+@strong{effects}
+Attempts to flush all open streams with unwritten buffered data,
+then closes all open streams,
+and then terminates the current process
+in the condition specified by @var{status}.
+@end deffn
+
+
+@c ===================================================================
+@c                     Miscellaneous Abstractions
+@c ===================================================================
+
+@node Misc Abstractions,  , Program Environment, Library
+@section Miscellaneous Abstractions
+
+@menu
+* Unsigned Integers::           
+@end menu
+
+@c -------------------------------------------------------------------
+@c                         Unsigned Integers
+@c -------------------------------------------------------------------
+
+@node Unsigned Integers,  , Misc Abstractions, Misc Abstractions
+@subsection Unsigned Integers
+
+@deftp {Data type} uint @r{= @b{data type is} create, to_int, add, sub, mul, div, mod, max, min, lt, le, ge, gt, and, or, xor, not, shift, parse, hex_parse, oct_parse, unparse, hex_unparse, oct_unparse, equal, similar, copy}
+@end deftp
+
+@subsubheading Overview
+
+Objects of type @code{uint} are immutable
+and represent nonnegative integers less than @sc{uint_modulo},
+where @sc{uint_modulo} = 2 ** @sc{uint_bit}
+and @sc{uint_bit} is the implementation-defined constant
+such that @sc{uint_modulo} > Int_Max.
+
+@subsubheading Operations
+
+@menu
+* uint$create::                 
+* uint$to_int::                 
+* uint$add::                    
+* uint$sub::                    
+* uint$mul::                    
+* uint$div::                    
+* uint$mod::                    
+* uint$max::                    
+* uint$min::                    
+* uint$lt::                     
+* uint$le::                     
+* uint$ge::                     
+* uint$gt::                     
+* uint$and::                    
+* uint$or::                     
+* uint$xor::                    
+* uint$not::                    
+* uint$shift::                  
+* uint$parse::                  
+* uint$hex_parse::              
+* uint$oct_parse::              
+* uint$unparse::                
+* uint$hex_unparse::            
+* uint$oct_unparse::            
+* uint$equal::                  
+* uint$similar::                
+* uint$copy::                   
+@end menu
+
+@ifinfo
+@noindent
+end uint
+@end ifinfo
+
+@ifinfo
+@node uint$create, uint$to_int, Unsigned Integers, Unsigned Integers
+@subsubheading uint$create
+@end ifinfo
+@defop Operation uint create @r{= @b{proc} (@var{i}: int) @w{@b{returns} (uint)} @w{@b{signals} (negative_argument)}}
+@strong{effects}
+Signals @code{negative_argument} if @var{i} < 0;
+otherwise returns the unsigned integer that has the same value as @var{i}.
+@end defop
+
+@ifinfo
+@node uint$to_int, uint$add, uint$create, Unsigned Integers
+@subsubheading uint$to_int
+@end ifinfo
+@defop Operation uint to_int @r{= @b{proc} (@var{u}: uint) @w{@b{returns} (int)} @w{@b{signals} (overflow)}}
+@strong{effects}
+Signals @code{overflow}
+if @var{u} can not be represented as an @code{int} object;
+otherwise returns the integer that has the same value as @var{u}.
+@end defop
+
+@ifinfo
+@node uint$add, uint$sub, uint$to_int, Unsigned Integers
+@subsubheading uint$add
+@end ifinfo
+@defop Operation uint add @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (@var{u3}: uint)}}
+@strong{effects}
+@var{u3} is congruent to (@var{u1} + @var{u2}) (modulo @sc{uint_modulo}).
+@end defop
+
+@ifinfo
+@node uint$sub, uint$mul, uint$add, Unsigned Integers
+@subsubheading uint$sub
+@end ifinfo
+@defop Operation uint sub @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (@var{u3}: uint)}}
+@strong{effects}
+@var{u3} is congruent to (@var{u1} - @var{u2}) (modulo @sc{uint_modulo}).
+@end defop
+
+@ifinfo
+@node uint$mul, uint$div, uint$sub, Unsigned Integers
+@subsubheading uint$mul
+@end ifinfo
+@defop Operation uint mul @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (@var{u3}: uint)}}
+@strong{effects}
+@var{u3} is congruent to (@var{u1} * @var{u2}) (modulo @sc{uint_modulo}).
+@end defop
+
+@ifinfo
+@node uint$div, uint$mod, uint$mul, Unsigned Integers
+@subsubheading uint$div
+@end ifinfo
+@defop Operation uint div @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (@var{u3}: uint)} @w{@b{signals} (zero_divide)}}
+@strong{effects}
+Signals @code{zero_divide}
+if @var{u2} is zero;
+otherwise @var{u1} is equal to (@var{u2} * @var{u3} + @var{r})
+for some nonnegative integer @var{r} less than @var{u2}.
+@end defop
+
+@ifinfo
+@node uint$mod, uint$max, uint$div, Unsigned Integers
+@subsubheading uint$mod
+@end ifinfo
+@defop Operation uint mod @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (@var{u3}: uint)} @w{@b{signals} (zero_divide)}}
+@strong{effects}
+Signals @code{zero_divide}
+if @var{u2} is zero;
+otherwise @var{u3} is less than @var{u2}
+and @var{u1} is equal to (@var{u2} * @var{q} + @var{u3})
+for some nonnegative integer @var{q}.
+@end defop
+
+@ifinfo
+@node uint$max, uint$min, uint$mod, Unsigned Integers
+@subsubheading uint$max
+@end ifinfo
+@defop Operation uint max @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (uint)}}
+@strong{effects}
+Returns the larger of @var{u1} and @var{u2}.
+@end defop
+
+@ifinfo
+@node uint$min, uint$lt, uint$max, Unsigned Integers
+@subsubheading uint$min
+@end ifinfo
+@defop Operation uint min @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (uint)}}
+@strong{effects}
+Returns the smaller of @var{u1} and @var{u2}.
+@end defop
+
+@ifinfo
+@node uint$lt, uint$le, uint$min, Unsigned Integers
+@subsubheading uint$lt
+@end ifinfo
+@defop Operation uint lt @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true}
+if and only if @var{u1} is less than @var{u2}.
+@end defop
+
+@ifinfo
+@node uint$le, uint$ge, uint$lt, Unsigned Integers
+@subsubheading uint$le
+@end ifinfo
+@defop Operation uint le @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true}
+if and only if @var{u1} is less than or equal to @var{u2}.
+@end defop
+
+@ifinfo
+@node uint$ge, uint$gt, uint$le, Unsigned Integers
+@subsubheading uint$ge
+@end ifinfo
+@defop Operation uint ge @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true}
+if and only if @var{u1} is greater than or equal to @var{u2}.
+@end defop
+
+@ifinfo
+@node uint$gt, uint$and, uint$ge, Unsigned Integers
+@subsubheading uint$gt
+@end ifinfo
+@defop Operation uint gt @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true}
+if and only if @var{u1} is greater than @var{u2}.
+@end defop
+
+@ifinfo
+@node uint$and, uint$or, uint$gt, Unsigned Integers
+@subsubheading uint$and
+@end ifinfo
+@defop Operation uint and @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (uint)}}
+@strong{effects}
+Returns the bitwise @sc{and} of @var{u1} and @var{u2}.
+@end defop
+
+@ifinfo
+@node uint$or, uint$xor, uint$and, Unsigned Integers
+@subsubheading uint$or
+@end ifinfo
+@defop Operation uint or @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (uint)}}
+@strong{effects}
+Returns the bitwise inclusive @sc{or} of @var{u1} and @var{u2}.
+@end defop
+
+@ifinfo
+@node uint$xor, uint$not, uint$or, Unsigned Integers
+@subsubheading uint$xor
+@end ifinfo
+@defop Operation uint xor @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (uint)}}
+@strong{effects}
+Returns the bitwise exclusive @sc{or} of @var{u1} and @var{u2}.
+@end defop
+
+@ifinfo
+@node uint$not, uint$shift, uint$xor, Unsigned Integers
+@subsubheading uint$not
+@end ifinfo
+@defop Operation uint not @r{= @b{proc} (@var{u}: uint) @w{@b{returns} (uint)}}
+@strong{effects}
+Returns the one's complement of @var{u}.
+@end defop
+
+@ifinfo
+@node uint$shift, uint$parse, uint$not, Unsigned Integers
+@subsubheading uint$shift
+@end ifinfo
+@defop Operation uint shift @r{= @b{proc} (@var{u}: uint, @var{count}: int) @w{@b{returns} (uint)}}
+@strong{effects}
+Returns an unsigned integer
+that is the result of shifting @var{u} left
+by @var{count} bit positions
+if @var{count} is positive;
+otherwise returns an unsigned integer
+that is the result of shifting @var{u} right
+by -@var{count} bit positions.
+@end defop
+
+@ifinfo
+@node uint$parse, uint$hex_parse, uint$shift, Unsigned Integers
+@subsubheading uint$parse
+@end ifinfo
+@defop Operation uint parse @r{= @b{proc} (@var{s}: string) @w{@b{returns} (@var{u}: uint)} @w{@b{signals} (bad_format)}}
+@strong{effects}
+Signals @code{bad_format}
+if @var{s} contains any character other than decimal digits;
+otherwise @var{u} is congruent
+to the integer represented by @var{s}
+(modulo @sc{uint_modulo}).
+@end defop
+
+@ifinfo
+@node uint$hex_parse, uint$oct_parse, uint$parse, Unsigned Integers
+@subsubheading uint$hex_parse
+@end ifinfo
+@defop Operation uint hex_parse @r{= @b{proc} (@var{s}: string) @w{@b{returns} (@var{u}: uint)} @w{@b{signals} (bad_format)}}
+@strong{effects}
+Signals @code{bad_format}
+if @var{s} contains any character other than hexadecimal digits;
+otherwise @var{u} is congruent to @var{x}
+(modulo @sc{uint_modulo}),
+where @var{x} is the integer represented by @var{s} in hexadecimal notation.
+@end defop
+
+@ifinfo
+@node uint$oct_parse, uint$unparse, uint$hex_parse, Unsigned Integers
+@subsubheading uint$oct_parse
+@end ifinfo
+@defop Operation uint oct_parse @r{= @b{proc} (@var{s}: string) @w{@b{returns} (@var{u}: uint)} @w{@b{signals} (bad_format)}}
+@strong{effects}
+Signals @code{bad_format}
+if @var{s} contains any character other than octal digits;
+otherwise @var{u} is congruent to @var{x}
+(modulo @sc{uint_modulo}),
+where @var{x} is the integer represented by @var{s} in octal notation.
+@end defop
+
+@ifinfo
+@node uint$unparse, uint$hex_unparse, uint$oct_parse, Unsigned Integers
+@subsubheading uint$unparse
+@end ifinfo
+@defop Operation uint unparse @r{= @b{proc} (@var{u}: uint) @w{@b{returns} (string)}}
+@strong{effects}
+Returns the string
+such that parse(unparse(@var{u})) = @var{u}.
+Leading zeros are suppressed.
+@end defop
+
+@ifinfo
+@node uint$hex_unparse, uint$oct_unparse, uint$unparse, Unsigned Integers
+@subsubheading uint$hex_unparse
+@end ifinfo
+@defop Operation uint hex_unparse @r{= @b{proc} (@var{u}: uint) @w{@b{returns} (string)}}
+@strong{effects}
+Returns the string
+such that hex_parse(hex_unparse(@var{u})) = @var{u}.
+Leading zeros are suppressed.
+The letters from @samp{a} through @samp{f}
+are used for hexadecimal digits
+with values from 10 to 15,
+respectively.
+@end defop
+
+@ifinfo
+@node uint$oct_unparse, uint$equal, uint$hex_unparse, Unsigned Integers
+@subsubheading uint$oct_unparse
+@end ifinfo
+@defop Operation uint oct_unparse @r{= @b{proc} (@var{u}: uint) @w{@b{returns} (string)}}
+@strong{effects}
+Returns the string
+such that oct_parse(oct_unparse(@var{u})) = @var{u}.
+Leading zeros are suppressed.
+@end defop
+
+@ifinfo
+@node uint$equal, uint$similar, uint$oct_unparse, Unsigned Integers
+@subsubheading uint$equal
+@end ifinfo
+@defop Operation uint equal @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (bool)}}
+@strong{effects}
+Returns @code{true}
+if and only if @var{u1} and @var{u2} is the same unsigned integer.
+@end defop
+
+@ifinfo
+@node uint$similar, uint$copy, uint$equal, Unsigned Integers
+@subsubheading uint$similar
+@end ifinfo
+@defop Operation uint similar @r{= @b{proc} (@var{u1}, @var{u2}: uint) @w{@b{returns} (bool)}}
+@strong{effects}
+Equivalent to the @code{equal} operation.
+@end defop
+
+@ifinfo
+@node uint$copy,  , uint$similar, Unsigned Integers
+@subsubheading uint$copy
+@end ifinfo
+@defop Operation uint copy @r{= @b{proc} (@var{u}: uint) @w{@b{returns} (uint)}}
+@strong{effects}
+Simply returns @var{u}.
+@end defop
+
+@iftex
+@noindent
+@b{end} uint
+@end iftex

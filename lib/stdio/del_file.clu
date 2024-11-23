@@ -1,0 +1,17 @@
+% del_file.clu - delete file
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: del_file.clu,v 2.0 1996/06/10 09:01:34 ushijima Exp $
+
+
+delete_file = proc(fn: file_name) signals(not_possible(string))
+    _external_unlink(file_name_to_string(fn))
+	except when not_possible(why: string):
+	    if _external_errname() ~= "ENOENT" then
+		signal not_possible(why)
+	    end
+	end
+end delete_file

@@ -1,0 +1,14 @@
+% progname.clu - program name
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: progname.clu,v 2.0 1996/06/10 09:02:18 ushijima Exp $
+
+
+% Returns the program name associated with the current process.
+
+program_name = proc() returns(string)
+    return(rt_env$one().program_name)
+end program_name

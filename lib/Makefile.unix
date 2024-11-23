@@ -1,0 +1,188 @@
+
+
+######################################################################
+#
+# Makefile.unix.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = lib
+
+# Top-level build directory
+topdir = ..
+
+# Subdirectories
+subdirs = gc jaio external built-in stdio clu2c
+
+
+#### Source files ####
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README Index basic.spc makelib sysnames
+
+# All the source files
+ALL_SRC = $(MISC_SRC)
+
+
+#### Created files ####
+
+# Archive file
+ARCHIVE = libclu2c.a
+
+
+#### Variables for source code maintenance ####
+
+# Non-source files included in the distribution
+NON_SRC = Makefile.dos Makefile.unix dirent.lib external.lib file.lib filename.lib int.lib math.lib progenv.lib pstream.lib runtime.lib uint.lib
+
+# All the files included in the distribution
+DIST = $(ALL_SRC) $(NON_SRC)
+
+# Default flags to m4
+DEFAULT_M4FLAGS = -I$(top_srcdir)/mk
+
+# All the flags to m4
+ALL_M4FLAGS = $(DEFAULT_M4FLAGS) $(M4FLAGS)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all:
+	for d in $(subdirs); do (cd $$d && $(MAKE) all); done
+	cat $(srcdir)/clu2c/op-table.c $(srcdir)/stdio/op-table.c > libclu2c.c
+
+# Copies all the products
+install: installdirs
+	for d in $(subdirs); do (cd $$d && $(MAKE) install); done
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(ARCHIVE) $(clu2c_libdir)/$(ARCHIVE)
+	-$(RANLIB) $(clu2c_libdir)/$(ARCHIVE)
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/Index $(clu2c_libdir)/Index
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/basic.spc $(clu2c_libdir)/basic.spc
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/sysnames $(clu2c_libdir)/sysnames
+	$(INSTALL_DATA) $(INSTALLFLAGS) libclu2c.c $(clu2c_libdir)/libclu2c.c
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/dirent.lib $(clu2c_libdir)/dirent.lib
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/external.lib $(clu2c_libdir)/external.lib
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/file.lib $(clu2c_libdir)/file.lib
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/filename.lib $(clu2c_libdir)/filename.lib
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/int.lib $(clu2c_libdir)/int.lib
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/math.lib $(clu2c_libdir)/math.lib
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/progenv.lib $(clu2c_libdir)/progenv.lib
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/pstream.lib $(clu2c_libdir)/pstream.lib
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/runtime.lib $(clu2c_libdir)/runtime.lib
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)/uint.lib $(clu2c_libdir)/uint.lib
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+	for d in $(subdirs); do (cd $$d && $(MAKE) mostlyclean); done
+	rm -f $(ARCHIVE)
+
+# Makes clean
+clean:
+	for d in $(subdirs); do (cd $$d && $(MAKE) clean); done
+	rm -f $(ARCHIVE)
+	rm -f libclu2c.c
+
+# Makes clean as disributed
+distclean:
+	rm -f Makefile Makefile.top
+	for d in $(subdirs); do (cd $$d && $(MAKE) distclean); done
+	rm -f $(ARCHIVE)
+	rm -f libclu2c.c
+
+# Makes really clean
+realclean:
+	rm -f Makefile Makefile.top
+	for d in $(subdirs); do (cd $$d && $(MAKE) realclean); done
+	rm -f $(ARCHIVE)
+	rm -f libclu2c.c
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+	for d in $(subdirs); do (cd $$d && $(MAKE) dist); done
+
+# Does some check
+check:
+
+
+#### Rules specific to this directory ####
+
+# Creates all C files.
+cfiles:
+	for d in stdio clu2c; do (cd $$d && $(MAKE) cfiles); done
+
+# Prepares installtion directories
+installdirs:
+	test -d $(clu2c_rootdir) || mkdir $(clu2c_rootdir)
+	test -d $(clu2c_libdir) || mkdir $(clu2c_libdir)
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	cat Makefile.top $(topdir)/config.mk $(srcdir)/Makefile.unix > Makefile
+	for d in $(subdirs); do (cd $$d && $(MAKE) mkfiles); done
+
+# Forces a particular target to be made
+always:
+
+
+#### Rules for source code maintenance ####
+
+# Deletes all files created by making cfiles
+cfiles-clean:
+	for d in stdio clu2c; do (cd $$d && $(MAKE) cfiles-clean); done
+
+# Creates interface specification library files
+lib:
+	$(CLU2C) < makelib
+
+# Processes m4 files
+m4:
+	@for os in unix dos; do					\
+	    mk=Makefile.$$os;						\
+	    echo creating $$mk;						\
+	    $(M4) $(ALL_M4FLAGS) -DOSTYPE=$$os Makefile.in >$$mk.new;	\
+	    if test ! $$?; then						\
+		echo $$mk is unchanged;					\
+		rm -f $$mk.new;						\
+		exit 1;							\
+	    elif cmp -s $$mk $$mk.new 2>/dev/null; then			\
+		echo $$mk is unchanged;					\
+		rm -f $$mk.new;						\
+	    else							\
+		rm -f $$mk;						\
+		mv $$mk.new $$mk;					\
+	    fi;								\
+	done
+	for d in $(subdirs); do (cd $$d && $(MAKE) m4); done
+
+# Creates dos distribution
+dosdist: $(DIST)
+	@$(top_srcdir)/config/makedist -d $(dos_distname) $(curdir) $(DIST)
+	for d in $(subdirs); do (cd $$d && $(MAKE) dosdist); done
+
+# Creates the list of source files
+source-list:
+	@if [ $(curdir) = . ]; then\
+	    cp /dev/null source-list;\
+	    for i in $(ALL_SRC); do\
+		echo $$i >>source-list;\
+	    done;\
+	else\
+	    for i in $(ALL_SRC); do\
+		echo $(curdir)/$$i >>$(topdir)/source-list;\
+	    done;\
+	fi
+	for d in $(subdirs); do (cd $$d && $(MAKE) source-list); done

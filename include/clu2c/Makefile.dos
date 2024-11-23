@@ -1,0 +1,86 @@
+
+
+######################################################################
+#
+# Makefile.dos.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = include\clu2c
+
+# Top-level build directory
+topdir = ../..
+
+
+#### Source files ####
+
+# Interface specification files
+HDR_SRC = $(HDR_SRC_1) $(HDR_SRC_2) $(HDR_SRC_3)
+HDR_SRC_1 = any.h array.h bool.h char.h clu2c.h glo.h int.h istream.h
+HDR_SRC_2 = itertype.h null.h oneof.h proctype.h real.h record.h
+HDR_SRC_3 = sequence.h stream.h string.h struct.h type.h variant.h
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README
+
+# All the source files
+ALL_SRC = $(HDR_SRC) $(MISC_SRC)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all:
+
+# Copies all the products
+install: installdirs
+	copy *.h $(clu2c_includedir)\clu2c
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+
+# Makes clean
+clean:
+
+# Makes clean as disributed
+distclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove Makefile Makefile.top
+
+# Makes really clean
+realclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove Makefile Makefile.top
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+
+# Does some check
+check:
+
+
+#### Rules specific to this directory ####
+
+# Prepares installation directory
+installdirs:
+	-mkdir $(clu2c_rootdir)
+	-mkdir $(clu2c_includedir)
+	-mkdir $(clu2c_includedir)\clu2c
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	copy Makefile.top+$(config_mk)+$(srcdir)\Makefile.dos Makefile
+
+# Forces a particular target to be made
+always:

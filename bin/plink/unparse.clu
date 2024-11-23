@@ -1,0 +1,94 @@
+% unparse.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: unparse.clu,v 2.0 1996/06/10 09:04:56 ushijima Exp $
+
+
+parmlist_unparse = proc(parm:parmlist) returns(str)
+    parmlist_string:str := ""
+    first: bool := true
+    for p: parameter in parmlist$elements(parm) do
+	if first then
+	    parmlist_string := parameter_unparse(p)
+	    first := false
+	else
+	    parmlist_string := parmlist_string || " " || parameter_unparse(p)
+	end
+    end
+    return(parmlist_string)
+end parmlist_unparse
+
+fieldspeclist_unparse = proc(parm:fieldspeclist) returns(str)
+    fieldspec_string:str := ""
+    first: bool := true
+    for f: fieldspec in fieldspeclist$elements(parm) do
+	if first then
+	    fieldspec_string := fieldspec_unparse(f)
+	    first := false
+	else
+	    fieldspec_string := fieldspec_string || " "|| fieldspec_unparse(f)
+	end
+    end
+    return(fieldspec_string)
+end fieldspeclist_unparse
+
+fieldspec_unparse = proc(f:fieldspec) returns(str)
+    return(f.sel || ":" || tparm_unparse(f.parm))
+end fieldspec_unparse
+
+parameter_unparse = proc(parm:parameter) returns(string)
+    tagcase parm
+    tag tparm(t:tparm):
+	return(tparm_unparse(t))
+    tag vparm(v:vparm):
+	return(vparm_unparse(v))
+    end
+end parameter_unparse
+
+tparm_unparse = proc(t:tparm) returns(string)
+    tagcase t
+    tag clu(clu:cluinst):
+	return(int$unparse(clu.typeid))
+    tag sel(sel:selinst):
+	return(int$unparse(sel.typeid))
+    tag fparm(i:int):
+	return("#tparm[" || int$unparse(i) || "]")
+    end
+end tparm_unparse
+
+vparm_unparse = proc(v:vparm) returns(string)
+    tagcase v
+    tag lit(s:str):
+	return("#vparm[" || s || "]")
+    tag fparm(i:int):
+	return("#vparm_formal[" || int$unparse(i) || "]")
+    end
+end vparm_unparse
+
+selinst_unparse = proc(inst:selinst) returns(str)
+    if fieldspeclist$empty(inst.parms) then
+	return(inst.gen.name)
+    else
+	return(inst.gen.name || "[" || 
+	       fieldspeclist_unparse(inst.parms) || "]")
+    end
+end selinst_unparse
+
+cluinst_unparse = proc(inst:cluinst) returns(str)
+    if parmlist$empty(inst.parms) then
+	return(inst.gen.name)
+    else
+	return(inst.gen.name || "[" || parmlist_unparse(inst.parms) || "]")
+    end
+end cluinst_unparse
+
+appinst_unparse = proc(inst:appinst) returns(str)
+    if parmlist$empty(inst.parms) then
+	return(inst.gen.name)
+    else
+	return(inst.gen.name|| "[" || parmlist_unparse(inst.parms) || "]")
+    end
+end appinst_unparse

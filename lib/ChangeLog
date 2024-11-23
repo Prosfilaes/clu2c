@@ -1,0 +1,308 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Wed Feb  5 08:53:56 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed `compat' from the list of subdirectories.
+	(all, cfiles, cfiles-clean): Changed accordingly.
+
+	* makelib: Do not create `lowlev.lib', `misc.lib', and
+        `useful.lib' any more.
+	* Index, Makefile.in: Changed accordingly.
+
+Tue Feb  4 12:52:38 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* makelib: Create `pstream.lib' from `clu2c/pstream.spc' instead
+        of `compat/pstream.spc'.
+
+	* Index (file_is_block_device): New entry.
+	(file_is_character_device): New entry.
+	(file_is_directory): New entry.
+	(file_is_fifo): New entry.
+	(file_is_regular): New entry.
+	(file_is_symbolic_link): New entry.
+
+	* makelib: Create `file.lib'.
+	* Index, Makefile.in: Changed accordingly.
+
+Fri Jan 31 12:53:41 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Index (_external_word): Removed.
+
+	* makelib: Do not create `machine.lib' any more.
+	* Index,  Makefile.in: Changed accordingly.
+
+	* makelib: Create `uint.lib'.
+	* Index, Makefile.in: Changed accordingly.
+
+Mon Jan 27 11:02:21 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* basic.spc (_cvt): New entry.
+	(get_argv): Removed.
+
+Sun Jan 26 10:32:33 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Index (int_hex_parse, int_hex_unparse, int_oct_parse,
+        int_oct_unparse): New entries.
+
+	* makelib: Create `int.lib'.
+	* Makefile.in: Changed accordingly.
+
+Fri Jan 24 09:39:22 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* makelib: Do not create `progargs.lib'.
+	* Makefile.in: Changed accordingly.
+
+	* Makefile.in (install): Install `progenv.lib'.
+
+Thu Jan 23 13:45:40 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Index: Replaced `*.spc' with `*.lib'.
+	(_get_pname, _get_xjname, get_argv): Changed the values to
+        `useful.lib'.
+	(getopt, input_streams, program_arguments, program_name): Changed
+        the values to `progenv.lib'.
+	(getenv, system, terminate): New entries.
+
+	* makelib: Create `progenv.lib'.
+	* Makefile.in: Changed accordingly.
+
+Sun Jun 30 13:01:13 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Index: Added entries for `_external_word' and `machine_word'.
+
+	* makelib: Create `machine.lib'.
+	* Makefile.in: Changed accordingly.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sat Apr 27 13:16:25 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Index: Replaced `stdio.spc' with `basic.lib', `dirent.lib', or
+        `filename.lib'.
+
+	* makelib: Do not create `stdio.lib'.
+	* Makefile.in: Changed accordingly.
+
+	* makelib: Create `dirent.lib' and `filename.lib' as well.
+	* Makefile.in: Changed accordingly.
+
+	* math: Removed.  The contents of this subdirectory have been
+        merged into the `clu2c' subdirectory.
+	* Makefile.in, makelib: Changed accordingly.
+
+	* Index (default_root_directory, rt_env): Changed the values to
+	`runtime.lib'.
+
+	* runtime: Removed.  The contents of this subdirectory have been
+        merged into the `clu2c' subdirectory.
+	* Makefile.in, makelib: Changed accordingly.
+
+	* makelib: Create `external.lib', `lowlev.lib', `math.lib',
+	`misc.lib', `pstream.lib', `runtime.lib', `stdio.lib', and
+	`useful.lib' as well.
+	* Makefile.in Changed accordingly.
+
+	* Makefile.in: Removed `insubdir.bat' and `remove.bat' from the
+        list of non-source files.
+
+Wed Apr 24 07:51:35 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Index (getopt, input_streams, program_arguments, program_name):
+        New entries.
+	(_get_pname, _get_xjname, get_argv): Changed the value to
+        `progargs.lib'.
+
+	* Makefile.in (install): Typo fix.
+
+	* Makefile.in: Added `progargs.lib' to the list of non-source files.
+	(install): Install `progargs.lib' as well.
+	(lib): New target.
+
+	* makelib: New file.
+	* Makefile.in: Changed accordingly.
+
+Tue Apr 23 14:20:40 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added `clu2c' to the list of subdirectories.
+	(cfiles, cfiles-clean): Changed accordingly.
+
+Sat Feb 17 11:16:04 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* basic.spc (pstream): Removed.
+
+Sun Jan 14 14:10:11 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* jaio: Renamed from `jpio'.
+	* Makefile.in: Changed accordingly.
+
+Sat Nov 18 10:32:44 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* basic.spc (real): Added `_real_max', `_real_min', `_max_width',
+        `_exp_width', and `_unparse'.
+
+Fri Nov  3 12:20:44 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Directory for GC library does not qualified with
+        version number.
+
+Sun Sep 24 09:10:04 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Index: New file.
+	* Makefile.in: Changed accordingly.
+
+Thu May 25 10:24:37 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (cfiles-clean): New target.
+
+Sat May 20 13:02:15 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Removed all from the list of
+        prerequisites.
+
+	* Makefile.in: Removed MK_APPEND_DELEGATING_ACTION for standard
+        targets.
+
+	* Makefile.in: Make use of MK_MISC_SOURCES and MK_NON_SOURCES
+        instead of defining MISC_SRC.
+
+	* clu2c.hlp: Removed.  This file has been move to the bin/clu2c
+        directory.
+	* Makefile.in: Changed accordingly.
+
+Mon May  8 13:10:26 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Install to $(clu2c_libdir).
+	(installdirs): New target.
+
+Sat May  6 12:20:56 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of miscellaneous
+        source files.
+
+Wed May  3 16:55:07 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* DIST.LIST, Makefile.m4: Removed.
+
+Tue May  2 03:08:56 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added insubdir.bat to the list of miscellaneous
+        source files.
+
+Sun Apr 30 11:57:00 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Create installation directory by itself.
+	(mkfiles): Delegate to the subdirectories.
+	(cfiles): Renamed from c.
+
+Sat Apr 29 10:19:25 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (dosdist): Delegate to the subdirectories.
+
+Sat Apr 29 06:26:17 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Remove libclu2c.c when making clean or cleaner.
+
+Thu Apr 20 08:47:00 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed clu2c from the list of subdirectories.
+	Added math to the list of subdirectories.
+
+Wed Apr 12 08:28:39 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed cmp and mit from the list of
+        subdirectories.
+
+	* Makefile.in: Added runtime and compat to the list of
+        subdirectories.
+
+Sun Apr  2 08:35:05 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added stdio to the list of subdirectories.
+
+Sat Apr  1 13:28:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added built-in to the list of subdirectories.
+	Renamed jio as jpio in the list of subdirectories.
+
+	* Makefile.in: Added external to the list of subdirectories.
+
+Fri Mar 31 11:49:42 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Define ARCHIVE.  Remove $(ARCHIVE) when making
+	mostlyclean or cleaner.
+	(install): Install $(ARCHIVE).  Do not delegate to subdirectories.
+
+	* Makefile.in: Define MISC_SRC.
+	(dist): Delegate to subdirectories.
+
+Thu Mar 30 08:23:25 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Do not remove $(ARCHIVE) to make clean.  This
+	variable is not defined in this directory.
+
+Wed Mar 29 13:46:07 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Wed Sep 28 05:57:28 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.m4 (jio): New subdirectory.
+
+Thu Nov 18 08:05:52 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* DIST.LIST: Support for short filenames.
+
+Wed Nov 17 11:22:46 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.m4: Changed `basic.types', `clu.order', and
+	`system.names' to `basic.spc', `clu2c.hlp', and `sysnames',
+	respectively.
+
+Wed Jul 21 03:35:39 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* clu2c.hlp, sysnames: New files.
+
+Sun Jun 13 06:00:39 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.m4: New file.
+
+Fri Jun 11 13:32:37 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* DIST.LIST: Added mit.
+
+Tue Jun  1 13:18:08 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* basic.spc (char$width, string$width): Renamed from length.
+
+Mon Apr 19 13:15:44 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* DIST.LIST: New file
+
+Sat Oct 24 13:39:10 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* basic.spc: Support for Japanese.
+
+Thu Jul 16 03:18:31 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* basic.spc: Added print and _gcd operations to built-in types.
+	Added pstream, user_name, e_form, f_form, g_form.
+
+Sat Nov 16 16:01:02 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* basic.spc: Support for istream.
+
+Wed Jul 10 17:33:36 1991  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* basic.spc (get_argv): New procedure.
+
+Sat Jul  6 00:32:49 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* basic.spc: Made compact.
+
+Sat Jun 22 23:44:27 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* basic.spc: New file.

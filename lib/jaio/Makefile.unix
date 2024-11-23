@@ -1,0 +1,188 @@
+
+
+######################################################################
+#
+# Makefile.unix.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = lib/jaio
+
+# Top-level build directory
+topdir = ../..
+
+# Default flags to the C compiler
+DEFAULT_CFLAGS = -I$(top_srcdir)/include -I$(srcdir) -I$(topdir)
+
+# All the flags to the C compiler
+ALL_CFLAGS = $(DEFAULT_CFLAGS) $(CFLAGS)
+
+# Archive file
+ARCHIVE = ../libclu2c.a
+
+
+#### Source files ####
+
+# C source files
+C_SRC = $(C_SRC_1) $(C_SRC_2) $(C_SRC_3) $(C_SRC_4) $(C_SRC_5) $(C_SRC_6) $(C_SRC_7) $(C_SRC_8)
+C_SRC_1 = jclearer.c jdecode.c jencode.c jfclose.c jfeof.c jferror.c
+C_SRC_2 = jfflush.c jfgetc.c jfgetpos.c jfgets.c jfill.c jflush.c
+C_SRC_3 = jfnputs.c jfopen.c jfp.c jfprintf.c jfputc.c jfputs.c
+C_SRC_4 = jfreopen.c jfscanf.c jfseek.c jfsetpos.c jftell.c jgetc.c
+C_SRC_5 = jgetchar.c jgetcsys.c jgets.c jperror.c jprintf.c jputc.c
+C_SRC_6 = jputchar.c jputs.c jrewind.c jscanf.c jsetbuf.c jsetcset.c
+C_SRC_7 = jsetcsys.c jsetvbuf.c jsprintf.c jsscanf.c jungetc.c jv_print.c
+C_SRC_8 = jv_scanf.c jvfprint.c jvprintf.c jvsprint.c sjis.c
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README jaio.h local.h
+
+# All the source files
+ALL_SRC = $(C_SRC) $(MISC_SRC)
+
+
+#### Created files ####
+
+# Object files compiled from C source files
+C_OBJ = $(C_OBJ_1) $(C_OBJ_2) $(C_OBJ_3) $(C_OBJ_4) $(C_OBJ_5) $(C_OBJ_6) $(C_OBJ_7) $(C_OBJ_8)
+C_OBJ_1 = jclearer.o jdecode.o jencode.o jfclose.o jfeof.o jferror.o
+C_OBJ_2 = jfflush.o jfgetc.o jfgetpos.o jfgets.o jfill.o jflush.o
+C_OBJ_3 = jfnputs.o jfopen.o jfp.o jfprintf.o jfputc.o jfputs.o
+C_OBJ_4 = jfreopen.o jfscanf.o jfseek.o jfsetpos.o jftell.o jgetc.o
+C_OBJ_5 = jgetchar.o jgetcsys.o jgets.o jperror.o jprintf.o jputc.o
+C_OBJ_6 = jputchar.o jputs.o jrewind.o jscanf.o jsetbuf.o jsetcset.o
+C_OBJ_7 = jsetcsys.o jsetvbuf.o jsprintf.o jsscanf.o jungetc.o jv_print.o
+C_OBJ_8 = jv_scanf.o jvfprint.o jvprintf.o jvsprint.o sjis.o
+
+# All the object files
+ALL_OBJ = $(C_OBJ)
+
+
+#### Variables for source code maintenance ####
+
+# Non-source files included in the distribution
+NON_SRC = Makefile.dos Makefile.unix
+
+# All the files included in the distribution
+DIST = $(ALL_SRC) $(NON_SRC)
+
+# Default flags to m4
+DEFAULT_M4FLAGS = -I$(top_srcdir)/mk
+
+# All the flags to m4
+ALL_M4FLAGS = $(DEFAULT_M4FLAGS) $(M4FLAGS)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all: archive
+
+# Copies all the products
+install:
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+	rm -f archive
+	rm -f $(C_OBJ)
+
+# Makes clean
+clean:
+	rm -f archive
+	rm -f $(C_OBJ)
+
+# Makes clean as disributed
+distclean:
+	rm -f Makefile Makefile.top
+	rm -f archive
+	rm -f $(C_OBJ)
+
+# Makes really clean
+realclean:
+	rm -f Makefile Makefile.top
+	rm -f archive
+	rm -f $(C_OBJ)
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+
+# Does some check
+check:
+
+
+#### Rules specific to this directory ####
+
+# Archives object files in this directory
+archive: $(ALL_OBJ)
+	$(AR) $(ARFLAGS) $(ARCHIVE) $(C_OBJ)
+	$(RANLIB) $(ARCHIVE)
+	echo archive > archive
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	cat Makefile.top $(topdir)/config.mk $(srcdir)/Makefile.unix > Makefile
+
+# Forces a particular target to be made
+always:
+
+
+#### Suffix rules ####
+
+.SUFFIXES:
+.SUFFIXES: .o .c
+
+# Compiles C file to get object file
+.c.o:
+	$(CC) $(ALL_CFLAGS) -c $<
+
+
+#### Rules for source code maintenance ####
+
+# Processes m4 files
+m4:
+	@for os in unix dos; do					\
+	    mk=Makefile.$$os;						\
+	    echo creating $$mk;						\
+	    $(M4) $(ALL_M4FLAGS) -DOSTYPE=$$os Makefile.in >$$mk.new;	\
+	    if test ! $$?; then						\
+		echo $$mk is unchanged;					\
+		rm -f $$mk.new;						\
+		exit 1;							\
+	    elif cmp -s $$mk $$mk.new 2>/dev/null; then			\
+		echo $$mk is unchanged;					\
+		rm -f $$mk.new;						\
+	    else							\
+		rm -f $$mk;						\
+		mv $$mk.new $$mk;					\
+	    fi;								\
+	done
+
+# Creates dos distribution
+dosdist: $(DIST)
+	@$(top_srcdir)/config/makedist -d $(dos_distname) $(curdir) $(DIST)
+
+# Creates the list of source files
+source-list:
+	@if [ $(curdir) = . ]; then\
+	    cp /dev/null source-list;\
+	    for i in $(ALL_SRC); do\
+		echo $$i >>source-list;\
+	    done;\
+	else\
+	    for i in $(ALL_SRC); do\
+		echo $(curdir)/$$i >>$(topdir)/source-list;\
+	    done;\
+	fi

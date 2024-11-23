@@ -1,0 +1,423 @@
+How to Install CLU2C
+********************
+
+  * Basic Installation
+  * Configurations
+  * MS-DOS Installation
+  * Compiling in a Separate Directory
+  * Common Targets
+  * Makefile Structure
+  * Getting CLU2C
+
+Basic Installation
+==================
+
+   This section shows basic instructions for installing CLU2C on UNIX
+systems.  See the section `MS-DOS Installation' for the instructions
+for installing CLU2C on MS-DOS systems.  Now we assume that you have
+unpacked the source distribution package and are at the top source
+directory.
+
+  1. Type `./configure' to run the `configure' script.  This script
+     creates a number of files including `config.h' and `config.mk' in
+     the current working directory, and also creates `Makefile' in
+     every directory.  See the section `Configurations' for more detail
+     about the `configure' script.
+
+  2. Type `make' to compile the entire package.
+
+  3. Type `make install' to copy executable programs to
+     `/usr/local/lib/clu2c/bin', header files to
+     `/usr/local/lib/clu2c/include', object code archives and other
+     data files to `/usr/local/lib/clu2c/lib', and two shell scripts to
+     `/usr/local/bin'.
+
+  4. Optionally, type `make distclean' to delete all files that have
+     been created by configuring or building the package.
+
+Configurations
+==============
+
+   CLU2C source distribution package comes with a shell script named
+`configure', which automatically guesses various system-dependent
+parameters used to compile the package.  The first thing to do for
+installation is running this script.
+
+   After guessing system-dependent parameters, `configure' creates the
+files `config.h', `config.mk', `config.status', `config.cache',
+`config.log', and `fakeclu.sh' in the current directory, as well as the
+files `Makefile' and `Makefile.top' in every directory.
+
+Options for `configure'
+-----------------------
+
+   The `configure' script recognizes the following options to control
+how it operates.
+
+`--prefix=DIRECTORY'
+     Set the common prefix for installation directories to DIRECTORY.
+     The prefix is set to `/usr/local' unless this option is specified.
+
+`--srcdir=DIRECTORY'
+     Tell the `configure' script where the source code for this package
+     resides.  Usually you do not have to specify this option, for the
+     `configure' script automatically guesses the source directory
+     based on how it is invoked.  For example, if you invoke the
+     `configure' script by typing `./configure', the source directory
+     is set to `.'.
+
+`--disable-dynamic-loading'
+     Forbid the garbage collector to scan data segments associated with
+     dynamic libraries.  This option is mandatory if you use rather old
+     SunOS (3.x or 4.0.x).
+
+`--with-bsd-byte-operations'
+     Use BSD byte operations such as `bcopy' and `bcmp', even if
+     standard memory operations such as `memcpy' and `memcmp' are
+     available.  (On NEWS-OS 4.2R, `memcpy' is much slower than
+     `bcopy'.)
+
+`--with-clu2c'
+     Use the installed CLU2C system to compile CLU source files.  You
+     should not specify this option unless CLU2C is already installed.
+
+`--with-getwd'
+     Use `getwd' to get current working directory even if `getcwd' is
+     available.  (On SunOS 3.x and 4.x, `getcwd' invokes `pwd'.)
+
+`--with-gnu-as'
+     Declare that you will use the GNU assembler.  Currently this
+     option has an effect on Sony CISC NEWS only.
+
+`--with-input-code=CODING-SYSTEM'
+     Set the default coding system for file input to CODING-SYSTEM.  It
+     is set to `autoconv' unless this option is specified.
+
+`--with-output-code=CODING-SYSTEM'
+     Set the default coding system for file output to CODING-SYSTEM.
+     It is set to `iso-2022-jp' unless this option is specified.
+
+The `--with-input-code' and `--with-output-code' options accept the
+following names as a specification for coding systems.
+
+`noconv'
+     No code conversion is performed.  A file is treated as a byte
+     sequence.
+
+`euc-japan'
+     Japanese EUC.
+
+`sjis'
+     Shift JIS.
+
+`iso-2022-jp'
+     ISO-2022-JP.  See `Japanese Character Encoding for Internet
+     Messages' (RFC 1468), for more detail about this coding system.
+
+`autoconv'
+     Guess the coding system automatically.  This can be specified only
+     as an input coding system.
+
+Presetting `Makefile' Variables
+-------------------------------
+
+   You can control values of some `Makefile' variables via environment
+variables.  The preset value precedes the value `configure' guesses.
+For example, if you want to use `cc' for the C compiler, you can
+achieve it by setting the `CC' environment variable to `cc' prior to
+running `configure'.  If you use the Bourne shell or its descendant,
+you can do like the following:
+
+     CC=cc ./configure
+
+Or, if you have the `env' program, you can do like the following:
+
+     env CC=cc ./configure
+
+The following Makefile variables can be preset in such a way.  Typical
+values that `configure' guesses are in square brackets.
+
+`CC'
+     C compiler.  [`gcc' or `cc']
+
+`CFLAGS'
+     Default options to the C compiler.  [`-O -g' for `gcc', `-g' for
+     other C compilers]
+
+`AS'
+     Assembler.  [`as']
+
+`LIBS'
+     Additional libraries for linking program.  [`-lm']
+
+`LDFLAGS'
+     Additional options to the C compiler for linking.  [(empty)]
+
+`AR'
+     Archive and library maintainer.  [`ar']
+
+`ARFLAGS'
+     Default flags to `ar'.  [`ru']
+
+`RANLIB'
+     Library randomizer.  [`ranlib' or `:']
+
+MS-DOS Installation
+===================
+
+   There are two choices for installing CLU2C on MS-DOS systems.
+Probably most users would like to get a binary distribution package and
+install it, without compiling any source code.  On the other hand, you
+may want to get a source distribution package and begin the
+installation process by compiling source code.  In either case, you
+need to install DJGPP prior to the installation of CLU2C.
+
+Requirements
+------------
+
+   CLU2C on MS-DOS systems requires DJGPP Version 2 (or later) to be
+installed.  DJGPP is available via anonymous FTP from SimTel mirror
+sites.  At the minimum, you need to get the following files.
+
+   * `v2/djdevXXX.zip'
+
+   * `v2/readme.1st'
+
+   * `v2gnu/bnuXXXb.zip'
+
+   * `v2gnu/gccXXXb.zip'
+
+   * `v2misc/csdpmi1b.zip'
+
+See the file `v2/readme.1st' for more detail about DJGPP.
+
+Installing from Binary Distribution Package
+-------------------------------------------
+
+   This subsection shows instructions for installing CLU2C on MS-DOS
+systems from a binary distribution package.
+
+  1. Make sure that you have installed DJGPP Version 2.00 (or later)
+     and `gcc' works fine.
+
+  2. Create an installation directory for CLU2C.  The default is
+     `c:\clu2c', although you can choose any other directory.  For
+     example, if you choose the default, do like:
+
+          mkdir c:\clu2c
+
+  3. Go to the installation directory you have chosen, like this:
+
+          c:
+          cd \clu2c
+
+  4. Unpack the binary distribution package in that directory.  For
+     example,
+
+          lha x SOMEWHERE\clu200b.lzh
+
+     or
+
+          unzip SOMEWHERE\clu200b.zip
+
+  5. If you have chosen a directory other than `c:\clu2c' as an
+     installation directory, you need to set the `CLU2CROOT'
+     environment variable to point to the installation directory.  For
+     example, if you have chosen `c:\local\clu2c' as an installation
+     directory, put the line
+
+          set CLU2CROOT=c:\local\clu2c
+
+     into your `autoexec.bat'.
+
+  6. Add the `bin' subdirectory of the installation directory
+     (`c:\clu2c\bin' for example) to the command search path.  For
+     example, put the line
+
+          set PATH=c:\clu2c\bin;%PATH%
+
+     into your `autoexec.bat'.
+
+Installing from Source Distribution Package
+-------------------------------------------
+
+   This subsection shows instructions for installing CLU2C on MS-DOS
+systems from a source distribution package.  We assume that you have
+unpacked the source distribution package and are at the top source
+directory.
+
+  1. Make sure that you have installed DJGPP Version 2.00 (or later)
+     and `gcc', `ar', and `ranlib' work fine.
+
+  2. Make sure that the `make' program you will use to build CLU2C is
+     invoked by simply saying `make'.
+
+  3. Type `configure' to run the batch file `configure.bat'.  This
+     batch file creates a number of files including `config.h' and
+     `config.mk' in the current working directory, and also creates
+     `Makefile' in every directory.  Unlike the `configure' script for
+     UNIX systems, however, `configure.bat' does not guess
+     system-dependent parameters.  Instead, it merely copies
+     configuration files from the `config' directory.
+
+  4. Look into `config.h' and `config.mk'.  You may have to modify
+     these files manually.  Whenever you modify `config.h', you must
+     recompile all the C files that include this header file.  Whenever
+     you modify `config.mk', you must re-create makefiles by typing
+     `make mkfiles'.
+
+  5. Type `make' to compile the entire package.
+
+  6. Type `make install' to copy a number of files to the installation
+     directory.  By default, executable programs are copied to
+     `c:\clu2c\bin'; header files are copied to `c:\clu2c\include'; and
+     object code archives and other data files are copied to
+     `c:\clu2c\lib'.  If nothing seems to happen, rename the file
+     `INSTALL' as another name, say `INSTALL.doc', and try again.
+
+  7. Set the `CLU2CROOT' environment variable (if necessary) and the
+     command search path, as in installing from binary distribution
+     package.
+
+  8. Optionally, type `make distclean' to delete all files that have
+     been created by configuring or building the package.
+
+
+   We have found the difficulty of writing general makefiles for MS-DOS
+systems.  In your environment, things might not go well as described
+above.  We expect some effort on your side.
+
+Compiling in a Separate Directory
+=================================
+
+   This section shows instructions to compile CLU2C in a separate
+directory.
+
+  1. Make sure the `make' program you use has a `VPATH' feature.
+
+  2. Go to the top source directory.
+
+  3. Run the `configure' script in the source directory if you have not
+     run.
+
+  4. Make sure that the source directory does not contain any object
+     files.  Type `make mostlyclean' if you have no confidence.
+
+  5. Type `make cfiles' to prepare all the C files that are to be
+     generated from CLU files.
+
+  6. Prepare a directory where you wish to compile the package and go
+     to that directory.
+
+  7. Run the `configure' script.
+
+Now you can compile in the build directory.  Type `make' to compile the
+entire package; Type `make install' to install the resulting products.
+
+   For example, if you have unpacked the distribution package into
+`/usr/local/src/clu2c-2.0' and want to do compilation in the
+`/usr/local/src/clu2c-2.0/build', command lines you type might look
+like this:
+
+     cd /usr/local/src/clu2c-2.0
+     ./configure
+     make mostlyclean cfiles
+     mkdir build
+     cd build
+     ../configure
+     make
+
+Common Targets
+==============
+
+   Here is the list of common targets that are defined in `Makefile' in
+almost every directory.  These targets are applied to the current
+directory and all its subdirectories recursively.
+
+`all'
+     Compile the entire source files.  This is the default target.
+
+`install'
+     Compile the entire source files and copy the resulting products to
+     the file names where they should reside for actual use.
+
+`clean'
+     Remove all the files that are created by running `make'.
+
+`mostlyclean'
+     Remove almost all the files that are created by running `make' but
+     do not remove C files that are translated directly or indirectly
+     from CLU source files.
+
+`distclean'
+     Remove all the files that are created by running `configure' and
+     `make'.  If you did not create any other files, `make distclean'
+     restore the source tree to its original contents.
+
+`mkfiles'
+     Recreate `Makefile'.  You have to make this target whenever you
+     modify the file `config.mk' manually.
+
+`cfiles'
+     Prepare C source files that are translated directly or indirectly
+     from CLU source files.  Some `make' programs fail to follow the
+     chain of suffix rules.  Particularly, they understand that `foo.o'
+     is to be made from `foo.c' but cannot think of this C source file
+     being made from `foo.clu'.  In this case, you have to `make
+     cfiles' first before you `make all'.
+
+Makefile Structure
+==================
+
+   Every `Makefile' is actually a concatenation of three files:
+
+`Makefile.top'
+     This file resides in each directory, and contains variable
+     definitions that may vary dependent on how the `configure' script
+     is invoked and are specific to each directory.  `VPATH', `srcdir',
+     and `top_srcdir' are defined here.  This file is created
+     automatically by running the `configure' script.
+
+`config.mk'
+     This file resides in the top build directory, and contains
+     variable definitions that may vary dependent on how the
+     `configure' script is invoked and can be shared by all the
+     `Makefile'.  This file is created automatically by running the
+     `configure' script.
+
+`Makefile.unix'
+`Makefile.dos'
+     One of these files constitute the rest of `Makefile'.  These files
+     reside in each directory, and contains variable and rule
+     definitions that are specific to each directory and should not be
+     modified.  These files are included in the source distribution
+     package.
+
+   In every directory there is a file named `Makefile.in'.  This file
+is processed by the `m4' macro processor to generate `Makefile.unix'
+and `Makefile.dos'.  Note that these files are included in the
+distribution package and you do not have to prepare the `m4' macro
+processor in order to compile CLU2C.
+
+Getting CLU2C
+=============
+
+   The source and binary distribution packages of the latest version of
+CLU2C is available via anonymous FTP from the host `ftp.is.titech.ac.jp'
+at the directory `pub/clu2c'.  The following files are placed at that
+directory.
+
+`clu2c-VERSION.tar.gz'
+     Source distribution packages for UNIX systems.  These are gzipped
+     tar files.
+
+`cluVERs.lzh'
+`cluVERs.zip'
+     Source distribution packages for MS-DOS systems.  These are
+     archive files archived by `lha' or `zip'.
+
+`cluVERb.lzh'
+`cluVERb.zip'
+     Binary distribution packages for MS-DOS systems.  These are
+     archive files archived by `lha' or `zip'.
+

@@ -1,0 +1,333 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Wed Feb  5 10:28:06 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* NEWS: New file.
+
+	* Makefile.in (dist): Do not create *.tar.Z.
+	(distclean): Changed accordingly.
+
+Thu Jan 30 09:31:09 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Install `config.h' as well.
+
+Mon Jun 24 12:40:01 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Invoke `clu2c' to create `basic.lib'.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sat Jun  8 14:04:43 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* README.ja: New file.
+	* README.jp: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* README: Completely rewritten.
+
+	* configure.bat: Default system type is set to `djgpp'.
+
+	* configure.in (distname): Defined using `VERSION'.
+	(dos_distname): Defined using `ABRIDGED_VERSION'.
+
+	* COPYRIGHT.PCLU: New file from PCLU distribution.
+	* FROMPCLU: New file.
+	* Makefile.in: Changed accordingly.
+
+	* COPYING: New file.
+	* Makefile.in: Changed accordingly.
+
+Fri Jun  7 03:20:02 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* INSTALL.ja: New file.
+	* INSTALL.jp: Removed.
+	* Makefile.in: Changed accordingly.
+
+Thu Jun  6 05:55:20 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* INSTALL: Completely rewritten.
+
+Sat May 25 13:01:51 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added `doc' to the list of subdirectories.
+
+Sun May 19 09:22:08 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (dist): Create a compressed tar file as well.
+	(dosdist): Create a zip archive file as well.
+	(distclean): Changed accordingly.
+
+Sun May 12 06:33:37 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* acconfig.h, configure.bat, configure.in: Doc fix.
+
+	* Makefile.in (install-links): Removed.
+
+Sat Apr 27 06:05:20 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in (CLU2CFLAGS): Default to `--optimize'.
+
+	* Makefile.in: Removed `insubdir.bat' and `remove.bat' from the
+	list of non-source files.
+
+Sun Feb 11 12:02:45 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Check for <float.h>.
+
+Sun Jan 21 13:10:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in (--enable-dynamic-loading): New option.
+	* acconfig.h (DISABLE_DYNAMIC_LOADING): New macro.
+
+Wed Jan 10 12:37:56 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Check for <stdarg.h> and `long double'.
+
+Mon Nov 20 13:40:50 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* acconfig.h (DJGPP_EMU387_BROKEN): New macro.
+	* configure.in: Support for DJGPP_EMU387_BROKEN.
+
+Sat Nov 18 10:22:37 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Check for <values.h>.
+
+Sun Oct 29 12:26:40 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Look up <time.h> instead of <sys/type.h> and
+        <stdlib.h> for the definition of clock_t.
+	* acconfig.h: Doc fix.
+
+	* configure.in: Added AC_TYPE_SIZE_T.
+
+Sat Oct 28 14:18:44 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in (--with-getwd): New option.
+	* acconfig.h (WITH_GETWD): New macro.
+
+	* acconfig.h: Use @TOP@ and @BOTTOM@ so that the effect of
+        config.h will be idempotent.
+
+Sun Sep 24 09:16:08 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* spc: Removed.
+	* Makefile.in: Changed accordingly.
+
+Tue Sep  5 13:19:17 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* acconfig.h (WITH_BSD_BYTE_OPERATIONS): New macro.
+	* configure.in (--with-bsd-byte-operations): New option.
+
+Mon Aug 21 11:31:15 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Check for the `setvbuf' function.
+
+Mon Jun 26 06:16:39 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Fix the file name for install-sh.
+
+Sun Jun 25 11:14:42 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of non-source files.
+
+Thu May 25 10:22:18 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (cfiles-clean): New target.
+
+Sun May 21 06:14:34 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Renamed config.hin as configh.in.
+
+	* configure.in: Changed input file names.
+
+	* acconfig.h: Doc fix.
+
+Sat May 20 14:23:26 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.bat: Invoke config\mkmf.bat only once.
+
+	* Makefile.in: Removed MK_APPEND_DELEGATING_ACTION for standard
+        targets.
+
+	* Makefile.in: Make use of MK_MISC_SOURCES and MK_NON_SOURCES.
+
+Wed May 17 08:02:05 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.bat: New file.
+
+	* Makefile.in: Added spc to the list of subdirectories.
+
+	* Makefile.in (dist): Use $(distname).
+	(dosdist): Use $(dos_distname).
+
+Sat May 13 10:05:04 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Renamed AOUT2EXE as COFF2EXE.
+
+Tue May  9 06:46:38 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in (COMMAND, COMMANDFLAGS): New variables.
+
+Tue May  9 05:31:45 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Subtitute all the variables in config.mk.
+
+Sun May  7 11:14:21 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* acconfig.h (MSDOS_TEXT): New macro.
+	* configure.in: Support for MSDOS_TEXT.
+
+Wed May  3 05:35:16 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* DIST.LIST, Makefile.m4: Removed.
+
+	* INSTALL: Renamed from howto.install.
+	* INSTALL.jp: Renamed from howto.install.jp.
+	* README: Renamed from OVERVIEW
+	* README.jp: Renamed from README
+	* Makefile.in: Changed accordingly.
+
+Tue May  2 03:06:34 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added insubdir.bat to the list of miscellaneous
+        source files.
+
+Sun Apr 30 11:46:22 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added configure.bat to the list of miscellaneous
+        source files.
+	(mkfiles): Delegate to subdirectories.
+	(dosdist): Typo fix.
+	(cfiles): Renamed from c.
+
+	* configure.in: Fix the file name of the install program.
+
+Sat Apr 29 10:15:49 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (dosdist): Delegate to subdirectories and create an
+        distribution archive.
+
+Thu Apr 20 03:19:27 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* acconfig.h (clock_t): New macro.
+	* configure.in: Check for clock_t.
+
+Wed Apr 19 13:49:18 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Check for signal.h and sighold.  Do not check for
+	getenv, getpwnam, getpwuid, and getuid.
+
+	* configure.in: Check for the clock function.
+
+Wed Apr 12 12:59:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install-links): New target.
+
+Fri Mar 31 05:28:41 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added config and mk to the subdirectory list.
+	Define MISC_SRC.  Remove clu2c.tar.Z when making distclean.
+	(dist): tar+compress distribution directory.
+
+Thu Mar 30 11:16:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Added AC_CONFIG_AUX_DIR.
+
+Wed Mar 29 13:46:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Tue Mar 28 09:06:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Define PLINK_METHOD according to whether
+	--with-clu2c is specified.  Do not define plink_method.  Changed
+	the definition of CLU2C if --with-clu2c is not specified.  Do not
+	substitute PLINK.  Invoke an external script for creating make
+	files.
+
+Fri Mar 24 13:43:57 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in: Added AC_HEADER_STDC.  Do not check fcntl.h, io.h,
+	stat.h std.h,stdlib.h, string.h, and time.h.  Do not check bcmp,
+	bcopy, bzero, chdir, chmod, exit, fstat, getwd, isatty, localtime,
+	memcmp, memset, rename, setmode, stat, and unlink.  Check strchr.
+	Removed AC_STRUCT_TM.  Generate makefiles for some directories.
+
+Wed Mar 22 05:39:01 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in (--with-cc): Removed.
+	(--with-clu2c): Define CLU2C more specifically.  Do not define PLINK.
+	Define plink_method and LIBDIR.
+	(--with-input-coding-system): Renamed as --with-input-code.
+	(--with-output-coding-system): Likewise.
+	(AC_OUTPUT): Do not create makedefs.  Create config.mk and fakeclu.sh.
+
+Mon Jan 16 07:50:29 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configure.in (AC_HAVE_FUNCS): Added getpwuid and getuid.
+
+	* acconfig.h (HAVE_UID_T, HAVE_TIME_T): Removed.
+	(time_t, WITH_GNU_AS, DEFAULT_INPUT_CODING_SYSTEM,
+	DEFAULT_OUTPUT_CODING_SYSTEM): New macro.
+
+	* configure.in (--with-input-coding-system,
+	--with-output-coding-system: New options.
+	(AC_HAVE_HEADERS): Added pwd.h and time.h.
+	(AC_HAVE_FUNCS): Added bcmp, bcopy, chdir, chmod, getcwd, memcmp,
+	memcpy, stat, and unlink.
+	Support for autoconf version 2.
+
+Tue Sep 27 13:29:16 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* acconfig.h, aclocal.m4, configure.in: New files.
+
+Thu Nov 18 06:59:55 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.m4, DIST.LIST: Source code for commands have been moved
+        to the `bin' directory.
+
+Fri Jul 16 04:19:43 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* DIST.LIST: Added optimize.info.
+
+	* optimize.info: New file. 
+
+Sun Jun 13 06:00:42 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.m4: New file.
+
+Mon Apr 19 13:13:41 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* DIST.LIST: New file.
+
+Sat Oct 24 06:01:17 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* README: Typo fix.
+
+Fri Sep 25 01:31:17 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* Version 1.1 released.
+
+Fri Sep  4 09:33:25 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* README, OVERVIEW: Modified for version 1.1.
+
+Mon Mar 23 15:42:10 1992  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* README, OVERVIEW: New files.
+
+Sat Feb 29 14:20:58 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* howto.install.jp: Modified for version 1.0.1 or later.
+	Removed unnecesarry escape sequences.
+
+Fri Feb 28 18:11:19 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* make.info, howto.install, howto.install.jp: Modified for version
+        1.0 or later.
+
+	* make.info, howto.install.jp, howto.install: New files.

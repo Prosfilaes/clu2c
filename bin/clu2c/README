@@ -1,0 +1,49 @@
+This directory contains source code for the clu2c compiler.
+
+The following table shows the files that were derived from PCLU.  The
+second column specifies names of original files in PCLU.  In the third
+column, files modified from the original are marked as `*'.
+
+	================================================
+	File name	File name in PCLU	Modified
+	------------------------------------------------
+	build.clu	cmpclu/build.clu	*
+	cconst.clu	cmpclu/cconst.clu
+	cdefn1.clu	cmpclu/cdefn1.clu	*
+	cdefn2.clu	cmpclu/cdefn2.clu	*
+	ce.clu		cmpclu/ce.clu
+	cenv.clu	cmpclu/cenv.clu		*
+	cexpr1.clu	cmpclu/cexpr1.clu	*
+	cexpr2.clu	cmpclu/cexpr2.clu	*
+	cmpvar.clu	cmpclu/cmpvar.clu	*
+	coper.clu	cmpclu/coper.clu	*
+	cspecs.clu	cmpclu/cspecs.clu	*
+	cstmt1.clu	cmpclu/cstmt1.clu	*
+	cstmt2.clu	cmpclu/cstmt2.clu
+	du.clu		cmpclu/du.clu		*
+	eval1.clu	cmpclu/eval1.clu
+	eval2.clu	cmpclu/eval2.clu
+	idn.clu		cmpclu/idn.clu		*
+	init.clu	cmpclu/init.clu		*
+	passes.equ	cmpclu/passes.equ	*
+	pconst.clu	cmpclu/pconst.clu
+	pdefn1.clu	cmpclu/pdefn1.clu	*
+	pdefn2.clu	cmpclu/pdefn2.clu
+	penv.clu	cmpclu/penv.clu		*
+	pexpr.clu	cmpclu/pexpr.clu	*
+	plist.clu	cmpclu/plist.clu
+	pstmt1.clu	cmpclu/pstmt1.clu	*
+	pstmt2.clu	cmpclu/pstmt2.clu	*
+	pttkn.clu	cmpclu/pttkn.clu	*
+	syntax.clu	cmpclu/syntax.clu	*
+	syntax.equ	cmpclu/syntax.equ	*
+	table.clu	lib/clu/table.clu	*
+	tkntab.clu	cmpclu/tkntab.clu
+	top1.clu	cmpclu/top1.clu		*
+	top2.clu	cmpclu/top2.clu		*
+	vcmp.clu	cmpclu/vcmp.clu		*
+	xlib.clu	cmpclu/xlib.clu		*
+	xref.clu	lib/clu/xref.clu	*
+	------------------------------------------------
+
+$Id: README,v 2.0 1996/06/10 09:04:38 ushijima Exp $

@@ -1,0 +1,614 @@
+@c advanced.texi
+@c
+@c Copyright (c) 1996, 1997
+@c      Department of Mathematical and Computing Sciences, Tokyo
+@c      Institute of Technology.  All rights reserved.
+@c
+@c This is part of CLU2C User's Manual.  For copying conditions, see
+@c the file clu2c.texi.
+@c
+@c $Id: advanced.texi,v 2.3 1997/02/05 09:55:41 ushijima Exp $
+
+
+@c *******************************************************************
+@c                           Advanced Usage
+@c *******************************************************************
+
+@node Advanced Usage, Changes to CLU, Basic Usage, Top
+@chapter Advanced Usage
+
+(This chapter may be skipped initially.)
+
+As a matter of fact, @code{clu2c} is a command interpreter.
+The user might be unaware of this fact
+so long as (s)he uses @code{clu2c} through the command line interface,
+and it is sufficient in most situations.
+Sometimes,
+however,
+it may be necessary to control the compiler more closely
+by issuing a sequence of commands.
+
+There are two ways to give commands directly to the compiler.
+First,
+the compiler reads commands from the standard input
+if it is invoked without arguments.
+Secondly,
+if the compiler is invoked with the @code{-f} option,
+it reads commands from the specified file.
+
+In order to know how to use commands for @code{clu2c},
+you need to understand the compiler's internal architecture to some extent,
+especially the compilation environment and the interface specification library.
+
+@menu
+* Command Syntax::              
+* Invocation Revisited::        How command line is interpreted
+* Compilation Environment::     You can define global constants
+* Interface Spec Lib::          Type-check
+* Compilation Commands::        
+* Code Generator Options::      
+* Misc Commands::               Other commands
+* Invoking plink::              
+@end menu
+
+
+@c ===================================================================
+@c                           Command Syntax
+@c ===================================================================
+
+@node Command Syntax, Invocation Revisited, Advanced Usage, Advanced Usage
+@section Command Syntax
+
+A command invocation has a form:
+
+@display
+@var{command_name} [ @var{argument}@dots{} ]
+@end display
+
+@noindent
+where [ @var{x} ] means an optional @var{x}
+and @var{x}@dots{} means one or more sequence of @var{x}.
+The number and the kind of the arguments depend on which command is invoked.
+@code{command_name} is case-insensitive
+and can be specified with an unambiguous prefix.
+
+Some commands take a boolean value as an argument.
+Specify @samp{true} or @samp{false}.
+This is again case-insensitive and can be specified with an unambiguous prefix.
+
+Some commands take a list of input specifications as arguments.
+In the description of such commands, @var{input_spec} is used.
+@xref{Specifying Input Files},
+for syntax and semantics of input specifications.
+
+You can specify two or more commands,
+separated by semicolons,
+in one line.
+For example,
+to specify @code{specs} and @code{compile} commands in one line,
+do like this:
+
+@example
+specs foo.clu; compile foo.clu
+@end example
+
+@noindent
+You can use a sharp sign (@samp{#}) instead of a semicolon
+for backward compatibility.
+
+
+@c ===================================================================
+@c                   Compiler Invocation Revisited
+@c ===================================================================
+
+@node Invocation Revisited, Compilation Environment, Command Syntax, Advanced Usage
+@section Compiler Invocation Revisited
+
+When the compiler is invoked with arguments,
+it first converts them into a sequence of command invocations
+and then executes them in order.
+
+For example,
+suppose @code{clu2c} is invoked as follows:
+
+@example
+clu2c -s -d foo foo.lib foo.clu bar.clu baz.clu
+@end example
+
+@noindent
+Then,
+@code{clu2c} converts the command line arguments
+into the following command sequence
+and executes them in order.
+
+@example
+merge foo.lib
+specs foo.clu bar.clu baz.clu
+dump foo.lib
+@end example
+
+@menu
+* Options Conversion::          How options are converted to commands
+* Input Files Conversion::      How input files are converted to commands
+@end menu
+
+
+@c -------------------------------------------------------------------
+@c                         Options Conversion
+@c -------------------------------------------------------------------
+
+@node Options Conversion, Input Files Conversion, Invocation Revisited, Invocation Revisited
+@subsection Options Conversion
+
+The @code{-n} option lets the compiler show what commands would be executed
+but do not actually execute them.
+This option can be used to see
+how command line arguments are converted to a sequence of command invocations.
+The @code{-p} option,
+the @code{-s} option,
+and the @code{-t} option change the compiler's behavior
+with respect to what kind of command(s) are applied to input files (see below).
+The other options are converted to commands directly:
+
+@itemize @bullet
+@item
+@samp{-c} is converted to @samp{expunge true}.
+@item
+@samp{-g} is converted to @samp{debug true}.
+@item
+@samp{-d @var{file}} is converted to @samp{dump @var{file}}.
+@item
+@samp{-x} is converted to @samp{externals true}.
+@item
+@samp{-F} is converted to @samp{allow true}.
+@item
+@samp{-O@var{mode}} is converted to @samp{optimize @var{mode}}.
+@item
+@samp{-f @var{file}} is converted to @samp{xfile @var{file}}.
+@end itemize
+
+
+@c -------------------------------------------------------------------
+@c                       Input Files Conversion
+@c -------------------------------------------------------------------
+
+@node Input Files Conversion,  , Options Conversion, Invocation Revisited
+@subsection Input Files Conversion
+
+Input files are grouped on the per-suffix basis.
+Then one or two commands are applied to each group.
+
+@itemize @bullet
+@item
+Normally the @code{specs} and @code{compile} commands are applied
+to CLU source files.
+If the @code{-t} option is specified,
+the @code{check} command is applied instead of @code{compile}.
+If the @code{-s} option is specified,
+the @code{specs} command only is applied.
+If the @code{-p} option is specified,
+the @code{parse} command only is applied.
+@item
+To equate files,
+the @code{ce} command is applied to the first group
+and @code{xce} to the subsequent groups.
+@item
+Normally the @samp{specs} command is applied
+to interface specification files.
+If the @code{-p} option is specified,
+the @code{parse} command is applied instead.
+@item
+To interface specification library files,
+the @code{merge} command is
+applied.
+@end itemize
+
+
+@c ===================================================================
+@c                      Compilation Environment
+@c ===================================================================
+
+@node Compilation Environment, Interface Spec Lib, Invocation Revisited, Advanced Usage
+@section Compilation Environment
+
+@cindex compilation environment
+@cindex CE
+The @code{clu2c} program maintains a set of equates
+called @dfn{compilation environment} or @dfn{CE} for short.
+The compiler process starts with an empty CE.
+Then the user can append equates to the CE
+using @code{ce} and @code{xce} commands.
+
+When the compiler detects a free identifier,
+i.e., identifier that is used
+but not declared nor defined in the module to be compiled,
+it first looks up the equate that defines the identifier in the CE.
+If such an equate is found,
+right hand side of the equate is used as a value of the identifier.
+
+The following commands are provided as operations on CE.
+The default suffix for input files is @samp{equ}.
+
+@menu
+* ce::                          
+* xce::                         
+@end menu
+
+@ifinfo
+@node ce, xce, Compilation Environment, Compilation Environment
+@subheading @code{ce}
+@end ifinfo
+@deffn Command ce input_spec@dots{}
+Discard all the equates in the current CE
+and use the set of equates described in the input files as a new CE.
+@end deffn
+
+@ifinfo
+@node xce,  , ce, Compilation Environment
+@subheading @code{xce}
+@end ifinfo
+@deffn Command xce input_spec@dots{}
+Add equates described in the input files to the current CE.
+@end deffn
+
+
+@c ===================================================================
+@c                  Interface Specification Library
+@c ===================================================================
+
+@node Interface Spec Lib, Compilation Commands, Compilation Environment, Advanced Usage
+@section Interface Specification Library
+
+In order to type-check a module,
+interface specifications of all the abstractions
+that are referred by the module must be known.
+The compiler has an internal table
+for storing interface specifications of abstractions.
+We call this table @dfn{interface specification library}.
+
+Initially,
+interface specifications of built-in types and type generators,
+together with standard I/O abstractions,
+are registered in the interface specification library.
+
+The following commands are provided
+as operations on the interface specification library.
+
+@menu
+* specs::                       
+* dump::                        
+* merge::                       
+* unmerge::                     
+* forget::                      
+* newlib::                      
+@end menu
+
+@ifinfo
+@node specs, dump, Interface Spec Lib, Interface Spec Lib
+@subheading @code{specs}
+@end ifinfo
+@deffn Command specs input_spec@dots{}
+Extracts interface specifications from input files,
+and enters these specifications in the specification library.
+The default suffix is @samp{spc} or @samp{clu}.
+@end deffn
+
+@ifinfo
+@node dump, merge, specs, Interface Spec Lib
+@subheading @code{dump}
+@end ifinfo
+@deffn Command dump filename
+Dumps the content of the specification library
+to the file named @var{filename}.
+The default suffix is @samp{lib}.
+@end deffn
+
+@ifinfo
+@node merge, unmerge, dump, Interface Spec Lib
+@subheading @code{merge}
+@end ifinfo
+@deffn Command merge input_spec@dots{}
+Reads interface specifications from the input files,
+which is previously dumped using the @code{dump} command,
+and merges them into the specification library.
+The default suffix for input files is @samp{lib}.
+@end deffn
+
+@ifinfo
+@node unmerge, forget, merge, Interface Spec Lib
+@subheading @code{unmerge}
+@end ifinfo
+@deffn Command unmerge input_spec@dots{}
+Reads interface specifications from the input files,
+which is previously dumped using the @code{dump} command,
+and deletes the interface specifications for these modules.
+The default suffix for input files is @samp{lib}.
+@end deffn
+
+@ifinfo
+@node forget, newlib, unmerge, Interface Spec Lib
+@subheading @code{forget}
+@end ifinfo
+@deffn Command forget module@dots{}
+Deletes the interface specification of @var{module}
+from the specification library.
+@end deffn
+
+@ifinfo
+@node newlib,  , forget, Interface Spec Lib
+@subheading @code{newlib}
+@end ifinfo
+@deffn Command newlib
+Resets the specification library to its initial state.
+@end deffn
+
+
+@c ===================================================================
+@c                        Compilation Commands
+@c ===================================================================
+
+@node  Compilation Commands, Code Generator Options, Interface Spec Lib, Advanced Usage
+@section Compilation Commands
+
+@menu
+* compile::                     
+* check::                       
+* parse::                       
+@end menu
+
+@ifinfo
+@node compile, check, Compilation Commands, Compilation Commands
+@subheading @code{compile}
+@end ifinfo
+@deffn Command compile input_spec@dots{}
+@deffnx Command clu input_spec@dots{}
+Produces binary output.
+A binary file is produced only if there are no errors.
+Hence,
+if a binary file is produced,
+any messages are warnings,
+not errors.
+@end deffn
+
+@ifinfo
+@node check, parse, compile, Compilation Commands
+@subheading @code{check}
+@end ifinfo
+@deffn Command check input_spec@dots{}
+Does type- and legality- checking.
+@end deffn
+
+@ifinfo
+@node parse,  , check, Compilation Commands
+@subheading @code{parse}
+@end ifinfo
+@deffn Command parse input_spec@dots{}
+Just parses the files,
+checking for syntactic errors.
+@end deffn
+
+
+@c ===================================================================
+@c                 Changing Code Generator's Behavior
+@c ===================================================================
+
+@node Code Generator Options, Misc Commands, Compilation Commands, Advanced Usage
+@section Changing Code Generator's Behavior
+
+@menu
+* allow::                       
+* binsuf::                      
+* char-version::                
+* debug::                       
+* optimize::                    
+* safe::                        
+* string-version::              
+@end menu
+
+@ifinfo
+@node allow, binsuf, Code Generator Options, Code Generator Options
+@subheading @code{allow}
+@end ifinfo
+@deffn Command allow [boolean]
+If @var{boolean} implies @samp{true},
+the subsequent invocations of the
+@code{compile} command always produce (maybe incomplete) C source files
+even if any error is detected.  If @samp{false} is implied, this
+behavior is canceled.  This command is intended to be used by the
+developer and the use by the user is discouraged.
+@end deffn
+
+@ifinfo
+@node binsuf, char-version, allow, Code Generator Options
+@subheading @code{binsuf}
+@end ifinfo
+@deffn Command binsuf [suffix]
+Sets the suffix for binary files.
+The default is @samp{c}.
+If no argument is given,
+resets to the default.
+If @samp{*} is given,
+no suffix will be used.
+This is useful when creating library binaries.
+@end deffn
+
+@ifinfo
+@node char-version, debug, binsuf, Code Generator Options
+@subheading @code{char-version}
+@end ifinfo
+@deffn Command char-version number
+Tells the compiler
+that the version @var{number} of @code{char} will be used
+with the generated C files.
+This command is primarily for developers only.
+@end deffn
+
+@ifinfo
+@node debug, optimize, char-version, Code Generator Options
+@subheading @code{debug}
+@end ifinfo
+@deffn Command debug [boolean]
+@end deffn
+
+@ifinfo
+@node optimize, safe, debug, Code Generator Options
+@subheading @code{optimize}
+@end ifinfo
+@deffn Command optimize [@code{time}|@code{space}|@code{false}]
+If no argument is specified,
+the default is @code{time}.
+The optimization mode affects all subsequent compilations.
+@code{space} causes only optimizations that do not increase the code size.
+@code{time} additionally performs optimizations
+that can increase the code size.
+Optimization eliminates many traceable routine calls,
+and so should only be used on well-debugged programs.
+See also the @code{locals} command.
+@end deffn
+
+@ifinfo
+@node safe, string-version, optimize, Code Generator Options
+@subheading @code{safe}
+@end ifinfo
+@deffn Command safe [boolean]
+In safe mode,
+each module to be compiled is checked
+to make sure its name does not clash with an existing module name
+in the CLU system.
+This is done by looking in the file ~CLU/system.names.
+The initial mode is @code{false}.
+@end deffn
+
+@ifinfo
+@node string-version,  , safe, Code Generator Options
+@subheading @code{string-version}
+@end ifinfo
+@deffn Command string-version number
+Tells the compiler
+that the version @var{number} of @code{string} will be used
+with the generated C files.
+This command is primarily for developers only.
+@end deffn
+
+
+@c ===================================================================
+@c                       Miscellaneous Commands
+@c ===================================================================
+
+@node Misc Commands, Invoking plink, Code Generator Options, Advanced Usage
+@section Miscellaneous Commands
+
+This subsection describes miscellaneous commands
+not described in the above subsections.
+
+@menu
+* expunge::                     
+* externals::                   
+* force::                       
+* help::                        
+* locals::                      
+* quit::                        
+* xfile::                       
+@end menu
+
+@ifinfo
+@node expunge, externals, Misc Commands, Misc Commands
+@subheading @code{expunge}
+@end ifinfo
+@deffn Command expunge [boolean]
+In @code{expunge} mode,
+only the interfaces of clusters are remembered;
+the interfaces of external routines are not.
+@end deffn
+
+@ifinfo
+@node externals, force, expunge, Misc Commands
+@subheading @code{externals}
+@end ifinfo
+@deffn Command externals [boolean]
+The compiler normally outputs a cross-reference
+of references to external modules.
+This command can be used to stop that output.
+@end deffn
+
+@ifinfo
+@node force, help, externals, Misc Commands
+@subheading @code{force}
+@end ifinfo
+@deffn Command force [@var{boolean}]
+This command is recognized for backward compatibility
+but no longer has any effect.
+@end deffn
+
+@ifinfo
+@node help, locals, force, Misc Commands
+@subheading @code{help}
+@end ifinfo
+@deffn Command help
+@deffnx Command ?
+Prints a brief summary of the commands.
+@end deffn
+
+@ifinfo
+@node locals, quit, help, Misc Commands
+@subheading @code{locals}
+@end ifinfo
+@deffn Command locals [@var{boolean}]
+This command is recognized for backward compatibility
+but no longer has any effect.
+@end deffn
+
+@ifinfo
+@node quit, xfile, locals, Misc Commands
+@subheading @code{quit}
+@end ifinfo
+@deffn Command quit
+@deffnx Command kill
+Terminates the compiler process.
+@end deffn
+
+@ifinfo
+@node xfile,  , quit, Misc Commands
+@subheading @code{xfile}
+@end ifinfo
+@deffn Command xfile input_spec@dots{}
+Reads a list of commands from input files and executes them in order.
+The default suffix for input files is @samp{xfile}.
+@end deffn
+
+
+@c ===================================================================
+@c                           Invoking plink
+@c ===================================================================
+
+@node Invoking plink,  , Misc Commands, Advanced Usage
+@section Invoking @code{plink}
+
+The @code{plink} program is a pre-linker
+for C files which are generated by @code{clu2c}.
+It has two modes: normal mode and extraction mode.
+In normal mode,
+@code{plink} reads C files generated by @code{clu2c}
+and produces an auxiliary C file
+which contains various variable/function definitions
+that cannot be fixed until all the C files are prepared.
+In extraction mode,
+@code{plink} extracts C comments related to @code{plink}
+from the specified C files,
+which may be the input for later @code{plink} execution.
+@code{plink} is invoked through the @code{clulink} program.
+Users rarely invoke @code{plink} directly.
+The @code{plink} program recognizes the following options.
+
+@table @samp
+@item -o @var{file}
+Produces an output C source file by the name @var{file}.
+The name of the default object file is @file{op-table.c} in normal mode;
+put to standard output by default in extraction mode.
+@item -x
+Executes @code{plink} in extraction mode.
+In this mode,
+@code{plink} extracts,
+from input files,
+C comments that make sense for @code{plink}.
+@end table

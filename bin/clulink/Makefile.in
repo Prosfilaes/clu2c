@@ -1,0 +1,41 @@
+dnl $Id: Makefile.in,v 2.0 1996/06/10 09:05:24 ushijima Exp $
+include(`mk.m4')
+MK_REQUIRE(`exe')
+MK_REQUIRE(`clusrc')
+MK_CURRENT_DIRECTORY(`bin', `clulink')
+MK_EXE_NAME(`clulink')
+MK_CLU_SOURCES(`clulink.clu default.clu logger.clu objects.clu output.clu')
+MK_CLU_SOURCES(`primary.clu sources.clu start_up.clu target.clu user.clu')
+MK_CLU_SOURCES(`version.clu')
+MK_EQU_SOURCES(`logger.equ')
+MK_MISC_SOURCES(`LIB.xld clulnksh.in')
+MK_APPEND_PREREQ(`all', `clulink.def')
+MK_APPEND_ACTION(`install', `MK_INSTALL_DATA(`clulink.def', `$(clu2c_libdir)')')
+MK_APPEND_ACTION(`installdirs', `MK_INSTALL_DIRECTORY(`$(clu2c_libdir)')')
+MK_MOSTLYCLEAN_FILES(`clulink.def')
+MK_DEFINE_RULE(`clulink_def',
+	`clulink.def',
+	`Makefile',
+	`echo CC=$(CC)>clulink.def
+	echo LIBS=$(LIBS)>>clulink.def')
+ifelse(OSTYPE, `dos',
+	`ifelse(DJGPP, 1,
+		`MK_APPEND_ACTION(`clulink_def',
+			`echo COFF2EXE=$(COFF2EXE)>>clulink.def')')')
+MK_SPECIFIC_RULES
+MK_RULE_DEFINITION(`clulink_def', `Creates clulink.def')
+MK_END
+ifelse(OSTYPE, `unix',
+`MK_CLEAN_FILES(`clulink.sh')
+MK_APPEND_PREREQ(`all', `clulink.sh')
+MK_APPEND_ACTION(`install',
+	`MK_INSTALL_PROGRAM(`clulink.sh', `$(bindir)', `clulink')')
+MK_APPEND_ACTION(`installdirs',
+	`MK_INSTALL_DIRECTORY(`$(bindir)')')
+MK_DEFINE_RULE(`clulink_sh',
+	`clulink.sh',
+	`Makefile $(srcdir)/clulnksh.in',
+	`sed "s|@clu2c_rootdir@|$(clu2c_rootdir)|" $(srcdir)/clulnksh.in >MK_DOLLAR(@)')
+MK_SPECIFIC_RULES
+MK_RULE_DEFINITION(`clulink_sh', `Creates clulink.sh')
+MK_END')

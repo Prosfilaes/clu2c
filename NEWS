@@ -1,0 +1,45 @@
+Major changes in version 1.99.3:
+
+* clu2c does not show elapsed time.
+
+* clu2c make command does not create Depend and Location; now module
+dependencies are embedded in generated C files.
+
+* Removed options for clu2c: -B, -D; removed commands for clu2c:
+bindir, dir, escape.  Now output files are always created in the
+current working directory.
+
+* Now C files genereated by clu2c and plink include only one header:
+<clu2c.h>.  Old headers (<clu2c/clu2c.h>, <clu2c/type.h>, and
+<clu2c/glo.h>) still work but will be unavailable in future releases.
+
+* For each library option `-lfoo', clulink checks if the file
+`libfoo.c' exists in the same directory as the specified `libfoo.a'
+does.  If such a file exists, clulink appends that file to the list of
+input files for plink.  This supports parameterized modules in
+separately developed libaries.
+
+* clulink changed the order of `-L' and `-l' options passed to the C
+linker.  The order is: (1) user-specified `-L' options, (2) default
+`-L' options, (3) user-specified `-l' options, and (4) default `-l'
+options.  This used to be default options followed by user-specified
+options.  Now user-specified library can refer modules in default
+libraries.
+
+* The `stream$putzero' operation has been implemented.
+
+* Split compatibility library modules into a separate clucompat
+package.
+
+* ~CLU/lib/progargs.lib is gone.  Interface specifications on getopt,
+input_streams, program_arguments, and program_name have been moved to
+~CLU/lib/progenv.lib.
+
+* New library modules: int_hex_parse, int_hex_unparse, int_oct_parse,
+and int_oct_unparse (~CLU/lib/int.lib); getenv, system, and terminate
+(~CLU/lib/progenv.lib); and uint (~CLU/lib/uint.lib).
+
+* Typing `make install' automatically creates `basic.lib' at the end
+of the installation process.
+
+* Bug fixes.

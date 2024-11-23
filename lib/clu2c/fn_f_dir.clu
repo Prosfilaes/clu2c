@@ -1,0 +1,14 @@
+% fn_f_dir.clu - fill directory
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: fn_f_dir.clu,v 2.0 1996/06/10 09:02:08 ushijima Exp $
+
+
+file_name_fill_directory = proc(fn: file_name) returns(file_name)
+    fn := file_name_apply_directory(fn, file_name$parse(working_dir()))
+    fn := file_name_expand_home_directory(fn)
+    return(file_name_absolutize(fn))
+end file_name_fill_directory

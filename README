@@ -1,0 +1,62 @@
+CLU2C Version 1.99.3 (2.0-beta3)		      February 6, 1997
+
+CLU2C is a portable implementation of the programming language CLU.
+Portability has been achieved by (1) translating CLU to C, using the C
+compiler of each of the machines as an "assembler"; (2) writing the
+runtime routines entirely in CLU and C; and (3) using the conservative
+GC package by Boehm, et al.  CLU is an object-based imperative
+language featuring data abstraction, strong typing, parametric
+polymorphism, exception handling, and iterators.  This distribution
+package contains a CLU compiler, a runtime system including
+implementations of the built-in types and the built-in type
+generators, and some library modules including basic I/O modules
+described in CLU Reference Manual.  Most of the source code is written
+in CLU itself, but a CLU compiler is not needed for compiling CLU2C
+since pre-translated C source files are included in the source
+distribution package.
+
+CLU2C is free software; you can redistribute it and/or modify it under
+the particular terms and conditions.  See the file COPYING for more
+detail.  Part of this software has been derived from PCLU and the
+conservative GC package.  See the files COPYRIGHT.PCLU and
+lib/gc/README.gc for the copying conditions for PCLU and the
+conservative GC package, respectively.
+
+See the file INSTALL or INSTALL.ja (a Japanese translation of INSTALL)
+for the installation instructions.
+
+Currently CLU2C has been tested out successfully for the following
+platforms.
+
+======================================================================
+Machine & operating system			C compiler
+----------------------------------------------------------------------
+IBM PC/AT running BSD/OS 2.1			gcc-2.7.2
+IBM PC/AT running IBM DOS J5.00/V + DJGPP 2.00	gcc-2.7.2
+NEC PC-9801DA running MS-DOS 3.30 + DJGPP 2.00	gcc-2.7.2
+SGI Indy running IRIX 5.3			cc
+Sony CISC NEWS running NEWS-OS 4.2C		gcc-2.6.2
+Sony RISC NEWS running NEWS-OS 4.2.1R		cc / gcc-2.7.2
+Sun SPARCstation 10 running SunOS 4.1.3		gcc-2.7.2
+Sun SPARCstation 10 running SunOS 5.5		gcc-2.7.2
+Sun SPARCstation IPX running SunOS 4.1.3	gcc-2.7.2
+Sun Sun-3/60 running SunOS 3.4			gcc-2.7.2
+----------------------------------------------------------------------
+
+The latest version of CLU2C is available via anonymous FTP from the
+host ftp.is.titech.ac.jp at the directory /pub/clu2c.
+
+PCLU is another implementation of CLU.  The latest version of PCLU is
+available via anonymous FTP from the host ftp.lcs.mit.edu at the
+directory /pub/pclu.  See ftp://ftp.lcs.mit.edu/pub/pclu/README for
+more detail.
+
+The latest version of the conservative GC package is available via
+anonymous FTP from the host parcftp.xerox.com at the directory
+/pub/gc.  See ftp://parcftp.xerox.com/pub/gc/README for more detail.
+
+We would greatly appreciate receiving comments, bug reports, and
+porting information on CLU2C.  Send them by e-mail to the address
+clu2c-report@is.titech.ac.jp.
+
+$Id: README,v 2.4 1997/02/06 04:22:37 ushijima Exp $

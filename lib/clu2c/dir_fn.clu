@@ -1,0 +1,16 @@
+% dir_fn.clu - convert directory name to file name
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: dir_fn.clu,v 2.0 1996/06/10 09:02:04 ushijima Exp $
+
+
+directory_file_name = proc(fn: file_name) returns(file_name)
+    if ~string$empty(fn.name) then
+	% Not a directory name.
+	return(fn)
+    end
+    return(file_name$parse(fn.dir))
+end directory_file_name

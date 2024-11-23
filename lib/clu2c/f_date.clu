@@ -1,0 +1,38 @@
+% f_date.clu - get file date
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: f_date.clu,v 2.0 1996/06/10 09:02:57 ushijima Exp $
+
+
+file_date = proc(fn: file_name, read: bool) returns(date)
+	    signals(not_possible(string))
+    localtime   = _external_localtime
+    stat        = _external_stat
+    struct_stat = _external_struct_stat
+    struct_tm   = _external_struct_tm
+    status: struct_stat := stat(file_name_to_string(fn))
+	resignal not_possible
+    t: int
+    if read then
+	t := status.atime
+    else
+	t := status.mtime
+    end
+    time: struct_tm := localtime(t)
+    return(
+	date$create(
+	    time.mday,
+	    time.mon + 1,
+	    time.year + 1900,
+	    time.hour,
+	    time.min,
+	    time.sec
+	)
+    )
+	except when bad_fomat:
+	    signal not_possible("bad format date")
+	end 
+end file_date

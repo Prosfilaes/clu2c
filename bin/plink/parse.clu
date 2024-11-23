@@ -1,0 +1,482 @@
+% parse.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: parse.clu,v 2.0 1996/06/10 09:04:52 ushijima Exp $
+
+
+% This file contains routines and a cluster to parse string-encoded
+% parameters.
+
+
+token = oneof[
+    idn:       str,
+    l_bracket: null,
+    r_bracket: null,
+    colon:     null,
+    vparm:     null,
+    fparm:    int
+]
+
+
+% Parses the string-encoded parameter list _parms_ and returns the
+% resulting parameter list.  Signlas _bad_format_ if _parms_ does not
+% represent any parameter list.  The second argument _gen_ is needed for
+% the case in which the parameter list contains some formal parameters
+% of the "caller" module.
+
+parse_parmlist = proc(parms: str) returns(parmlist)
+    scan: scanner := scanner$create(parms)
+    return(p_parmlist(scan))
+	except when syntax_error:
+	    % returns a tentative result
+	    return(parmlist$new())
+	end
+end parse_parmlist
+
+
+% Parses the string-encoded field specification list _parms_ and returns
+% the resulting field specification list.  Signlas _bad_format_ if
+% _parms_ does not represent any field specification list.  The second
+% argument _gen_ is needed for the case in which the field specification
+% list contains some formal parameters of the "caller" module.
+
+parse_fieldspeclist = proc(parms: str) returns(fieldspeclist)
+    scan: scanner := scanner$create(parms)
+    return(p_fieldspeclist(scan))
+	except when syntax_error:
+	    % returns a tentative result
+	    return(fieldspeclist$new())
+	end
+end parse_fieldspeclist
+
+
+% Parses the token sequence in _scan_ that begins with the current token
+% and returns the resulting parameter list.  Signals _syntax_error_ if
+% _scan_ contains an invalid token sequence as a parameter list.
+
+p_parmlist = proc(scan: scanner) returns(parmlist)
+				 signals(syntax_error)
+    result: parmlist := parmlist$new()
+    while true do
+	tagcase scanner$peek(scan)
+	tag idn, fparm, vparm:
+	others:
+	    if parmlist$empty(result) then
+		ee: e_env := e_env$get()
+		e_env$parmerr(
+		    ee,
+		    "identifier, formal parameter, or VPARM expected",
+		    scanner$here(scan)
+		)
+		signal syntax_error
+	    else
+		break
+	    end
+	end
+	parmlist$addh(result, p_parm(scan))
+	    resignal syntax_error
+    end
+	except when end_of_scan: end
+    return(result)
+end p_parmlist
+
+
+% Parses the token sequence in _scan_ that begins with the current token
+% and returns the resulting field specification list.  Signals
+% _syntax_error_ if _scan_ contains an invalid token sequence as a field
+% specification list.
+
+p_fieldspeclist = proc(scan: scanner) returns(fieldspeclist)
+				      signals(syntax_error)
+    result: fieldspeclist := fieldspeclist$new()
+    while true do
+	tagcase scanner$peek(scan)
+	tag idn:
+	others:
+	    if fieldspeclist$empty(result) then
+		ee: e_env := e_env$get()
+		e_env$parmerr(ee, "identifier expected", scanner$here(scan))
+		signal syntax_error
+	    else
+		break
+	    end
+	    break
+	end
+	fieldspeclist$addh(result, p_fieldspec(scan))
+	    resignal syntax_error
+    end
+	except when end_of_scan: end
+    return(result)
+end p_fieldspeclist
+
+
+% Parses the token sequence in _scan_ that begins with the current token
+% and returns the resulting parameter.  Signals _syntax_error_ if _scan_
+% contains an invalid token sequence as a parameter.  It is assumed that
+% current token is either IDN, FORMAL, or VPARM.
+
+% parameter -> idn [ "[" parmlist "]" ]
+%           |  built-in-selector "[" fieldspeclist "]"
+%	    |  FORMAL
+%	    |  VPARM "[" idn "]"
+%	    |  VPARM "[" FORMAL "]"
+
+p_parm = proc(scan: scanner) returns(parameter) signals(syntax_error)
+    t: token := scanner$peek(scan)
+    tagcase t
+    tag idn, fparm:
+	return(parameter$make_tparm(p_tparm(scan)))
+    tag vparm:
+	scanner$next(scan)
+	p_l_bracket(scan)
+	parm: vparm
+	tagcase scanner$peek(scan)
+	tag idn(id: str):
+	    parm := vparm$make_lit(id)
+	tag fparm(id: int):
+	    parm := vparm$make_fparm(id)
+	others:
+	    ee: e_env := e_env$get()
+	    e_env$parmerr(
+		ee,
+		"literal or formal parameter expected",
+		scanner$here(scan)
+	    )
+	    signal syntax_error
+	end
+	scanner$next(scan)
+	p_r_bracket(scan)
+	return(parameter$make_vparm(parm))
+    others:
+	ee: e_env := e_env$get()
+	e_env$parmerr(
+	    ee,
+	    "identifier, formal parameter, or VPARM expected",
+	    scanner$here(scan)
+	)
+	signal syntax_error
+    end
+	resignal syntax_error
+end p_parm
+
+
+% Parses the token sequence in _scan_ that begins with the current token
+% and returns the resulting field specification.  Signals _syntax_error_
+% if _scan_ contains an invalid token sequence as a field specification.
+% It is assumed that the current token is IDN.
+
+% field-specification -> IDN ":" type-parameter
+
+p_fieldspec = proc(scan: scanner) returns(fieldspec) signals(syntax_error)
+    sel: str
+    tagcase scanner$peek(scan)
+    tag idn(id: str):
+	scanner$next(scan)
+	sel := id
+    others:
+	ee: e_env := e_env$get()
+	e_env$parmerr(ee, "identifier expected", scanner$here(scan))
+	signal syntax_error
+    end
+    parm: tparm
+    begin
+	p_colon(scan)
+	parm := p_tparm(scan)
+    end
+	resignal syntax_error
+    return(fieldspec${sel: sel, parm: parm})
+end p_fieldspec
+
+
+% Parses the token sequence in _scan_ that begins with the current token
+% and returns the resulting type parameter.  Signals _syntax_error_ if
+% _scan_ contains an invalid token sequence as a type parameter.  It is
+% assumed that the current token is either IDN or FORMAL.
+
+% type-parameter -> idn [ "[" parmlist "]" ]
+%                |  built-in-selector "[" fieldspeclist "]"
+%	         |  FORMAL
+
+p_tparm = proc(scan: scanner) returns(tparm) signals(syntax_error)
+    tagcase scanner$peek(scan)
+    tag idn(id: str):
+	scanner$next(scan)
+	if builtin_selector(id) then
+	    % IDN <!> "[" field-specification-list "]"
+	    p_l_bracket(scan)
+	    parms: fieldspeclist := p_fieldspeclist(scan)
+	    p_r_bracket(scan)
+	    return(tparm$make_sel(selinst$create(selgen$create(id), parms)))
+	else
+	    % IDN <!> [ "[" parameter-list "]" ]
+	    parms: parmlist
+	    tagcase scanner$peek(scan)
+	    tag l_bracket:
+		scanner$next(scan)
+		parms := p_parmlist(scan)
+		p_r_bracket(scan)
+	    others:
+		parms := parmlist$new()
+	    end
+		except when end_of_scan:
+		    parms := parmlist$new()
+		end
+	    return(tparm$make_clu(cluinst$create(clugen$create(id), parms)))
+	end
+    tag fparm(id: int):
+	scanner$next(scan)
+	return(tparm$make_fparm(id))
+    others:
+	ee: e_env := e_env$get()
+	e_env$parmerr(
+	    ee,
+	    "identifier or formal parameter expected",
+	    scanner$here(scan)
+	)
+	signal syntax_error
+    end
+	resignal syntax_error
+end p_tparm
+
+
+p_l_bracket = proc(scan: scanner) signals(syntax_error)
+    tagcase scanner$peek(scan)
+    tag l_bracket:
+	scanner$next(scan)
+	return
+    others:
+	ee: e_env := e_env$get()
+	e_env$parmerr(ee, "'[' expected", scanner$here(scan))
+	signal syntax_error
+    end
+	except when end_of_scan:
+	    ee: e_env := e_env$get()
+	    e_env$parmerr(ee, "'[' expected", scanner$here(scan))
+	    signal syntax_error
+	end
+end p_l_bracket
+
+
+p_r_bracket = proc(scan: scanner) signals(syntax_error)
+    tagcase scanner$peek(scan)
+    tag r_bracket:
+	scanner$next(scan)
+	return
+    others:
+	ee: e_env := e_env$get()
+	e_env$parmerr(ee, "']' expected", scanner$here(scan))
+	signal syntax_error
+    end
+	except when end_of_scan:
+	    ee: e_env := e_env$get()
+	    e_env$parmerr(ee, "']' expected", scanner$here(scan))
+	    signal syntax_error
+	end
+end p_r_bracket
+
+
+p_colon = proc(scan: scanner) signals(syntax_error)
+    tagcase scanner$peek(scan)
+    tag colon:
+	scanner$next(scan)
+	return
+    others:
+	ee: e_env := e_env$get()
+	e_env$parmerr(ee, "':' expected", scanner$here(scan))
+	signal syntax_error
+    end
+	except when end_of_scan:
+	    ee: e_env := e_env$get()
+	    e_env$parmerr(ee, "':' expected", scanner$here(scan))
+	    signal syntax_error
+	end
+end p_colon
+
+
+scanner = cluster is
+	create,
+	empty,
+	peek,
+	next,
+	here
+
+    rep = record[
+	source:  token_list,
+	index:   int
+    ]
+    token_list = array[token]
+
+    create = proc(parm: str) returns(cvt)
+	source: token_list := token_list$new()
+	max: int := str$size(parm)
+	i: int := 1
+	while i <= max do
+	    c: char := parm[i]
+	    if c = ' ' then
+		% do nothing
+	    elseif c = '[' then
+		token_list$addh(source, token$make_l_bracket(nil))
+	    elseif c = ']' then
+		token_list$addh(source, token$make_r_bracket(nil))
+	    elseif c = ':' then
+		token_list$addh(source, token$make_colon(nil))
+	    elseif c = 'f' then
+		% may be /formal._/
+		begin
+		    if str$substr(parm, i, 6) ~= "formal" then
+			exit not_formal_parameter
+		    end
+		    j: int := i + 6	% just right of "formal"
+		    k: int := j
+		    while k < max do
+			ch: char := parm[k]
+			if ch < '0' | '9' < ch then
+			    break
+			end
+			k := k + 1
+		    end
+		    if j ~< k cor parm[k] ~= '_' then
+			exit not_formal_parameter
+		    end
+		    token_list$addh(
+			source,
+			token$make_fparm(int$parse(str$substr(parm, j, k - j)))
+		    )
+		    i := k
+		end
+		    except when not_formal_parameter:
+			tk: token
+			tk, i := parse_idn(parm, i)
+			token_list$addh(source, tk)
+		    end
+	    elseif c = 'v' then
+		if str$substr(parm, i, 6) = "vparm[" then
+		    token_list$addh(source, token$make_vparm(nil))
+		    i := i + 4 
+		else
+		    tk: token
+		    tk, i := parse_idn(parm, i)
+		    token_list$addh(source, tk)
+		end
+	    else
+		tk: token
+		tk, i := parse_idn(parm, i)
+		token_list$addh(source, tk)	
+	    end
+	    i := i + 1
+	end
+	return(rep${source: source, index: 1})
+    end create
+
+
+    %%
+    %% observers
+    %%
+
+    empty = proc(s: cvt) returns(bool)
+	return(s.index > token_list$high(s.source))
+    end empty
+
+    peek = proc(s: cvt) returns(token) signals(end_of_scan)
+	return(s.source[s.index])
+	    except when bounds:
+		signal end_of_scan
+	    end
+    end peek
+
+
+    %%
+    %% mutators
+    %%
+
+    next = proc(s: cvt)
+	if s.index <= token_list$high(s.source) then
+	    s.index := s.index + 1
+	end
+    end next
+
+
+    here = proc(s: cvt) returns(str)
+	source: token_list := s.source
+	index: int := s.index
+	res: stream := stream$create_output()
+	start: int := 1
+	if index > 4 then
+	    put_nr_tokens(index - 4, res)
+	    stream$putspace(res, 1)
+	    start := index - 3
+	end
+	first: bool := true
+	for i: int in int$from_to(start, index - 1) do
+	    if first then
+		first := false
+	    else
+		stream$putspace(res, 1)
+	    end
+	    stream$puts(res, unparse_token(source[i]))
+	end
+	stream$puts(res, " >>> ")
+	stream$puts(res, unparse_token(source[index]))
+	stream$puts(res, " <<<")
+	for i: int in int$from_to(index + 1, index + 3) do
+	    stream$putspace(res, 1)
+	    stream$puts(res, unparse_token(source[i]))
+	end
+	    except when bounds: end
+	rest: int := token_list$size(source) - index - 3
+	if rest > 0 then
+	    stream$putspace(res, 1)
+	    put_nr_tokens(rest, res)
+	end
+	return(res.contents)
+    end here
+
+
+    %%
+    %% internal routines
+    %%
+
+    parse_idn = proc(parm: str, i: int) returns(token, int)
+	max: int := str$size(parm)
+	j: int := i
+	while j <= max do
+	    c: char := parm[j]
+	    if c = '[' | c = ']' | c = ':' | c = ' ' then
+		break
+	    end
+	    j := j + 1
+	end
+	return(token$make_idn(str$substr(parm, i, j - i)), j - 1)
+    end parse_idn
+
+    unparse_token = proc(t: token) returns(str)
+	tagcase t
+	tag idn(s: str):
+	    return(s)
+	tag l_bracket:
+	    return("[")
+	tag r_bracket:
+	    return("]")
+	tag colon:
+	    return(":")
+	tag vparm:
+	    return("VPARM")
+	tag fparm(id: int):
+	    return("FORMAL" || int$unparse(id) || "_")
+	end
+    end unparse_token
+
+    put_nr_tokens = proc(n: int, outst: stream)
+	if n = 1 then
+	    stream$puts(outst, "(...1 token...)")
+	elseif n > 1 then
+	    stream$puts(outst, "(...")
+	    stream$puts(outst, int$unparse(n))
+	    stream$puts(outst, " tokens...)")
+	end
+    end put_nr_tokens
+
+end scanner

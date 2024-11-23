@@ -1,0 +1,236 @@
+% ginvoke.clu
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: ginvoke.clu,v 2.15 1996/05/12 06:42:50 ushijima Exp $
+
+
+% Generates code for invocation statement.
+
+g_invoke_stmt = proc(e: g_env, ivk: invoke)
+    g_invoke(e, ivk)
+	except when inline(code: str):
+	    code_man$putl(e.co, code || ";")
+	end
+end g_invoke_stmt
+
+
+% Generates code for invocation expression.
+
+invoke_expr = proc(e: g_env, ivk: invoke) returns(str)
+    g_invoke(e, ivk)
+	except when inline(code: str):
+	    return(code)
+	end
+    % returns `return value'.
+    if e.applied then
+	tmp: str := lv$new_temp(e.rtype)
+	code_man$put_assign(e.co, tmp, g_name_result(1))
+	return(tmp)
+    else
+	return(g_name_result(1))
+    end
+end invoke_expr
+
+
+% Signals `inline' if the `ivk' invocation is to be expanded inline;
+% otherwise generates the code for the `ivk' invocation, including
+% check for an exception if needed.
+
+g_invoke = proc(e: g_env, ivk: invoke) signals(inline(str))
+    body: str, check_exception: bool := invoke_body(e, ivk)
+	resignal inline
+    co: code_man := e.co
+    if check_exception then
+	code_man$put_if(co, body || " == SIG")
+	code_man$begin_block(co)
+	dbinfo$invoke_info(e.db, e, ivk.apply, ivk.line)
+	code_man$putl(co, "goto " || e.current_handler || ";")
+	code_man$end_block(co)
+    else
+	code_man$putl(co, body || ";")
+    end
+end g_invoke
+
+
+% Returns calling string and whether check for exceptions is required.
+
+invoke_body = proc(e: g_env, ivk: invoke) returns(str, bool)
+					  signals(inline(str))
+    g_env$begin_invoke(e)
+    px: proc_expr := proc_expr${
+	kind:  proc_kind$make_pointer(nil),
+	code:  g_expr(e, ivk.apply),
+	parg:  mparg$make_none(nil),
+	expt:  expt$make_none(nil),
+	check: true
+    }
+	except when proctype_expr(p: proc_expr):
+	    px := p
+	end
+    g_env$end_invoke(e)
+    body: str
+    tagcase px.kind
+    tag pointer:
+	body := "(*((proctype)" || px.code || "))("
+		|| g_fold_as(g_exprlist(e, ivk.args, true)) || ")"
+    tag name:
+	if px.code = conv_opfun("string", "concat")
+	   cand cmpvar$optimize_time() then
+	    signal inline(opt_strcat(e, ivk))
+        end
+	if px.code = conv_appfun("_cvt") then	% special case (really?)
+	    signal inline(g_fold_as(g_exprlist(e, ivk.args, true)))
+	else
+	    body := px.code || "("
+	    tagcase px.parg
+	    tag one(code: str):
+		body := body || code || ", "
+	    others:
+	    end
+	    body := body || g_fold_as(g_exprlist(e, ivk.args, true)) || ")"
+	end
+    tag macro:
+	signal inline(g_invoke_macro(e, ivk, px))
+    others:
+    end
+    return(body, px.check)
+end invoke_body
+
+
+% Returns the inline expansion of this invocation.  A precedent code
+% may be generated.
+
+g_invoke_macro = proc(e: g_env, ivk: invoke, px: proc_expr) returns(str)
+    argcode: as := as$new()
+
+    % set `pre-argument' for selector-type operation such as
+    % `record$get'.
+    tagcase px.parg
+    tag one(code: str):
+	as$addh(argcode, code)
+    others:
+    end
+
+    tagcase px.expt
+    tag one(xinfo: except_info):
+	% The operation may signal an exception.
+	for code: str in as$elements(g_exprlist(e, ivk.args, false)) do
+	    as$addh(argcode, code)
+	end
+	% The operation may require auxirially temporaries.
+	rtype: str := e.rtype
+	for dummy: int in int$from_to(1, xinfo.ntmp) do
+	    as$addh(argcode, lv$new_temp(rtype))
+	end
+	co: code_man := e.co
+	for sig: rexp in sequence[rexp]$elements(xinfo.info) do
+	    tmpargs: as := as$new()
+	    for i: int in sequence[int]$elements(sig.macroarg) do
+		as$addh(tmpargs, argcode[i])
+	    end
+	    code_man$put_if(
+		co,
+		sig.macroname || "(" || g_fold_as(tmpargs) || ")"
+	    )
+	    code_man$begin_block(co)
+	    code_man$put_assign(co, "signame", string_expr(e, sig.signame))
+	    dbinfo$invoke_info(e.db, e, ivk.apply, ivk.line)	
+	    code_man$putl(co, "goto " || e.current_handler || ";")
+	    code_man$end_block(co)
+ 	end
+    tag none:
+	% The operation does not signal any exception.
+	for code: str in as$elements(g_exprlist(e, ivk.args, true)) do
+	    as$addh(argcode, code)
+	end
+    end
+
+    return(px.code || "(" || g_fold_as(argcode) || ")")
+end g_invoke_macro
+
+
+% Returns a string that is a comma-separeted list of strings in
+% `strs'.
+
+g_fold_as = proc(strs: as) returns(str)
+    res: str := ""
+    for s: str in as$elements(strs) do
+	res := res || ", " || s
+    end
+    if ~str$empty(res) then
+	res := str$rest(res, 3)
+    end
+    return(res)
+end g_fold_as
+
+
+% Checks whether this routine signals exception.
+
+no_exception_op = proc(gen, op: str) returns(bool)
+    optab = table[str, str]
+    own ops: optab := optab$create(64, hash, str$equal)
+    own first: bool := true
+    if first then
+	first := false
+	for o: oper in oplist$elements(exception_ops) do
+	   optab$bind(ops, o.gen, o.ops)
+	end
+    end
+    opers: str := optab$lookup(ops, gen)
+	except when not_found:
+	    return(false)
+	end
+    i: int := str$indexs(op, opers)
+    if i ~= 0 cand opers[i - 1] = '/' cand opers[i + str$size(op)] = '/' then
+	return(false)
+    else
+	return(true)
+    end
+        except when bounds:
+	    return(true)
+	end
+end no_exception_op
+
+
+% Checks whether the expression has invocation (e.g., returns true
+% when p() cand b).
+
+has_invoke = proc(ex: expr) returns(bool)
+    tagcase ex.abs
+    tag null_, bool_, int_, real_, char_, str, idn, force_, apply, op, asis:
+	return(false)
+    tag invoke:
+	return(true)
+    tag cand_, cor_(op: condop):
+	return(has_invoke(op.left) cor has_invoke(op.right))
+    tag a_cons(cons: arraycons):
+	% check for the low bound.
+	tagcase cons.low
+	tag one(x: expr):
+	    if has_invoke(x) then
+		return(true)
+	    end
+	others:
+	end
+	% check for each element.
+	for x: expr in exprlist$elements(cons.elts) do
+	    if has_invoke(x) then
+		return(true)
+	    end
+	end
+	return(false)
+    tag s_cons(cons: selectcons):
+	for f: field in fieldlist$elements(cons.fields) do
+	    if has_invoke(f.val) then
+		return(true)
+	    end
+	end
+	return(false)
+    tag up_, down_, any_(x: expr):
+ 	return(has_invoke(x))
+    others:
+    end
+end has_invoke

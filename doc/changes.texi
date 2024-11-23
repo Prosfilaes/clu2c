@@ -1,0 +1,406 @@
+@c changes.texi
+@c
+@c Copyright (c) 1996
+@c      Department of Mathematical and Computing Sciences, Tokyo
+@c      Institute of Technology.  All rights reserved.
+@c
+@c This is part of CLU2C User's Manual.  For copying conditions, see
+@c the file clu2c.texi.
+@c
+@c $Id: changes.texi,v 2.0 1996/06/10 09:06:00 ushijima Exp $
+
+
+@c *******************************************************************
+@c                           Changes to CLU
+@c *******************************************************************
+
+@node Changes to CLU, Library, Advanced Usage, Top
+@chapter Changes to CLU
+
+@menu
+* Lexical Changes::             
+* Start-up Procedure::          
+* Object-Oriented Invocation::  
+* Failure Result::              
+* Notes on File Names::         
+@end menu
+
+
+@c ===================================================================
+@c                          Lexical Changes
+@c ===================================================================
+
+@node Lexical Changes, Start-up Procedure, Changes to CLU, Changes to CLU
+@section Lexical Changes
+
+A particular subset of JIS X0208 is permitted in tokens and separators.
+
+Some characters defined in JIS X0208
+are conceptually equivalent to those in ASCII
+(see the table below).
+Such characters are not distinguished in source code
+except for @code{char} and @code{string} literals,
+excluding surrounding quotes.
+
+@example
+====================================
+ASCII   JIS X0208 equivalent (kuten)
+------------------------------------
+SP      1-1
+!       1-10
+"       1-41
+#       1-84
+$       1-80
+%       1-83
+&       1-85
+'       1-39
+(       1-42
+)       1-43
+*       1-86
++       1-60
+,       1-4
+-       1-61
+.       1-5
+/       1-31
+0...9   3-16...3-25
+:       1-7
+;       1-8
+<       1-67
+=       1-65
+>       1-68
+?       1-9
+@@       1-87
+A...Z   3-33...3-58
+[       1-46
+\       1-79
+]       1-47
+^       1-16
+_       1-18
+`       1-38
+a...z   3-65...3-90
+@{       1-48
+|       1-35
+@}       1-49
+~       1-17
+------------------------------------
+@end example
+
+An identifier can contain JIS X0208 `hiragana',
+`katakana',
+`kanji',
+Greek letters,
+Cyrillic letters,
+and special characters in the following table.
+
+@example
+=================================================
+Kuten   Description
+-------------------------------------------------
+1-11    `dakuten'
+1-12    `han-dakuten'
+1-19    `katakana' repetition symbol
+1-20    `katakana' repetition symbol (`dakuten')
+1-21    `hiragana' repetition symbol
+1-22    `hiragana' repetition symbol (`dakuten')
+1-25    repetition symbol
+1-28    `cho-on' symbol
+-------------------------------------------------
+@end example
+
+Comments can contain any JIS X0208 characters.
+
+A new punctuation symbol @samp{!} can be used.
+
+A new escape sequence of the form @code{\x@var{hhhh}} can be used.
+
+@defop Operation char width @r{= @b{proc} (@var{c}: char) @w{@b{returns} (int)}}
+@strong{effects}
+Returns the minimum number of bytes required to represent @var{c}.
+@end defop
+
+@defop Operation string width @r{= @b{proc} (@var{s}: string) @w{@b{returns} (int)}}
+@strong{effects}
+This operation is equivalent to the following:
+
+@example
+width = proc (s: string) returns (int)
+    w: int := 0
+    for c: char in string$chars (s) do
+        w := w + char$width (c)
+    end
+    return (w)
+end width
+@end example
+@end defop
+
+@defop Operation stream set_code @r{= @b{proc} (@var{s}: stream, @var{code}: string) @w{@b{signals} (not_possible (string))}}
+@strong{modifies}
+@var{s}@*
+@strong{effects}
+Changes the coding system for @var{s} to @var{code}.
+@end defop
+
+@defop Operation stream get_code @r{= @b{proc} (@var{s}: stream) @w{@b{returns} (string)} @w{@b{signals} (not_possible (string))}}
+@strong{effects}
+Returns the coding system for @var{s}.
+@end defop
+
+
+@c ===================================================================
+@c                         Start-up Procedure
+@c ===================================================================
+
+@node Start-up Procedure, Object-Oriented Invocation, Lexical Changes, Changes to CLU
+@section Start-up Procedure
+
+The definition of CLU does not specify how program execution begins.
+In CLU2C,
+program execution begins by invoking a procedure named @code{start_up}.
+This procedure is called the @dfn{start-up procedure}.
+There is no way to use another name for it.
+It is up to the programmer to implement the start-up procedure.
+It must have the following heading:
+
+@example
+start_up = proc ()
+@end example
+
+@noindent
+That is,
+it takes no arguments
+and terminates in either of:
+
+@itemize @bullet
+@item
+the normal condition with no results.
+@item
+the @code{failure} condition with a string result.
+@end itemize
+
+@noindent
+When @code{start_up} signals the @code{failure} exception,
+the run-time system attempts to print the result to the standard error
+before it terminates the program execution.
+
+
+@c ===================================================================
+@c                     Object-Oriented Invocation
+@c ===================================================================
+
+@node Object-Oriented Invocation, Failure Result, Start-up Procedure, Changes to CLU
+@section Object-Oriented Invocation
+
+An object-oriented invocation has the following two forms:
+
+@example
+@var{primary}!@var{name} [()]
+@var{primary}!@var{name} (@var{expression}, @dots{})
+@end example
+
+@noindent
+These forms are just syntactic sugar for an operation invocation
+and are completely equivalent to (respectively):
+
+@example
+@var{T}$@var{name} (@var{primary})
+@var{T}$@var{name} (@var{primary}, @var{expression}, @dots{})
+@end example
+
+@noindent
+where @var{T} is the type of @var{primary}.
+For example,
+if @code{a} is an array of integers,
+then
+
+@example
+a!addh (1)
+@end example
+
+@noindent
+is completely equivalent to the invocation
+
+@example
+array[int]$addh (a, 1)
+@end example
+
+Note that they are syntactic sugar:
+they by no means enable dynamic dispatching of operations.
+Remember that CLU is an almost statically-typed language.
+
+
+@c ===================================================================
+@c                           Failure Result
+@c ===================================================================
+
+@node Failure Result, Notes on File Names, Object-Oriented Invocation, Changes to CLU
+@section Failure Result
+
+According to the definition of CLU,
+an exception not handled in a routine becomes
+
+@example
+failure ("unhandled exception: @var{exception_name}")
+@end example
+
+@noindent
+where @var{exception_name} is the name of the unhandled exception.
+In CLU2C,
+this transformation is slightly modified:
+the unhandled exception named @var{exception_name} becomes
+
+@example
+failure ("unhandled exception: @var{exception_name} in @var{routine_name}")
+@end example
+
+@noindent
+where @var{routine_name} is the name of the routine
+that did not handle the exception.
+This will help you find where the problem is.
+Similarly,
+if a procedure that should return results in the normal condition
+reaches the textual end of its body,
+it signals
+
+@example
+failure ("no return values in @var{procedure_name}")
+@end example
+
+@noindent
+rather than
+
+@example
+failure ("no return values")
+@end example
+
+@noindent
+where @var{procedure_name} is the name of the procedure.
+
+This modification is canceled
+when you compile source code in optimization mode.
+
+
+@c ===================================================================
+@c                        Notes on File Names
+@c ===================================================================
+
+@node Notes on File Names,  , Failure Result, Changes to CLU
+@section Notes on File Names
+
+Implementation of @code{file_name} is dependent on the target file system.
+CLU2C provides two implementations for @code{file_name}:
+one for UNIX file system,
+and the other for MS-DOS file system.
+It is determined at installation-time which implementation is available to the user.
+
+This chapter describes some details about file names
+not described in @cite{CLU Reference Manual}
+and specific to CLU2C.
+
+@menu
+* File Name Components::        
+* Parsing Strings as File Names::  
+@end menu
+
+
+@c -------------------------------------------------------------------
+@c                  File Name Components
+@c -------------------------------------------------------------------
+
+@node File Name Components, Parsing Strings as File Names, Notes on File Names, Notes on File Names
+@subsection File Name Components
+
+In terms of @code{file_name},
+file names are viewed as consisting of four string components:
+@code{directory},
+@code{name},
+@code{suffix},
+and @code{other}.
+In CLU2C,
+any component may be empty.
+
+@itemize @bullet
+@item
+The @code{name} component cannot contain any path delimiters.
+@item
+The @code{suffix} component must be empty if the @code{name} component is empty.
+@item
+The @code{suffix} component cannot contain any path delimiters nor any periods.
+@item
+The @code{other} component must be empty.
+@end itemize
+
+On UNIX systems,
+
+@itemize @bullet
+@item
+The path delimiter is a slash character (@samp{/}).
+@end itemize
+
+On MS-DOS systems,
+
+@itemize @bullet
+@item
+The path delimiter is a backslash character (@samp{\}).
+The @code{file_name$create} and @code{file_name$parse} also interprets
+a slash character as a path delimiter
+(this seems to be a common convention).
+@item
+@cindex drive specification
+The @code{directory} component may start with a @dfn{drive specification},
+i.e.,
+drive name (from @samp{a} to @samp{z}) followed by a colon.
+We refer to the rest of the @code{directory} component after the drive specification
+as a @dfn{proper directory}.
+For example,
+suppose the @code{directory} component of a file name is @file{c:\bin\clu2c}.
+In this case,
+the drive specification is @file{c:}
+and the proper directory is @file{\bin\clu2c}.
+@item
+Upper and lower case letters are not distinguished in any components.
+The @code{file_name$create} and @code{file_name$parse} operations convert
+ASCII uppercase letters into corresponding ASCII lowercase letters,
+@end itemize
+
+
+@c -------------------------------------------------------------------
+@c                   Parsing Strings as File Names
+@c -------------------------------------------------------------------
+
+@node  Parsing Strings as File Names,  , File Name Components, Notes on File Names
+@subsection Parsing Strings as File Names
+
+The @code{file_name$parse} operation parses the given string argument
+and creates a file name.
+The primary task of this operation is to split the argument into four components
+(actually three, since the @emph{other} component is always empty).
+
+@enumerate
+@item
+Splits the given string to the @code{directory} component and a non-directory.
+If the string contains any path delimiters,
+the last path delimiter splits it into them;
+otherwise directory is empty and the whole string is non-directory.
+@item
+The name of the directory entry is split into the @emph{name} and @emph{suffix} components
+with a period such that the adjacent two characters do exist and both are not periods.
+@end enumerate
+
+
+Tilde notations for specifying home directory work.
+Especially,
+@file{~CLU} denotes the CLU2C system root directory
+(typically @file{/usr/local/lib/clu2c}).
+
+Here are some examples,
+where resulting file name objects are written
+in the form of @{@emph{directory}, @emph{name}, @emph{suffix}, @emph{other}@}:
+
+@example
+file_name$parse("/")
+    @result{} @{"/", "", "", ""@}
+file_name$parse(".cshrc")
+    @result{} @{"", ".cshrc", "", ""@}
+file_name$parse("/usr/local/src/clu2c.tar.gz")
+    @result{} @{"/usr/local/src", "clu2c.tar", "gz", ""@}
+@end example

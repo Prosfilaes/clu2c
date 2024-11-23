@@ -1,0 +1,15 @@
+This directory contains source code for standard I/O library modules.
+
+The following table shows the files that were derived from PCLU.  The
+second column specifies names of original files in PCLU.  In the third
+column, files modified from the original are marked as `*'.
+
+	================================================
+	File name	File name in PCLU	Modified
+	------------------------------------------------
+	date.clu	sys/clu/date		*
+	stdio.spc	code/cmp/basic.types	*
+	username.clu	sys/clu/user_name	*
+	------------------------------------------------
+
+$Id: README,v 2.0 1996/06/10 09:01:47 ushijima Exp $

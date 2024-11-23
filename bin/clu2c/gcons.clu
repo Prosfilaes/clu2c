@@ -1,0 +1,195 @@
+% gcons.clu - generating routines for constructors
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: gcons.clu,v 2.7 1996/05/12 06:42:35 ushijima Exp $
+
+
+% Generates code for array/sequende constructor.
+
+g_arraycons = proc(e: g_env, acons: arraycons) returns(str)
+    alloc_t = proctype(str, int) returns(str)
+
+    own array_store: str := conv_opmac("array", "store")
+    own seq_store: str := conv_opmac("sequence", "_store")
+
+    alloc: alloc_t
+    store: str
+    tagcase acons.type_.abs
+    tag cluster_(clut: clutype):
+	gen: str := clut.gen.unique
+	if gen = "array" then
+	    alloc := g_alloc_array
+	    store := array_store
+	elseif gen = "sequence" then
+	    alloc := g_alloc_sequence
+	    store := seq_store
+	else
+	    g_env$err(e, "g_arraycons: unexpected type specification")
+	    return("")
+	end
+    others:
+	g_env$err(e, "g_arraycons: unexpected type specification")
+	return("")
+    end
+
+    % Gets the low bound of the constructed object.
+    low: str := g_low(e, acons.low)
+
+    % Generates code that evaluates all the elements.
+    elts: as := g_exprlist(e, acons.elts, true)
+
+    % Generates code that allocates a new object.
+    res: str := lv$new_temp(e.rtype)
+    code_man$put_assign(e.co, res, alloc(low, exprlist$size(acons.elts)))
+
+    % Generates code that stores the elements of the constructed
+    % object.
+    i: int := 0
+    for elt: str in as$elements(elts) do
+	index: str
+	if low = "1" then
+	    index := int$unparse(i + 1)
+	else
+	    index := low || " + " || int$unparse(i)
+	end
+	code_man$putl(
+	    e.co,
+	    store || "(" || res || ", " || index || ", " || elt || ");"
+	)
+	i := i + 1
+    end
+
+    % Returns the name of the temporary variable that points to the
+    % constructed object.
+    return(res)
+
+end g_arraycons
+
+
+% Returns a C expression that evaluates to the low bound specified by
+% LOW.  If LOW is an expression, the code that evaluates the
+% expression is generated; otherwise no code is generated and returns
+% the default low bound (i.e., "1").
+
+g_low = proc(e: g_env, low: mexpr) returns(str)
+    res: str			% result
+    tagcase low
+    tag one(x: expr):
+	res := lv$new_temp(e.rtype)
+	code_man$put_assign(e.co, res, g_expr(e, x))
+    tag none:
+	res := "1"		% default low bound
+    end
+    return(res)
+end g_low
+
+
+% Returns a C expression that evaluates to a new array object such
+% that its low bound is LOW and its size is SIZE.
+
+g_alloc_array = proc(low: str, size: int) returns(str)
+    own alloc: str := conv_opfun("array", "_alloc")
+    return(alloc || "(" || low || ", " || int$unparse(size) || ")")
+end g_alloc_array
+
+
+% Returns a C expression that evaluates to a new sequence object such
+% that its size is SIZE.
+
+g_alloc_sequence = proc(low: str, size: int) returns(str)
+    own alloc: str := conv_opfun("sequence", "_alloc")
+    return(alloc || "(" || int$unparse(size) || ")")
+end g_alloc_sequence
+
+
+% Generates code for record/struct construtor.
+
+g_selectcons = proc(e: g_env, scons: selectcons) returns(str)
+
+    % Just an abbreviation.
+    ax = array[expr]
+
+    own record_alloc: str := conv_opfun("record", "_alloc")
+    own record_set: str := conv_opmac("record", "set")
+    own struct_alloc: str := conv_opfun("struct", "_alloc")
+    own struct_set: str := conv_opmac("struct", "_set")
+
+    % Checks for the type specification.  Retrieves some information
+    % if it is a valid type specification.
+    fspecs: fieldspeclist
+    alloc: str
+    set: str
+    tagcase scons.type_.abs
+    tag select(selt: seltype):
+	fspecs := selt.parms
+	gen: str := selt.gen.unique
+	if gen = "record" then
+	    alloc := record_alloc
+	    set := record_set
+	elseif gen = "struct" then
+	    alloc := struct_alloc
+	    set := struct_set
+	else
+	    g_env$err(e, "g_selectcons: unexpected type specification")
+	    return("")
+	end
+    others:
+	g_env$err(e, "g_selectcons: unexpected type specification")
+	return("")
+    end
+
+    % Makes a list of expressions that correspond to components.  Note
+    % that there is one evaluation per component name even if several
+    % component names are grouped with the same expression.
+    components: ax := ax$new()
+    sels: ai := ai$new()
+    for f: field in fieldlist$elements(scons.fields) do
+	val: expr := f.val
+	for sel: name in namelist$elements(f.sels) do
+	    ax$addh(components, val)
+	    ai$addh(sels, g_sel_id(fspecs, sel))
+	end
+    end
+    nr_components: int := ax$size(components)
+
+    % Generates code that evaluates all the components.
+    component_values: as := g_exprlist(e, exprlist$a2s(components), true)
+
+    % Generates code that allocates a new object.
+    res: str := lv$new_temp(e.rtype)
+    code_man$put_assign(
+	e.co,
+	res,
+	alloc || "(" || int$unparse(ai$size(sels)) || ")"
+    )
+
+    % Generates code that sets the components of the constructed
+    % object.
+    for sel: int in int$from_to(1, nr_components) do
+	i: int
+	begin
+	    for i in ai$indexes(sels) do
+		if sels[i] = sel then
+		    exit found
+		end
+	    end
+	    g_env$err(e, "g_selectcons: internal error")
+	    return("")
+	end
+	    except when found: end
+	code_man$putl(
+	    e.co,
+	    set || "(" || int$unparse(sel) || ", "
+		       || res || ", "
+		       || component_values[i] || ");"
+	)
+    end 
+
+    % Returns the name of the temporary variable that points to the
+    % resulting record/struct object.
+    return(res)
+
+end g_selectcons

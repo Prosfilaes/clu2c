@@ -1,0 +1,243 @@
+% gname.clu
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: gname.clu,v 2.9 1996/05/12 06:43:00 ushijima Exp $
+
+
+% The file and "nameconv.clu" contains various name conversion
+% procedures.  Conversion procedures are classified into two
+% categories.  Procedures whose name begin with "g_cluname_" return
+% the CLU level name from, for example, a node of abstract syntax tree
+% used within the compiler.  Procedures whose name begin with
+% "g_name_" returns the C level name (i.e., the name of a C function,
+% a C variable, a C macro, or possibly a C expression) from some CLU
+% level names. and are the front-end routines to the name conversion
+% routines in "nameconv.clu".
+%
+% Actual generation of C level names must be done in the routines in
+% "nameconv.clu".  There are two files for name conversion routines
+% because one of the two is intended to be shared with "plink".
+% 
+% Every developer of the compiler MUST use these procedures for name
+% conversion, for the other parts of the compiler to be
+% "naming-covention-free".
+
+
+%%
+%% CLU level names
+%%
+
+
+% Returns the CLU name of the procedure/iterator/operation given by the
+% "apply" argument, without parameter part.
+% 
+% In the case of operations, cluster (or other type generators) name and
+% operation name are joined with the '$' (dollar sign) character.  In
+% the case of internal routines of a cluster, routine name is prefixed
+% by the '%' (percent mark) character.  For example, the result is "p"
+% for a procedure named "p", "foo$bar" for a operation named "bar" of a
+% cluster named "foo", and "foo$%baz" for an internal routine named
+% "baz" in a cluster named "foo".  These results are not affected by
+% whether or not "p", "foo", "bar", or "baz" is parameterized.
+% 
+% Signals the "no_name" exception if "apply" does not represent none of
+% procedures/iterators/operations.
+% 
+% In the case that "apply" does not have an explicit name (e.g., an
+% operation of a formal type parameter), the result is not specified.
+
+g_cluname_routine = proc(apply: expr) returns(str) signals(no_name)
+    res: str	% result
+    tagcase apply.abs
+    tag apply(clut: clutype):
+	res := clut.gen.unique
+    tag op(cluop: clusterop):
+	gen: str
+	op: str := cluop.name
+	tagcase cluop.type_.abs
+	tag cluster_(clut: clutype):
+	    gen := clut.gen.unique
+	tag select(selt: seltype):
+	    gen := selt.gen.unique
+	tag apply(appt: applytype):
+	    gen := appt.gen.unique
+	tag idn(id: idn):
+	    gen := id.str
+	others:
+	    signal no_name
+	end
+	res := gen || "$" || op
+    tag force_:
+	res := "force"
+    others:
+	signal no_name
+    end
+    return(res)
+end g_cluname_routine
+
+
+% Returns the CLU operation name.
+
+g_cluname_op = proc(provider, op: str) returns(str)
+    return(provider || "$" || op)
+end g_cluname_op
+
+
+% Returns the CLU type name of "t" without parameter part.
+
+g_cluname_type = proc(t: typespec) returns(str)
+    res: str := "#unknown"		% result
+    tagcase t.abs
+    tag cluster_(clut: clutype):
+	res := clut.gen.unique
+    tag select(selt: seltype):
+	res := selt.gen.unique
+    tag apply(appt: applytype):		% "proctype" or "itertype"
+	res := appt.gen.unique
+    tag idn(id: idn):			% formal type parameter
+	res := "#tparm"
+    tag any_ :
+	res := "any"
+    tag type_ :
+	res := "type"      
+    tag cvt_ :
+	res := "#cvt"
+    others :
+    end
+    return(res)
+end g_cluname_type
+
+
+% Signals _bad_format_ if _opspec_ does not name an operation;
+% otherwise returns the name of the operation's provider (i.e., the
+% type or type generator that provides the operation) and the name of
+% the operation.
+
+g_cluname_split = proc(opspec: str) returns(str, str) signals(bad_format)
+    i: int := str$indexc('$', opspec)
+    if i > 0 then
+	return(str$substr(opspec, 1, i - 1), str$rest(opspec, i + 1))
+    else
+	signal bad_format
+    end
+end g_cluname_split
+
+
+%%
+%% C level names
+%%
+
+
+% Returns the name of the C function that corresponds to the "routine"
+% CLU routine.  The format of "routine" is assumed to be of the same
+% syntax as the name returned by "g_cluname_routine".
+
+g_name_routine = proc(routine: str) returns(str)
+    begin
+	provider, opname: str := g_cluname_split(routine)
+	return(conv_opfun(provider, opname))
+    end
+	except when bad_format:
+	    return(conv_appfun(routine))
+	end
+end g_name_routine
+
+
+% Returns the name of the C variable that points to the entry function
+% that corresponds to the instantiation of a parameterized routine.
+
+g_name_entryp = proc(e: g_env, id: int) returns(str)
+    caller: str := e.rname
+    begin
+	provider, opname: str := g_cluname_split(caller)
+	return(conv_entptr_op(provider, opname, id))
+    end
+	except when bad_format:
+	    return(conv_entptr_app(caller, id))
+	end
+end g_name_entryp
+
+g_name_oplistref = proc(i: int) returns(str)
+    return("(pi->oplist[" || int$unparse(i) || "])")
+end g_name_oplistref
+
+g_name_tid_var = proc(e: g_env, id: int) returns(str)
+    caller: str := e.rname
+    begin
+	provider, opname: str := g_cluname_split(caller)
+	return(conv_tidvar_op(provider, opname, id))
+    end
+	except when bad_format:
+	    return(conv_tidvar_app(caller, id))
+	end
+end g_name_tid_var
+
+g_name_own_flag = proc(e: g_env) returns(str)
+    owner: str := e.rname
+    parmed: bool := e.routine_parmed
+    begin
+	provider, op: str := g_cluname_split(owner)
+	return(conv_initvar_op(provider, op, parmed))
+    end
+	except when bad_format:
+	    return(conv_initvar_app(owner, parmed))
+    end
+end g_name_own_flag
+
+g_name_own_flag_clu = proc(e: g_env) returns(str)
+    return(conv_initvar_clu(e.cluster_name))
+end g_name_own_flag_clu
+
+g_name_own_var_apply = proc(e: g_env, v: str) returns(str)
+    owner: str := e.rname
+    parmed: bool := e.routine_parmed
+    begin
+	provider, op: str := g_cluname_split(owner)
+	return(conv_ownvar_op(v, provider, op, parmed))
+    end
+	except when bad_format:
+	    return(conv_ownvar_app(v, owner, parmed))
+	end
+end g_name_own_var_apply
+
+g_name_own_var_clu = proc(e: g_env, v: str) returns(str)
+    return(conv_ownvar_clu(v, e.cluster_name))
+end g_name_own_var_clu
+
+
+% Returns the C expresion that represents the "i"-th result of
+% invocation on a normal termination. 
+
+g_name_result = proc(i: int) returns(str) signals(bounds)
+    own common: as := as$["retval_area[0]", "retval_area[1]", "retval_area[2]"]
+    return(common[i])
+	except when bounds: end
+    if i < 1 then
+	signal bounds
+    end
+    return("retval_area[" || int$unparse(i - 1) || "]")
+end g_name_result
+
+
+% Returns the C expression that represents the "i"-th result of
+% invocation on an exceptional termination.
+
+g_name_xresult = proc(i: int) returns(str) signals(bounds)
+    own common: as := as$["sigarg_area[0]", "sigarg_area[1]", "sigarg_area[2]"]
+    return(common[i])
+	except when bounds: end
+    if i < 1 then
+	signal bounds
+    end
+    return("sigarg_area[" || int$unparse(i - 1) || "]")
+end g_name_xresult
+
+
+% Converts the CLU type name into the C type name.
+
+g_name_type = proc(t: str) returns(str)
+    return("object")
+end g_name_type

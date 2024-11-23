@@ -1,0 +1,2 @@
+This directory provides interfaces between our CLU world and an
+external C world.

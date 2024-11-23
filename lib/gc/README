@@ -1,0 +1,6 @@
+name		original name
+-----------------------------
+Makefile.gc	Makefile
+README.gc	README
+gc_conf.h	config.h
+sol_threads.c	solaris_threads.c

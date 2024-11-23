@@ -1,0 +1,1631 @@
+This is Info file clu2c.info, produced by Makeinfo-1.64 from the input
+file ./clu2c.texi.
+
+START-INFO-DIR-ENTRY
+* clu2c: (clu2c.info).  CLU2C User's Manual.
+END-INFO-DIR-ENTRY
+
+   CLU2C User's Manual, by Tetsu Ushijima.
+
+   This file documents CLU2C, an implementation of the programming
+language CLU.
+
+   Copyright (C) 1996, 1997 Department of Mathematical and Computing
+Sciences, Tokyo Institute of Technology.  All rights reserved.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+
+File: clu2c.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
+
+CLU2C User's Manual
+*******************
+
+   This manual documents CLU2C, an implementation of the programming
+language CLU.  This is Edition 1.0-draft-970206, last updated
+Feb/06/1997, for CLU2C Version 2.0.
+
+* Menu:
+
+* Introduction::
+* Basic Usage::
+* Advanced Usage::
+* Changes to CLU::              Changes to CLU
+* Library::                     Library Abstractions
+* Installation::                How to install CLU2C
+* Copying::                     Conditions for copying CLU2C
+* Index::                       Index
+
+
+File: clu2c.info,  Node: Introduction,  Next: Basic Usage,  Prev: Top,  Up: Top
+
+Introduction
+************
+
+   CLU2C is an implementation of the programming language CLU.  More
+specifically, it is a CLU compiler with some basic library modules.
+
+   The basic strategy is to translate CLU to C.  As you might be aware,
+the name CLU2C stands for `CLU to C'.
+
+   This manual does not describe CLU itself, although we assume you
+have some basic knowledge about CLU.  See `CLU Reference Manual' for
+the language definition.
+
+   We use `CLU2C' to denote the whole language system.  We use `clu2c'
+to denote the compiler.
+
+
+File: clu2c.info,  Node: Basic Usage,  Next: Advanced Usage,  Prev: Introduction,  Up: Top
+
+Basic Usage
+***********
+
+   The `clu2c' program translates CLU source files to the equivalent C
+source files.  The resulting C source files are then compiled and linked
+by another program called `clulink'.  This chapter describes the basic
+usage of these two programs.
+
+   We often refer to the `clu2c' program as "the compiler" and the
+`clulink' program as "the linker" in this chapter.
+
+* Menu:
+
+* Getting Started::
+* Input Files::
+* Invoking clu2c::
+* Compiler Behavior::           How input files are processed
+* Invoking clulink::
+
+
+File: clu2c.info,  Node: Getting Started,  Next: Input Files,  Prev: Basic Usage,  Up: Basic Usage
+
+Getting Started
+===============
+
+   There are two executable programs named `clu2c' and `clulink'
+available to the user.  Use `clu2c' for compiling CLU source files to
+get intermediate C source files.  Then use `clulink' for compiling
+these intermediate C source files to get an executable file.
+
+   For example, a shell session that compiles a CLU source file named
+`hello.clu' to get an executable file named `a.out' might look like as
+follows:
+
+     % clu2c hello.clu
+     Creating DU specs from hello.clu
+     time = 0.010
+     Compiling hello.clu
+     time = 0.010
+     % clulink hello.c
+     creating hello.o
+     creating op-table.c
+     creating op-table.o
+     creating a.out
+     %
+
+You can see several points from this simple example.
+
+   * By convention, source files written in CLU have a name with `clu'
+     as a suffix.
+
+   * The `clu2c' program takes names of CLU files as arguments.
+
+   * The `clu2c' program creates C files, whose name is the same as
+     that of CLU file except that the suffix is replaced with `c'.
+
+   * The `clulink' program takes names of C files as arguments.
+
+   * The `clulink' program creates an executable program named `a.out'.
+     (1)
+
+   * The `clulink' program creates auxiliary files, that is, object
+     files that correspond to input C files, a C file named
+     `op-table.c', and an object file that corresponds to `op-table.c'.
+
+   You might want to rename `a.out' as a more appropriate name, say
+`hello'.  You can give `-o' option to `clulink' for this purpose:
+
+     % clulink -o hello hello.c
+
+This invocation of `clulink' creates an executable program named `hello'
+instead of `a.out'.
+
+   ---------- Footnotes ----------
+
+   (1)  On MS-DOS systems, the `clulink' program further creates
+`a.exe' from `a.out'.
+
+
+File: clu2c.info,  Node: Input Files,  Next: Invoking clu2c,  Prev: Getting Started,  Up: Basic Usage
+
+Input Files
+===========
+
+   The compiler accepts several kinds of input files.  At the minimum,
+you need to prepare one or more CLU source files.  The other kinds of
+input files are optional.  By convention, each kind of input files
+should have a specific suffix.
+
+`NAME.clu'
+     This is a CLU source file, which consists of one or more modules.
+     The primary task of the compiler is to translate this file to an
+     equivalent C source file named `NAME.c'.
+
+`NAME.equ'
+     This is an equate file, which consists of one or more equates.
+     Equates in this file work as if they were placed at the beginning
+     of the pseudo top-level scope that contains the entire source
+     program.  This top-level scope is special in the sense that
+     identifiers introduced in it may be redefined in its nested scopes.
+
+`NAME.spc'
+     This is an interface specification file, which consists of one or
+     more interface specifications.  An "interface specification" is a
+     module that suppresses all constructs that would not affect the
+     interface of the abstraction the module would implement.  In other
+     words, it is something like a module but lacks the following
+     constructs:
+
+        * declarations for own variables in procedures, iterators, and
+          clusters
+
+        * statements in procedures, iterators, and cluster operations
+
+        * definitions for `rep' in clusters
+
+     Strictly speaking, such constructs are accepted but simply
+     discarded.  This file become needed when the compiler has no
+     access to CLU source files that contain modules of which the
+     compiler wants to know interfaces.
+
+`NAME.lib'
+     This is an interface specification library file.  This is not a
+     text file.  Usually this file is created when `clu2c' is invoked
+     with the `-d' option.  This file may be used in order to collect
+     interface specifications from CLU source files and interface
+     specification files and arrange them into a single file.
+
+
+File: clu2c.info,  Node: Invoking clu2c,  Next: Compiler Behavior,  Prev: Input Files,  Up: Basic Usage
+
+Invoking `clu2c'
+================
+
+   An invocation of `clu2c' has either of the following two forms:
+
+     clu2c [OPTION...] INPUT_SPEC...
+     clu2c [COMMAND_INVOCATION...]
+
+where `[A]' means that A is optional and `A...' means a sequence of one
+or more A's.  This section describes only the first form of invocations;
+description about the second form is deferred to *Note Advanced Usage::.
+For the time being, all you should know about the second form is that
+you can terminate `clu2c' by typing `quit' when it is unintentionally
+invoked with no arguments.
+
+* Menu:
+
+* Options for clu2c::
+* Specifying Input Files::
+
+
+File: clu2c.info,  Node: Options for clu2c,  Next: Specifying Input Files,  Prev: Invoking clu2c,  Up: Invoking clu2c
+
+Options for `clu2c'
+-------------------
+
+   The compiler recognizes the following options in the command line.
+Most options have both short forms (single hyphen followed by one
+character) and a long forms (double hyphens followed by option name).
+In this chapter options are generally referred in a short form only.
+
+`-c'
+`--compile-only'
+     Normally CLU source files specified in a command line undergo two
+     stages of processes: extraction of interfaces and compilation.
+     This option inhibits the first stage from taking place.  This
+     option may be used when the interfaces of the modules defined in
+     the specified CLU source files are given to the compiler from
+     other input files (i.e., interface specification files or
+     interface specification library files).
+
+`-d FILE'
+`--dump=FILE'
+     The compiler gathers intefaces of the abstractions from various
+     input files during processing them.  This option causes these
+     intefaces to be dumped, after all the compilation is completed, to
+     the file specified by FILE as an interface specification library
+     file.  If FILE has no suffix, it specifies the file `FILE.lib'.
+     This option corresponds to the `dump' command of the compiler
+     (*note dump::.).
+
+`-F'
+`--force-code-generation'
+     Produce C source files even if any error is detected during
+     compilation.  This option is intended to be used by the developer
+     and the use by the user is generally discouraged.  This option
+     corresponds to the `allow' command of the compiler (*note
+     allow::.).
+
+`-f FILE'
+`--xfile=FILE'
+     Executes commands of the compiler in the file specified by FILE.
+     If FILE has no suffix, the compiler first attempts to read the
+     file `FILE.xfile'.  This option corresponds to the `xfile' command
+     of the compiler (*note xfile::.).
+
+`-g'
+`--debug'
+     Produce debugging information and inlay it into the generated C
+     source files.  This information will be used by the debugger (We
+     are developing a source-level CLU debugger called `cludb', which
+     is not yet publicly available).  This option corresponds to the
+     `debug' command of the compiler (*note debug::.).
+
+`-h'
+`--help'
+     Display a brief summary of the usage of the compiler.  This option
+     corresponds to the `help' command of the compiler (*note help::.).
+
+`-M'
+`--make'
+     Run the compiler in the `make' mode.  In this mode, the compiler
+     automatically detects CLU source files that need to be compiled in
+     the working directory and compiles them.  The compiler maintains
+     three auxiliary files: `Depend', `Location', and `SPC.lib'.  These
+     files are created in the same directory where C source files are
+     created.  See ... for more detail.
+
+`-n'
+`--dry-run'
+     Display the commands of the compiler that would be executed unless
+     this option is specified.
+
+`-O'
+`--optimize[=MODE]'
+     Specifies MODE as an optimization mode.  There are three
+     optimization modes: `false', `time', and `space'.  The
+     optimization mode is set to `false' unless this option is
+     specified.  If MODE is omitted, then `time' is assumed.  This
+     option corresponds to the `optimize' command of the compiler
+     (*note optimize::.).
+
+`-p'
+`--syntax-only'
+     Check the code for syntactic errors, and do not process any
+     further.
+
+`-S'
+`--safe'
+`-s'
+`--spec-only'
+     Normally CLU source files specified in a command line undergo two
+     stages of processes: extraction of interfaces and compilation.
+     This option inhibits the second stage from taking place.
+
+`-t'
+`--type-check-only'
+     Check the code for syntactic and semantic errors, and do not
+     process any further.
+
+`-x'
+`--externals'
+     Output cross-reference table for external names.
+
+`--char-version=NUMBER'
+     Tells the compiler that the version NUMBER of `char' will be used
+     with the generated C files.  This command is primarily for
+     developers only.
+
+`--string-version=NUMBER'
+     Tells the compiler that the version NUMBER of `string' will be used
+     with the generated C files.  This command is primarily for
+     developers only.
+
+   Some options are exclusive: you must not specify two or more among
+the `-p' option, the `-s' option, and the `-t' option.
+
+
+File: clu2c.info,  Node: Specifying Input Files,  Prev: Options for clu2c,  Up: Invoking clu2c
+
+Specifying Input Files
+----------------------
+
+   You can specify input files by simply listing their names.  For
+example, suppose that you have three CLU source files named `foo.clu',
+`bar.clu', and `baz.clu' in the current working directory.  You can
+directly specify these files by listing their names as:
+
+     foo.clu bar.clu baz.clu
+
+Generally speaking, the compiler receives a list of input
+specifications.  An "input specification" is either a file specification
+or an indirect specification.  A "file specification" is a file name
+except that `*' is treated as a wild card character as in most shells.
+An "indirect specification" is `@' followed by a file name.  The named
+file must contain input specifications, one for each line.  In either
+case, an input specification expands to a list of file names.
+
+* Menu:
+
+* Default Suffix::
+* Globbing Input Files::
+* Indirect Specifications::
+
+
+File: clu2c.info,  Node: Default Suffix,  Next: Globbing Input Files,  Prev: Specifying Input Files,  Up: Specifying Input Files
+
+Default Suffix
+..............
+
+   There is a default suffix specific to the context where input
+specifications are interpreted.  Any input file name with a default
+suffix can be specified without a suffix.  When an input specification
+does not have a suffix apparently, a file name derived by appending a
+default suffix is tried first.  If such a file exists, the
+specification is interpreted as specifying this file; otherwise it is
+treated as is with respect to the suffix.
+
+   The default suffix is `clu' for input specifications in a shell
+command line that invokes `clu2c', except for file names in indirect
+specifications.  For example, when `clu2c' is invoked as
+
+     clu2c foo
+
+then the compiler first checks if `foo.clu' exists.  If it does, the
+compiler reads `foo.clu'; otherwise it reads `foo'.
+
+
+File: clu2c.info,  Node: Globbing Input Files,  Next: Indirect Specifications,  Prev: Default Suffix,  Up: Specifying Input Files
+
+Globbing Input Files
+....................
+
+   The `*' character is treated as a meta-character that matches zero
+or more sequence of any characters, as in most shells.  Although your
+shell probably expands `*' in a shell command line by itself, the
+compiler expands `*' wherever an input specification is expected.
+
+   For example, you can specify all CLU source files in the current
+working directory as:
+
+     *.clu
+
+
+File: clu2c.info,  Node: Indirect Specifications,  Prev: Globbing Input Files,  Up: Specifying Input Files
+
+Indirect Specifications
+.......................
+
+   You can specify input files indirectly through a file.  If an input
+specification begins with `@', the rest of the specification is treated
+as specifying a file that contains a list of input specifications, one
+specification per line.  The default suffix for this file, sometimes
+called a `response file', is `xload'.
+
+   Note that each line in this file is not just a file name but an
+input specification: the default suffix and file name globbing still
+work.
+
+   For example, suppose you have a file named `sources.xload' that
+consists of the following three lines:
+
+     foo.clu
+     bar.clu
+     baz.clu
+
+Then the specification
+
+     @sources.xload
+
+is completely equivalent to the following input specifications
+
+     foo.clu bar.clu baz.clu
+
+   The default suffix for a file that follows `@' is `xload'.  Thus you
+can also specify as:
+
+     @sources
+
+
+File: clu2c.info,  Node: Compiler Behavior,  Next: Invoking clulink,  Prev: Invoking clu2c,  Up: Basic Usage
+
+Compiler Behavior
+=================
+
+   Normally CLU source files undergo two stages of processes.  In the
+first stage, interface specifications are extracted; in the second
+stage, code generation takes place.  Some options change this behavior.
+If you specify the `-t' option, the second stage stops when
+type-checking and some other validity-checking have been completed.  If
+you specify the `-s' option, the second stage is not performed.  If you
+specify the `-p' option, only syntactic validity is checked.  If you
+specify one of these options, no code is generated.
+
+   Equate files are ...
+
+   Interface specification files are ...
+
+   Interface specification library files are ...
+
+
+File: clu2c.info,  Node: Invoking clulink,  Prev: Compiler Behavior,  Up: Basic Usage
+
+Invoking `clulink'
+==================
+
+   The `clulink' program recognizes the following options to control
+how it operates:
+
+`-V'
+`--version'
+     Print the version of `clulink'.
+
+`-g'
+`--debug'
+     Generate debugging information, as in the C compiler.
+
+`-h'
+`--help'
+     Print the brief description of the usage.
+
+`-v'
+`--verbose'
+     Print additional messages.
+
+`-o FILE'
+`--output=FILE'
+     Specify the name of the output file.
+
+`-LDIRECTORY'
+`--libdir=DIRECTORY'
+     Append DIRECTORY to the library search path.
+
+`-lNAME'
+`--lib=NAME'
+     Link an archive associated with NAME.
+
+`-c COMPILER'
+`--cc=COMPILER'
+     Use COMPILER as a C compiler.
+
+`-F FLAG'
+`--cc-flag=FLAG'
+     Pass FLAG to the C compiler.
+
+`-P PLINK'
+`--plink=PLINK'
+     Use PLINK as a pre-linker.
+
+`-f'
+`--force'
+     Force compilation.
+
+
+File: clu2c.info,  Node: Advanced Usage,  Next: Changes to CLU,  Prev: Basic Usage,  Up: Top
+
+Advanced Usage
+**************
+
+   (This chapter may be skipped initially.)
+
+   As a matter of fact, `clu2c' is a command interpreter.  The user
+might be unaware of this fact so long as (s)he uses `clu2c' through the
+command line interface, and it is sufficient in most situations.
+Sometimes, however, it may be necessary to control the compiler more
+closely by issuing a sequence of commands.
+
+   There are two ways to give commands directly to the compiler.  First,
+the compiler reads commands from the standard input if it is invoked
+without arguments.  Secondly, if the compiler is invoked with the `-f'
+option, it reads commands from the specified file.
+
+   In order to know how to use commands for `clu2c', you need to
+understand the compiler's internal architecture to some extent,
+especially the compilation environment and the interface specification
+library.
+
+* Menu:
+
+* Command Syntax::
+* Invocation Revisited::        How command line is interpreted
+* Compilation Environment::     You can define global constants
+* Interface Spec Lib::          Type-check
+* Compilation Commands::
+* Code Generator Options::
+* Misc Commands::               Other commands
+* Invoking plink::
+
+
+File: clu2c.info,  Node: Command Syntax,  Next: Invocation Revisited,  Prev: Advanced Usage,  Up: Advanced Usage
+
+Command Syntax
+==============
+
+   A command invocation has a form:
+
+     COMMAND_NAME [ ARGUMENT... ]
+
+where [ X ] means an optional X and X... means one or more sequence of
+X.  The number and the kind of the arguments depend on which command is
+invoked.  `command_name' is case-insensitive and can be specified with
+an unambiguous prefix.
+
+   Some commands take a boolean value as an argument.  Specify `true'
+or `false'.  This is again case-insensitive and can be specified with
+an unambiguous prefix.
+
+   Some commands take a list of input specifications as arguments.  In
+the description of such commands, INPUT_SPEC is used.  *Note Specifying
+Input Files::, for syntax and semantics of input specifications.
+
+   You can specify two or more commands, separated by semicolons, in
+one line.  For example, to specify `specs' and `compile' commands in
+one line, do like this:
+
+     specs foo.clu; compile foo.clu
+
+You can use a sharp sign (`#') instead of a semicolon for backward
+compatibility.
+
+
+File: clu2c.info,  Node: Invocation Revisited,  Next: Compilation Environment,  Prev: Command Syntax,  Up: Advanced Usage
+
+Compiler Invocation Revisited
+=============================
+
+   When the compiler is invoked with arguments, it first converts them
+into a sequence of command invocations and then executes them in order.
+
+   For example, suppose `clu2c' is invoked as follows:
+
+     clu2c -s -d foo foo.lib foo.clu bar.clu baz.clu
+
+Then, `clu2c' converts the command line arguments into the following
+command sequence and executes them in order.
+
+     merge foo.lib
+     specs foo.clu bar.clu baz.clu
+     dump foo.lib
+
+* Menu:
+
+* Options Conversion::          How options are converted to commands
+* Input Files Conversion::      How input files are converted to commands
+
+
+File: clu2c.info,  Node: Options Conversion,  Next: Input Files Conversion,  Prev: Invocation Revisited,  Up: Invocation Revisited
+
+Options Conversion
+------------------
+
+   The `-n' option lets the compiler show what commands would be
+executed but do not actually execute them.  This option can be used to
+see how command line arguments are converted to a sequence of command
+invocations.  The `-p' option, the `-s' option, and the `-t' option
+change the compiler's behavior with respect to what kind of command(s)
+are applied to input files (see below).  The other options are
+converted to commands directly:
+
+   * `-c' is converted to `expunge true'.
+
+   * `-g' is converted to `debug true'.
+
+   * `-d FILE' is converted to `dump FILE'.
+
+   * `-x' is converted to `externals true'.
+
+   * `-F' is converted to `allow true'.
+
+   * `-OMODE' is converted to `optimize MODE'.
+
+   * `-f FILE' is converted to `xfile FILE'.
+
+
+File: clu2c.info,  Node: Input Files Conversion,  Prev: Options Conversion,  Up: Invocation Revisited
+
+Input Files Conversion
+----------------------
+
+   Input files are grouped on the per-suffix basis.  Then one or two
+commands are applied to each group.
+
+   * Normally the `specs' and `compile' commands are applied to CLU
+     source files.  If the `-t' option is specified, the `check'
+     command is applied instead of `compile'.  If the `-s' option is
+     specified, the `specs' command only is applied.  If the `-p'
+     option is specified, the `parse' command only is applied.
+
+   * To equate files, the `ce' command is applied to the first group
+     and `xce' to the subsequent groups.
+
+   * Normally the `specs' command is applied to interface specification
+     files.  If the `-p' option is specified, the `parse' command is
+     applied instead.
+
+   * To interface specification library files, the `merge' command is
+     applied.
+
+
+File: clu2c.info,  Node: Compilation Environment,  Next: Interface Spec Lib,  Prev: Invocation Revisited,  Up: Advanced Usage
+
+Compilation Environment
+=======================
+
+   The `clu2c' program maintains a set of equates called "compilation
+environment" or "CE" for short.  The compiler process starts with an
+empty CE.  Then the user can append equates to the CE using `ce' and
+`xce' commands.
+
+   When the compiler detects a free identifier, i.e., identifier that
+is used but not declared nor defined in the module to be compiled, it
+first looks up the equate that defines the identifier in the CE.  If
+such an equate is found, right hand side of the equate is used as a
+value of the identifier.
+
+   The following commands are provided as operations on CE.  The
+default suffix for input files is `equ'.
+
+* Menu:
+
+* ce::
+* xce::
+
+
+File: clu2c.info,  Node: ce,  Next: xce,  Prev: Compilation Environment,  Up: Compilation Environment
+
+`ce'
+----
+
+ - Command: ce INPUT_SPEC...
+     Discard all the equates in the current CE and use the set of
+     equates described in the input files as a new CE.
+
+
+File: clu2c.info,  Node: xce,  Prev: ce,  Up: Compilation Environment
+
+`xce'
+-----
+
+ - Command: xce INPUT_SPEC...
+     Add equates described in the input files to the current CE.
+
+
+File: clu2c.info,  Node: Interface Spec Lib,  Next: Compilation Commands,  Prev: Compilation Environment,  Up: Advanced Usage
+
+Interface Specification Library
+===============================
+
+   In order to type-check a module, interface specifications of all the
+abstractions that are referred by the module must be known.  The
+compiler has an internal table for storing interface specifications of
+abstractions.  We call this table "interface specification library".
+
+   Initially, interface specifications of built-in types and type
+generators, together with standard I/O abstractions, are registered in
+the interface specification library.
+
+   The following commands are provided as operations on the interface
+specification library.
+
+* Menu:
+
+* specs::
+* dump::
+* merge::
+* unmerge::
+* forget::
+* newlib::
+
+
+File: clu2c.info,  Node: specs,  Next: dump,  Prev: Interface Spec Lib,  Up: Interface Spec Lib
+
+`specs'
+-------
+
+ - Command: specs INPUT_SPEC...
+     Extracts interface specifications from input files, and enters
+     these specifications in the specification library.  The default
+     suffix is `spc' or `clu'.
+
+
+File: clu2c.info,  Node: dump,  Next: merge,  Prev: specs,  Up: Interface Spec Lib
+
+`dump'
+------
+
+ - Command: dump FILENAME
+     Dumps the content of the specification library to the file named
+     FILENAME.  The default suffix is `lib'.
+
+
+File: clu2c.info,  Node: merge,  Next: unmerge,  Prev: dump,  Up: Interface Spec Lib
+
+`merge'
+-------
+
+ - Command: merge INPUT_SPEC...
+     Reads interface specifications from the input files, which is
+     previously dumped using the `dump' command, and merges them into
+     the specification library.  The default suffix for input files is
+     `lib'.
+
+
+File: clu2c.info,  Node: unmerge,  Next: forget,  Prev: merge,  Up: Interface Spec Lib
+
+`unmerge'
+---------
+
+ - Command: unmerge INPUT_SPEC...
+     Reads interface specifications from the input files, which is
+     previously dumped using the `dump' command, and deletes the
+     interface specifications for these modules.  The default suffix
+     for input files is `lib'.
+
+
+File: clu2c.info,  Node: forget,  Next: newlib,  Prev: unmerge,  Up: Interface Spec Lib
+
+`forget'
+--------
+
+ - Command: forget MODULE...
+     Deletes the interface specification of MODULE from the
+     specification library.
+
+
+File: clu2c.info,  Node: newlib,  Prev: forget,  Up: Interface Spec Lib
+
+`newlib'
+--------
+
+ - Command: newlib
+     Resets the specification library to its initial state.
+
+
+File: clu2c.info,  Node: Compilation Commands,  Next: Code Generator Options,  Prev: Interface Spec Lib,  Up: Advanced Usage
+
+Compilation Commands
+====================
+
+* Menu:
+
+* compile::
+* check::
+* parse::
+
+
+File: clu2c.info,  Node: compile,  Next: check,  Prev: Compilation Commands,  Up: Compilation Commands
+
+`compile'
+---------
+
+ - Command: compile INPUT_SPEC...
+ - Command: clu INPUT_SPEC...
+     Produces binary output.  A binary file is produced only if there
+     are no errors.  Hence, if a binary file is produced, any messages
+     are warnings, not errors.
+
+
+File: clu2c.info,  Node: check,  Next: parse,  Prev: compile,  Up: Compilation Commands
+
+`check'
+-------
+
+ - Command: check INPUT_SPEC...
+     Does type- and legality- checking.
+
+
+File: clu2c.info,  Node: parse,  Prev: check,  Up: Compilation Commands
+
+`parse'
+-------
+
+ - Command: parse INPUT_SPEC...
+     Just parses the files, checking for syntactic errors.
+
+
+File: clu2c.info,  Node: Code Generator Options,  Next: Misc Commands,  Prev: Compilation Commands,  Up: Advanced Usage
+
+Changing Code Generator's Behavior
+==================================
+
+* Menu:
+
+* allow::
+* binsuf::
+* char-version::
+* debug::
+* optimize::
+* safe::
+* string-version::
+
+
+File: clu2c.info,  Node: allow,  Next: binsuf,  Prev: Code Generator Options,  Up: Code Generator Options
+
+`allow'
+-------
+
+ - Command: allow [BOOLEAN]
+     If BOOLEAN implies `true', the subsequent invocations of the
+     `compile' command always produce (maybe incomplete) C source files
+     even if any error is detected.  If `false' is implied, this
+     behavior is canceled.  This command is intended to be used by the
+     developer and the use by the user is discouraged.
+
+
+File: clu2c.info,  Node: binsuf,  Next: char-version,  Prev: allow,  Up: Code Generator Options
+
+`binsuf'
+--------
+
+ - Command: binsuf [SUFFIX]
+     Sets the suffix for binary files.  The default is `c'.  If no
+     argument is given, resets to the default.  If `*' is given, no
+     suffix will be used.  This is useful when creating library
+     binaries.
+
+
+File: clu2c.info,  Node: char-version,  Next: debug,  Prev: binsuf,  Up: Code Generator Options
+
+`char-version'
+--------------
+
+ - Command: char-version NUMBER
+     Tells the compiler that the version NUMBER of `char' will be used
+     with the generated C files.  This command is primarily for
+     developers only.
+
+
+File: clu2c.info,  Node: debug,  Next: optimize,  Prev: char-version,  Up: Code Generator Options
+
+`debug'
+-------
+
+ - Command: debug [BOOLEAN]
+
+
+File: clu2c.info,  Node: optimize,  Next: safe,  Prev: debug,  Up: Code Generator Options
+
+`optimize'
+----------
+
+ - Command: optimize [`time'|`space'|`false']
+     If no argument is specified, the default is `time'.  The
+     optimization mode affects all subsequent compilations.  `space'
+     causes only optimizations that do not increase the code size.
+     `time' additionally performs optimizations that can increase the
+     code size.  Optimization eliminates many traceable routine calls,
+     and so should only be used on well-debugged programs.  See also
+     the `locals' command.
+
+
+File: clu2c.info,  Node: safe,  Next: string-version,  Prev: optimize,  Up: Code Generator Options
+
+`safe'
+------
+
+ - Command: safe [BOOLEAN]
+     In safe mode, each module to be compiled is checked to make sure
+     its name does not clash with an existing module name in the CLU
+     system.  This is done by looking in the file ~CLU/system.names.
+     The initial mode is `false'.
+
+
+File: clu2c.info,  Node: string-version,  Prev: safe,  Up: Code Generator Options
+
+`string-version'
+----------------
+
+ - Command: string-version NUMBER
+     Tells the compiler that the version NUMBER of `string' will be used
+     with the generated C files.  This command is primarily for
+     developers only.
+
+
+File: clu2c.info,  Node: Misc Commands,  Next: Invoking plink,  Prev: Code Generator Options,  Up: Advanced Usage
+
+Miscellaneous Commands
+======================
+
+   This subsection describes miscellaneous commands not described in
+the above subsections.
+
+* Menu:
+
+* expunge::
+* externals::
+* force::
+* help::
+* locals::
+* quit::
+* xfile::
+
+
+File: clu2c.info,  Node: expunge,  Next: externals,  Prev: Misc Commands,  Up: Misc Commands
+
+`expunge'
+---------
+
+ - Command: expunge [BOOLEAN]
+     In `expunge' mode, only the interfaces of clusters are remembered;
+     the interfaces of external routines are not.
+
+
+File: clu2c.info,  Node: externals,  Next: force,  Prev: expunge,  Up: Misc Commands
+
+`externals'
+-----------
+
+ - Command: externals [BOOLEAN]
+     The compiler normally outputs a cross-reference of references to
+     external modules.  This command can be used to stop that output.
+
+
+File: clu2c.info,  Node: force,  Next: help,  Prev: externals,  Up: Misc Commands
+
+`force'
+-------
+
+ - Command: force [BOOLEAN]
+     This command is recognized for backward compatibility but no
+     longer has any effect.
+
+
+File: clu2c.info,  Node: help,  Next: locals,  Prev: force,  Up: Misc Commands
+
+`help'
+------
+
+ - Command: help
+ - Command: ?
+     Prints a brief summary of the commands.
+
+
+File: clu2c.info,  Node: locals,  Next: quit,  Prev: help,  Up: Misc Commands
+
+`locals'
+--------
+
+ - Command: locals [BOOLEAN]
+     This command is recognized for backward compatibility but no
+     longer has any effect.
+
+
+File: clu2c.info,  Node: quit,  Next: xfile,  Prev: locals,  Up: Misc Commands
+
+`quit'
+------
+
+ - Command: quit
+ - Command: kill
+     Terminates the compiler process.
+
+
+File: clu2c.info,  Node: xfile,  Prev: quit,  Up: Misc Commands
+
+`xfile'
+-------
+
+ - Command: xfile INPUT_SPEC...
+     Reads a list of commands from input files and executes them in
+     order.  The default suffix for input files is `xfile'.
+
+
+File: clu2c.info,  Node: Invoking plink,  Prev: Misc Commands,  Up: Advanced Usage
+
+Invoking `plink'
+================
+
+   The `plink' program is a pre-linker for C files which are generated
+by `clu2c'.  It has two modes: normal mode and extraction mode.  In
+normal mode, `plink' reads C files generated by `clu2c' and produces an
+auxiliary C file which contains various variable/function definitions
+that cannot be fixed until all the C files are prepared.  In extraction
+mode, `plink' extracts C comments related to `plink' from the specified
+C files, which may be the input for later `plink' execution.  `plink'
+is invoked through the `clulink' program.  Users rarely invoke `plink'
+directly.  The `plink' program recognizes the following options.
+
+`-o FILE'
+     Produces an output C source file by the name FILE.  The name of
+     the default object file is `op-table.c' in normal mode; put to
+     standard output by default in extraction mode.
+
+`-x'
+     Executes `plink' in extraction mode.  In this mode, `plink'
+     extracts, from input files, C comments that make sense for `plink'.
+
+
+File: clu2c.info,  Node: Changes to CLU,  Next: Library,  Prev: Advanced Usage,  Up: Top
+
+Changes to CLU
+**************
+
+* Menu:
+
+* Lexical Changes::
+* Start-up Procedure::
+* Object-Oriented Invocation::
+* Failure Result::
+* Notes on File Names::
+
+
+File: clu2c.info,  Node: Lexical Changes,  Next: Start-up Procedure,  Prev: Changes to CLU,  Up: Changes to CLU
+
+Lexical Changes
+===============
+
+   A particular subset of JIS X0208 is permitted in tokens and
+separators.
+
+   Some characters defined in JIS X0208 are conceptually equivalent to
+those in ASCII (see the table below).  Such characters are not
+distinguished in source code except for `char' and `string' literals,
+excluding surrounding quotes.
+
+     ====================================
+     ASCII   JIS X0208 equivalent (kuten)
+     ------------------------------------
+     SP      1-1
+     !       1-10
+     "       1-41
+     #       1-84
+     $       1-80
+     %       1-83
+     &       1-85
+     '       1-39
+     (       1-42
+     )       1-43
+     *       1-86
+     +       1-60
+     ,       1-4
+     -       1-61
+     .       1-5
+     /       1-31
+     0...9   3-16...3-25
+     :       1-7
+     ;       1-8
+     <       1-67
+     =       1-65
+     >       1-68
+     ?       1-9
+     @       1-87
+     A...Z   3-33...3-58
+     [       1-46
+     \       1-79
+     ]       1-47
+     ^       1-16
+     _       1-18
+     `       1-38
+     a...z   3-65...3-90
+     {       1-48
+     |       1-35
+     }       1-49
+     ~       1-17
+     ------------------------------------
+
+   An identifier can contain JIS X0208 `hiragana', `katakana', `kanji',
+Greek letters, Cyrillic letters, and special characters in the
+following table.
+
+     =================================================
+     Kuten   Description
+     -------------------------------------------------
+     1-11    `dakuten'
+     1-12    `han-dakuten'
+     1-19    `katakana' repetition symbol
+     1-20    `katakana' repetition symbol (`dakuten')
+     1-21    `hiragana' repetition symbol
+     1-22    `hiragana' repetition symbol (`dakuten')
+     1-25    repetition symbol
+     1-28    `cho-on' symbol
+     -------------------------------------------------
+
+   Comments can contain any JIS X0208 characters.
+
+   A new punctuation symbol `!' can be used.
+
+   A new escape sequence of the form `\xHHHH' can be used.
+
+ - Operation on char: width = proc (C: char) returns (int)
+     *effects* Returns the minimum number of bytes required to
+     represent C.
+
+ - Operation on string: width = proc (S: string) returns (int)
+     *effects* This operation is equivalent to the following:
+
+          width = proc (s: string) returns (int)
+              w: int := 0
+              for c: char in string$chars (s) do
+                  w := w + char$width (c)
+              end
+              return (w)
+          end width
+
+ - Operation on stream: set_code = proc (S: stream, CODE: string)
+          signals (not_possible (string))
+     *modifies* S
+     *effects* Changes the coding system for S to CODE.
+
+ - Operation on stream: get_code = proc (S: stream) returns (string)
+          signals (not_possible (string))
+     *effects* Returns the coding system for S.
+
+
+File: clu2c.info,  Node: Start-up Procedure,  Next: Object-Oriented Invocation,  Prev: Lexical Changes,  Up: Changes to CLU
+
+Start-up Procedure
+==================
+
+   The definition of CLU does not specify how program execution begins.
+In CLU2C, program execution begins by invoking a procedure named
+`start_up'.  This procedure is called the "start-up procedure".  There
+is no way to use another name for it.  It is up to the programmer to
+implement the start-up procedure.  It must have the following heading:
+
+     start_up = proc ()
+
+That is, it takes no arguments and terminates in either of:
+
+   * the normal condition with no results.
+
+   * the `failure' condition with a string result.
+
+When `start_up' signals the `failure' exception, the run-time system
+attempts to print the result to the standard error before it terminates
+the program execution.
+
+
+File: clu2c.info,  Node: Object-Oriented Invocation,  Next: Failure Result,  Prev: Start-up Procedure,  Up: Changes to CLU
+
+Object-Oriented Invocation
+==========================
+
+   An object-oriented invocation has the following two forms:
+
+     PRIMARY!NAME [()]
+     PRIMARY!NAME (EXPRESSION, ...)
+
+These forms are just syntactic sugar for an operation invocation and
+are completely equivalent to (respectively):
+
+     T$NAME (PRIMARY)
+     T$NAME (PRIMARY, EXPRESSION, ...)
+
+where T is the type of PRIMARY.  For example, if `a' is an array of
+integers, then
+
+     a!addh (1)
+
+is completely equivalent to the invocation
+
+     array[int]$addh (a, 1)
+
+   Note that they are syntactic sugar: they by no means enable dynamic
+dispatching of operations.  Remember that CLU is an almost
+statically-typed language.
+
+
+File: clu2c.info,  Node: Failure Result,  Next: Notes on File Names,  Prev: Object-Oriented Invocation,  Up: Changes to CLU
+
+Failure Result
+==============
+
+   According to the definition of CLU, an exception not handled in a
+routine becomes
+
+     failure ("unhandled exception: EXCEPTION_NAME")
+
+where EXCEPTION_NAME is the name of the unhandled exception.  In CLU2C,
+this transformation is slightly modified: the unhandled exception named
+EXCEPTION_NAME becomes
+
+     failure ("unhandled exception: EXCEPTION_NAME in ROUTINE_NAME")
+
+where ROUTINE_NAME is the name of the routine that did not handle the
+exception.  This will help you find where the problem is.  Similarly,
+if a procedure that should return results in the normal condition
+reaches the textual end of its body, it signals
+
+     failure ("no return values in PROCEDURE_NAME")
+
+rather than
+
+     failure ("no return values")
+
+where PROCEDURE_NAME is the name of the procedure.
+
+   This modification is canceled when you compile source code in
+optimization mode.
+
+
+File: clu2c.info,  Node: Notes on File Names,  Prev: Failure Result,  Up: Changes to CLU
+
+Notes on File Names
+===================
+
+   Implementation of `file_name' is dependent on the target file system.
+CLU2C provides two implementations for `file_name': one for UNIX file
+system, and the other for MS-DOS file system.  It is determined at
+installation-time which implementation is available to the user.
+
+   This chapter describes some details about file names not described
+in `CLU Reference Manual' and specific to CLU2C.
+
+* Menu:
+
+* File Name Components::
+* Parsing Strings as File Names::
+
+
+File: clu2c.info,  Node: File Name Components,  Next: Parsing Strings as File Names,  Prev: Notes on File Names,  Up: Notes on File Names
+
+File Name Components
+--------------------
+
+   In terms of `file_name', file names are viewed as consisting of four
+string components: `directory', `name', `suffix', and `other'.  In
+CLU2C, any component may be empty.
+
+   * The `name' component cannot contain any path delimiters.
+
+   * The `suffix' component must be empty if the `name' component is
+     empty.
+
+   * The `suffix' component cannot contain any path delimiters nor any
+     periods.
+
+   * The `other' component must be empty.
+
+   On UNIX systems,
+
+   * The path delimiter is a slash character (`/').
+
+   On MS-DOS systems,
+
+   * The path delimiter is a backslash character (`\').  The
+     `file_name$create' and `file_name$parse' also interprets a slash
+     character as a path delimiter (this seems to be a common
+     convention).
+
+   * The `directory' component may start with a "drive specification",
+     i.e., drive name (from `a' to `z') followed by a colon.  We refer
+     to the rest of the `directory' component after the drive
+     specification as a "proper directory".  For example, suppose the
+     `directory' component of a file name is `c:\bin\clu2c'.  In this
+     case, the drive specification is `c:' and the proper directory is
+     `\bin\clu2c'.
+
+   * Upper and lower case letters are not distinguished in any
+     components.  The `file_name$create' and `file_name$parse'
+     operations convert ASCII uppercase letters into corresponding
+     ASCII lowercase letters,
+
+
+File: clu2c.info,  Node: Parsing Strings as File Names,  Prev: File Name Components,  Up: Notes on File Names
+
+Parsing Strings as File Names
+-----------------------------
+
+   The `file_name$parse' operation parses the given string argument and
+creates a file name.  The primary task of this operation is to split
+the argument into four components (actually three, since the *other*
+component is always empty).
+
+  1. Splits the given string to the `directory' component and a
+     non-directory.  If the string contains any path delimiters, the
+     last path delimiter splits it into them; otherwise directory is
+     empty and the whole string is non-directory.
+
+  2. The name of the directory entry is split into the *name* and
+     *suffix* components with a period such that the adjacent two
+     characters do exist and both are not periods.
+
+   Tilde notations for specifying home directory work.  Especially,
+`~CLU' denotes the CLU2C system root directory (typically
+`/usr/local/lib/clu2c').
+
+   Here are some examples, where resulting file name objects are written
+in the form of {*directory*, *name*, *suffix*, *other*}:
+
+     file_name$parse("/")
+         => {"/", "", "", ""}
+     file_name$parse(".cshrc")
+         => {"", ".cshrc", "", ""}
+     file_name$parse("/usr/local/src/clu2c.tar.gz")
+         => {"/usr/local/src", "clu2c.tar", "gz", ""}
+
+
+File: clu2c.info,  Node: Library,  Next: Installation,  Prev: Changes to CLU,  Up: Top
+
+Library Abstractions
+********************
+
+* Menu:
+
+* Directory Entries::
+* File Operations::
+* File Name Handling::
+* Integer Handling::
+* Mathematical Functions::
+* Program Environment::
+* Misc Abstractions::
+
+
+File: clu2c.info,  Node: Directory Entries,  Next: File Operations,  Prev: Library,  Up: Library
+
+Directory Entries
+=================
+
+   You can merge `~CLU/lib/dirent.lib' to get the interface
+specifications of the abstractions described in this section.
+
+* Menu:
+
+* directory_entry_names::
+
+
+File: clu2c.info,  Node: directory_entry_names,  Prev: Directory Entries,  Up: Directory Entries
+
+directory_entry_names
+---------------------
+
+ - Routine: directory_entry_names = iter (DIR: file_name)
+          yields (string) signals (not_possible (string))
+     *effects* Yields names of the entry in DIR in an arbitrary order.
+
+
+File: clu2c.info,  Node: File Operations,  Next: File Name Handling,  Prev: Directory Entries,  Up: Library
+
+File Operations
+===============
+
+   You can merge `~CLU/lib/file.lib' to get the interface
+specifications of the abstractions described in this section.
+
+* Menu:
+
+* Kinds of Files::
+
+
+File: clu2c.info,  Node: Kinds of Files,  Prev: File Operations,  Up: File Operations
+
+Distinguishing Kinds of Files
+-----------------------------
+
+* Menu:
+
+* file_is_block_device::
+* file_is_character_device::
+* file_is_directory::
+* file_is_fifo::
+* file_is_regular::
+* file_is_symbolic_link::
+
+
+File: clu2c.info,  Node: file_is_block_device,  Next: file_is_character_device,  Prev: Kinds of Files,  Up: Kinds of Files
+
+file_is_block_device
+....................
+
+ - Routine: file_is_block_device = proc (FN: file_name) returns (bool)
+     *effects* Returns `true' if a file named FN exists and it is a
+     block device; otherwise returns `false'.
+
+
+File: clu2c.info,  Node: file_is_character_device,  Next: file_is_directory,  Prev: file_is_block_device,  Up: Kinds of Files
+
+file_is_character_device
+........................
+
+ - Routine: file_is_character_device = proc (FN: file_name)
+          returns (bool)
+     *effects* Returns `true' if a file named FN exists and it is a
+     character device; otherwise returns `false'.
+
+
+File: clu2c.info,  Node: file_is_directory,  Next: file_is_fifo,  Prev: file_is_character_device,  Up: Kinds of Files
+
+file_is_directory
+.................
+
+ - Routine: file_is_directory = proc (FN: file_name) returns (bool)
+     *effects* Returns `true' if a file named FN exists and it is a
+     directory; otherwise returns `false'.
+
+
+File: clu2c.info,  Node: file_is_fifo,  Next: file_is_regular,  Prev: file_is_directory,  Up: Kinds of Files
+
+file_is_fifo
+............
+
+ - Routine: file_is_fifo = proc (FN: file_name) returns (bool)
+     *effects* Returns `true' if a file named FN exists and it is a
+     fifo (i.e., named pipe); otherwise returns `false'.
+
+
+File: clu2c.info,  Node: file_is_regular,  Next: file_is_symbolic_link,  Prev: file_is_fifo,  Up: Kinds of Files
+
+file_is_regular
+...............
+
+ - Routine: file_is_regular = proc (FN: file_name) returns (bool)
+     *effects* Returns `true' if a file named FN exists and it is a
+     regular file; otherwise returns `false'.
+
+
+File: clu2c.info,  Node: file_is_symbolic_link,  Prev: file_is_regular,  Up: Kinds of Files
+
+file_is_symbolic_link
+.....................
+
+ - Routine: file_is_symbolic_link = proc (FN: file_name) returns (bool)
+     *effects* Returns `true' if a file named FN exists and it is a
+     symbolic link; otherwise returns `false'.
+
+
+File: clu2c.info,  Node: File Name Handling,  Next: Integer Handling,  Prev: File Operations,  Up: Library
+
+File Name Handling
+==================
+
+   You can merge `~CLU/lib/filename.lib' to get interface
+specifications of the abstractions described in this section.
+
+* Menu:
+
+* Accessing Components::
+* Transforming File Names::
+* Specific File Names::
+
+
+File: clu2c.info,  Node: Accessing Components,  Next: Transforming File Names,  Prev: File Name Handling,  Up: File Name Handling
+
+Accessing File Name Components
+------------------------------
+
+* Menu:
+
+* file_name_nondirectory::
+* file_name_drive::
+* file_name_proper_directory::
+
+
+File: clu2c.info,  Node: file_name_nondirectory,  Next: file_name_drive,  Prev: Accessing Components,  Up: Accessing Components
+
+file_name_nondirectory
+......................
+
+ - Routine: file_name_nondirectory = proc (FN: file_name)
+          returns (string)
+     *effects* This procedure is equivalent to the following:
+
+          file_name_nondirectory = proc(fn: fname) returns(string)
+              fname = file_name
+              entry: fname := fname$create("", fn.name, fn.suffix, fn.other)
+              return(fname$unparse(entry))
+          end file_name_nondirectory
+
+     This procedure transforms FN in a string representation like
+     `file_name$unparse' as if the *directory* component of FN was
+     empty.
+
+
+File: clu2c.info,  Node: file_name_drive,  Next: file_name_proper_directory,  Prev: file_name_nondirectory,  Up: Accessing Components
+
+file_name_drive
+...............
+
+ - Routine: file_name_drive = proc (FN: file_name) returns (string)
+     *effects* On UNIX this procedure returns an empty string.  On
+     MS-DOS this procedure returns a drive specification in the
+     *directory* component of FN if it exists; otherwise returns an
+     empty string.
+
+
+File: clu2c.info,  Node: file_name_proper_directory,  Prev: file_name_drive,  Up: Accessing Components
+
+file_name_proper_directory
+..........................
+
+ - Routine: file_name_proper_directory = proc (FN: file_name)
+          returns (string)
+     *effects* On UNIX this procedure is equivalent to
+     `file_name$get_dir'.  On MS-DOS
+
+
+File: clu2c.info,  Node: Transforming File Names,  Next: Specific File Names,  Prev: Accessing Components,  Up: File Name Handling
+
+Transforming File Names
+-----------------------
+
+* Menu:
+
+* file_name_fill_directory::
+* file_name_fill_suffix::
+* file_name_apply_directory::
+* file_name_absolutize::
+* file_name_is_absolute::
+* file_name_simplify::
+* file_name_expand_home_directory::
+* file_name_as_directory::
+* directory_file_name::
+
+
+File: clu2c.info,  Node: file_name_fill_directory,  Next: file_name_fill_suffix,  Prev: Transforming File Names,  Up: Transforming File Names
+
+file_name_fill_directory
+........................
+
+ - Routine: file_name_fill_directory = proc (FN: file_name) returns
+          (file_name)
+     *effects* This procedure fills in or fixes up the directory
+     component of FN if it is empty or relative; otherwise merely
+     returns FN.  The result may or may not be absolute.  If the result
+     is not absolute, it will be treated as relative to the current
+     working directory associated with the current process.
+
+
+File: clu2c.info,  Node: file_name_fill_suffix,  Next: file_name_apply_directory,  Prev: file_name_fill_directory,  Up: Transforming File Names
+
+file_name_fill_suffix
+.....................
+
+ - Routine: file_name_fill_suffix = proc (FN: file_name, SUFFIX:
+          string) returns (file_name)
+     *effects* If the `suffix' component of FN is empty and SUFFIX is
+     valid as a `suffix' component, an invocation of this procedure is
+     equivalent to the following invocation:
+
+          file_name$create(FN.dir, FN.name, SUFFIX, FN.other)
+
+     Otherwise simply returns FN.
+
+
+File: clu2c.info,  Node: file_name_apply_directory,  Next: file_name_absolutize,  Prev: file_name_fill_suffix,  Up: Transforming File Names
+
+file_name_apply_directory
+.........................
+
+ - Routine: file_name_apply_directory = proc (FN, BASE: file_name)
+          returns (file_name)
+     *effects*
+
+
+File: clu2c.info,  Node: file_name_absolutize,  Next: file_name_is_absolute,  Prev: file_name_apply_directory,  Up: Transforming File Names
+
+file_name_absolutize
+....................
+
+ - Routine: file_name_absolutize = proc (FN: file_name)
+          returns (file_name)
+     *effects*
+
+
+File: clu2c.info,  Node: file_name_is_absolute,  Next: file_name_simplify,  Prev: file_name_absolutize,  Up: Transforming File Names
+
+file_name_is_absolute
+.....................
+
+ - Routine: file_name_is_absolute = proc (FN: file_name) returns (bool)
+     *effects* Returns `true' if FN represents an absolute file name;
+     otherwise returns false.
+
+
+File: clu2c.info,  Node: file_name_simplify,  Next: file_name_expand_home_directory,  Prev: file_name_is_absolute,  Up: Transforming File Names
+
+file_name_simplify
+..................
+
+ - Routine: file_name_simplify = proc (FN: file_name)
+          returns (file_name)
+     *effects*
+

@@ -1,0 +1,43 @@
+% logger.clu - log message maintenance
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: logger.clu,v 2.0 1996/06/10 09:05:12 ushijima Exp $
+
+
+logger = cluster is create, message
+
+
+    % Representation.
+
+    rep = record[
+	level:  log_verbosity,	% verbosity level
+	output: stream		% output stream
+    ]
+
+
+    % Operations.
+
+
+    % Returns a new logger with LEVEL and OUTPUT.
+
+    create = proc(level: log_verbosity, output: stream) returns(cvt)
+	return(rep${level: level, output: output})
+    end create
+
+
+    % Puts S to the stream in LOG if and only if V is less than or
+    % equal to the verbosity level of LOG.
+
+    message = proc(log: cvt, v: log_verbosity, s: string)
+	if v <= log.level then
+	    stream$putl(log.output, s)
+	    stream$flush(log.output)
+	end
+	    except when not_possible(*): end
+    end message
+
+
+end logger

@@ -1,0 +1,24 @@
+Copying CLU2C
+*************
+
+   The following are the terms and conditions for copying, modifying,
+and distributing CLU2C.
+
+  1. Part of this software derived from PCLU is subject to the same
+     terms and conditions as those applied to PCLU, whether the source
+     code has been modified or not.
+
+  2. Part of this software derived from the conservative garbage
+     collector is subject to the same terms and conditions as those
+     applied to the conservative garbage collector, whether the source
+     code has been modified or not.
+
+  3. Permission is granted to use, copy, modify, and distribute part of
+     this software derived from neither PCLU nor the conservative
+     garbage collector, provided that all copyright notices are
+     preserved on all copies and that a verbatim copy of these terms
+     and conditions are included in all copies.
+
+  4. THIS SOFTWARE IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY
+     EXPRESS OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
+

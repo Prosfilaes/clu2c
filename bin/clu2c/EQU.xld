@@ -1,0 +1,5 @@
+~CLU/lib/getopt.equ
+syntax.equ
+passes.equ
+clu2c.equ
+config.equ

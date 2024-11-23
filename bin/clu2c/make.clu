@@ -1,0 +1,187 @@
+% make.clu - make command
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: make.clu,v 2.6 1996/05/12 06:43:27 ushijima Exp $
+
+ 
+% make = PROC(e: stuff)
+%   MODIFIES e.
+%   EFFECTS  Makes all C files up to date.
+
+make = proc(e: stuff) returns(bool)
+
+    up_to_date_msg = "All C files are up to date."
+    stop_msg       = "*** Stop."
+
+    outst: stream := e.outst
+    args: as
+
+    % restore make environment constructed during last make
+    % create a new one if it is impossible to restore
+
+    em: m_env
+    em := m_env$restore(e)
+	except
+	when up_to_date:
+	    stream$putl(outst, up_to_date_msg)
+		except when not_possible(*): end
+	    return(true)
+	when not_possible(*):
+	    em := m_env$create(e)
+		except when none:
+		    stream$putl(outst, "Nothing to be done.")
+			except when not_possible(*): end
+		    return(true)
+		end
+	end
+    e.menv := maybe_m_env$make_one(em)
+
+    % merge interface specification libraries (if any)
+
+    ok1: bool := true
+    args := em.merge_args
+    if ~as$empty(args) then
+	jcl: str := "merge"
+	for arg: str in as$elements(args) do
+	    jcl := str$append(jcl, ' ') || arg
+	end
+	process_commands(command_line$create(jcl), e.outst, from_internal_)
+	    except when unsuccessful:
+		ok1 := false
+	    end
+    end
+
+    % add to CE from equate files (if any)
+
+    args := em.ce_args
+    if ~as$empty(args) then
+	ok1 := ok1 cand make_compile(ce_, args, outst)
+    end
+
+    % create DU specs from spc files (if any) and target files
+
+    ok1 := ok1 cand make_compile(specs_, em.specs_args, outst)
+	
+    % compile target files
+
+    ok2: bool := ok1 cand make_compile(binary_, em.compile_args, outst)
+
+    % if undefined modules are detected, then stop making
+
+    if ok2 then
+	undefs: as := as$new()
+	for undef: str in xref$keys(e.undefs) do
+	    as$addh(undefs, undef)
+	end
+	if ~as$empty(undefs) then
+	    put_undefs(undefs, outst)
+	    ok2 := false
+	end
+    end
+
+    % check type consistency
+
+    if ok2 then
+	args := em.check_args
+	if ~as$empty(args) then
+	    ok2 := make_compile(check_, args, outst)
+	end
+    end
+
+    % dump make environment
+
+    if ok1 then
+	m_env$dump(em)
+	    except when not_possible(*): end
+    end
+
+    % completed or stopped
+
+    if ok2 then
+	stream$putl(outst, up_to_date_msg)
+    else
+	stream$putl(outst, stop_msg)
+    end
+	except when not_possible(*): end
+    return(ok2)
+
+end make
+
+
+% make_compile = PROC(mode: int, args: as, outst: stream) RETURNS(bool)
+%							  SIGNALS(bad_mode)
+%   REQUIRES outst is writable.
+%   MODIFIES outst.
+%   EFFECTS  Executes a command specified by  mode  .  The meanings of
+%	the arguments are the same as  compile  (See top2.clu).  If
+%	mode  is other than ce_, specs_, binary_ nor check_, then the
+%	bad_mode  exception occurs.  Otherwise, it returns whether or
+%	not the command has been done with no error.
+
+make_compile = proc(mode: int, args: as, outst: stream) returns(bool)
+							signals(bad_mode)
+
+    % output command name and arguments
+
+%    command: str := ""	
+%    if mode = ce_ then
+%	command := "ce"
+%    elseif mode = specs_ then
+%	command := "specs"
+%    elseif mode = binary_ then
+%	command := "compile"
+%    elseif mode = check_ then
+%	command := "check"
+%    else
+%	signal bad_mode
+%    end
+%    begin
+%	stream$putl(outst, "")
+%	stream$puts(outst, "#" || command)
+%	for arg: str in as$elements(args) do
+%	    stream$putc(outst, ' ')
+%	    stream$puts(outst, arg)
+%	end
+%	stream$putl(outst, "")
+%    end
+%	except when not_possible(*): end
+
+    % do a similar work of one that the compile procedure does (see top2.clu)
+
+    e: stuff, suffixes: qs := setup_stuff(mode, outst)
+    ok: bool := true
+    for fn: fname in all_input_file_names(args, suffixes, outst) do
+	ok := compile1(e, fn) cand ok
+	fixup_refs(e, outst)
+    end
+	except when not_possible(*): end
+    output_refs(e, outst)
+    return(ok)
+
+end make_compile
+
+
+% put_undefs = PROC(undefs: as, outst: stream)
+%   REQUIRES outst is writable.
+%   MODIFIES outst.
+%   EFFECTS  Puts a message about undefined modules listed in  undefs
+%	on  outst  .
+
+put_undefs = proc(undefs: as, outst: stream)
+    begin
+	stream$puts(outst, "No DU specs of ")
+	high: int := as$high(undefs)
+	for i: int in as$indexes(undefs) do
+	    stream$puts(outst, undefs[i])
+	    if i = high then
+		stream$putc(outst, '\n')
+	    else
+		stream$puts(outst, ", ")
+	    end
+	end
+    end
+	except when not_possible(*): end
+end put_undefs

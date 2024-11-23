@@ -1,0 +1,29 @@
+% fn_tostr.clu - convert file name to string
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: fn_tostr.clu,v 2.0 1996/06/10 09:02:12 ushijima Exp $
+
+
+% Converts FN into a string in the form sutable for passing to the
+% external world.  Before conversion, the working directory set by the
+% set_working_dir procedure is applied to FN if FN is relative.  The
+% result is "." if all the components of FN (after applying the
+% working directory) are empty.  Furthermore, the result does not end
+% with a path delimiter unless it is an atomic file name (e.g., root
+% directory).
+
+file_name_to_string = proc(fn: file_name) returns(string)
+    if ~file_name_is_absolute(fn) then
+	fn := file_name_apply_directory(fn, file_name$parse(working_dir()))
+    end
+    fn := directory_file_name(fn)
+    fn := file_name_expand_home_directory(fn)
+    s: string := file_name$unparse(fn)
+    if string$empty(s) then
+	s := "."
+    end
+    return(s)
+end file_name_to_string

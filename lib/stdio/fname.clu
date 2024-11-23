@@ -1,0 +1,386 @@
+% fname.clu - file name
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: fname.clu,v 2.0 1996/06/10 09:01:36 ushijima Exp $
+
+
+file_name = cluster is create, get_dir, get_name, get_suffix,
+	get_other, parse, unparse, make_output, make_temp, equal,
+	similar, copy, encode, decode, print%, _gcd
+
+
+    % This implementation considers UNIX, MS-DOS, and thier variants
+    % only.
+    %
+    % Empty components are interpreted as follows:
+    %
+    % 	*directory* - can be empty.
+    % 	*name*      - can be empty.
+    % 	*suffix*    - can be empty, and must be empty if *name* is empty.
+    % 	*other*     - must always be empty.
+    %
+    % Those file names whose components are all empty should be
+    % treated as representing the current working directory.
+    %
+    % In MS-DOS file system, just a drive specification like "a:" is
+    % accepted as a file_name, but interpretation of such a file_name
+    % is dependent on the underlying C library.
+
+
+    % Representation.  Note that the *other* component is always null
+    % in this implementation.
+
+    rep = struct[
+	dir:    str,		% *directory* component
+	name:   str,		% *name* component
+	suffix: str		% *suffix* component
+    ]
+
+
+    % Common abbreviation for type specifications.
+
+    str = string
+    as  = array[str]
+
+
+    % Operations.  See Appendix III of "CLU Reference Manual" for the
+    % specification of each operation.
+
+
+    create = proc(dir, name, suffix, other: str) returns(cvt)
+	     signals(bad_format)
+
+	% Checks for DIR.
+	dir := check_dir(dir)
+	    resignal bad_format
+
+	% Checks for NAME and SUFFIX.
+	for c: char in str$chars(name) do
+	    if _is_path_delimiter(c) then
+		signal bad_format
+	    end
+	end
+	if ~str$empty(suffix) cand str$empty(name) then
+	    signal bad_format
+	end
+	for c: char in str$chars(suffix) do
+	    if _is_path_delimiter(c) cor c = '.' then
+		signal bad_format
+	    end
+	end
+	name, suffix := _check_directory_entry(name, suffix)
+	    resignal bad_format
+
+	% Checks for OTHER.
+	if ~str$empty(other) then
+	    signal bad_format
+	end
+
+	% Creates a file name and returns it.
+	return(rep${dir: dir, name: name, suffix: suffix})
+
+    end create
+
+
+    get_dir = proc(fn: cvt) returns(str)
+	return(fn.dir)
+    end get_dir
+
+
+    get_name = proc(fn: cvt) returns(str)
+	return(fn.name)
+    end get_name
+
+
+    get_suffix = proc(fn: cvt) returns(str)
+	return(fn.suffix)
+    end get_suffix
+
+
+    get_other = proc(fn: cvt) returns(str)
+	return("")
+    end get_other
+
+
+    parse = proc(s: str) returns(file_name) signals(bad_format)
+	dir, name, suffix: str
+	dir, s := clip_dir(s)
+	name, suffix := split_directory_entry(s)
+	fn: file_name := create(dir, name, suffix, "")
+	    resignal bad_format
+	return(fn)
+    end parse
+
+
+    unparse = proc(fn: cvt) returns(str)
+	res: str := fn.dir
+	if ~_is_atomic_directory(res) then
+	    res := str$append(res, _path_delimiter())
+	end
+	name: str := fn.name
+	if ~str$empty(name) then
+	    res := res || name
+	    suffix: str := fn.suffix
+	    if ~str$empty(suffix) then
+		res := res || "." || suffix
+	    end
+	end
+	return(res)
+    end unparse
+
+ 
+    make_output = proc(fn: cvt, suffix: str) returns(file_name)
+		  signals(bad_format)
+	name: str := fn.name
+	if str$empty(name) then
+	    name := "output"
+	end
+	return(create(fn.dir, name, suffix, ""))
+	    resignal bad_format
+    end make_output
+
+
+    make_temp = proc(dir, prog, file_id: str) returns(file_name)
+		signals(bad_format)
+	return(create(dir, prog, file_id, ""))
+	    resignal bad_format
+    end make_temp
+
+
+    equal = proc(fn1, fn2: cvt) returns(bool)
+	return(fn1.dir = fn2.dir
+	       cand fn1.name = fn2.name
+	       cand fn1.suffix = fn2.suffix)
+    end equal
+
+
+    similar = proc(fn1, fn2: file_name) returns(bool)
+	return(fn1 = fn2)
+    end similar
+
+
+    copy = proc(fn: cvt) returns(cvt)
+	return(fn)
+    end copy
+
+
+    % Operations for istream.
+
+
+    encode = proc(fn: file_name, ist: istream) signals(not_possible(str))
+	str$encode(unparse(fn), ist)
+	    resignal not_possible
+    end encode
+
+
+    decode = proc(ist: istream) returns(file_name) signals(not_possible(str))
+	s: str := str$decode(ist)
+	    resignal not_possible
+	fn: file_name := parse(s)
+	    except when bad_format:
+		signal not_possible("bad format file name")
+	    end
+	return(fn)
+    end decode
+
+
+    % Operation for pstream.
+
+    print = proc(fn: file_name, pst: pstream)
+	pstream$text(pst, unparse(fn))
+    end print
+
+
+    % Operations for gcd_tab.
+
+%    _gcd = proc(fn: cvt, tab: gcd_tab) returns(int)
+%	rep$_gcd(fn, tab)
+%    end _gcd
+
+
+    % Internal routines.
+
+
+    % Signals BAD_FORMAT if DIR is not appropriate for a *directory*
+    % component of a file name; otherwise returns normalized version
+    % of DIR.  Normalization includes, for example, truncation of long
+    % entries.
+
+    check_dir = proc(dir: str) returns(str) signals(bad_format)
+
+	% Clips out a drive specification, if any. (MS-DOS only)
+	drive: str
+	drive, dir := clip_drive(dir)
+
+	% Chops trailing path delimiters in DIR.
+	dir := chop_trailing_delims(dir)
+
+	% Checks each directory entry.
+	path: as := as$new()
+	for ent: str in trace_entries(dir) do
+	    if str$empty(ent) then
+		continue
+	    end
+	    name, suffix: string := split_directory_entry(ent)
+	    name, suffix := _check_directory_entry(name, suffix)
+		resignal bad_format
+	    if str$empty(suffix) then
+		ent := name
+	    else
+		ent := name || "." || suffix
+	    end
+	    as$addh(path, ent)
+	end
+	dir := concat_entries(path)
+
+	if ~str$empty(drive) then
+	    dir := drive || dir
+	end
+	return(dir)
+
+    end check_dir
+
+
+    % Splits S into a directory and the rest.  S may contain an
+    % optional path delimiter, which is simply ignored.
+
+    clip_dir = proc(s: str) returns(str, str) signals(bad_format)
+
+	% Clips out a drive specification, if any. (MS-DOS only)
+	drive: str
+	drive, s := clip_drive(s)
+
+	% Finds I such that S[I] is the rightmost path delimiter; sets
+	% I to zero if there is no such one in S.
+	i: int := str$size(s)
+	while ~_is_path_delimiter(s[i]) do
+	    i := i - 1
+	end
+	    except when bounds: end
+
+	% Clips out a directory, if any.
+	dir, rest: str
+	if i = 0 then
+	    dir := ""
+	    rest := s
+	elseif i = 1 then
+	    dir := str$c2s(_path_delimiter())
+	    rest := str$rest(s, 2)
+	else
+	    dir := str$substr(s, 1, i - 1)
+	    rest := str$rest(s, i + 1)
+	end
+
+	if ~str$empty(drive) then
+	    dir := drive || dir
+	end
+	return(dir, rest)
+    end clip_dir
+
+
+    clip_drive = proc(dir: str) returns(str, str)
+	diff_to_lower = c2i('a') - c2i('A')
+	c2i = char$c2i
+	i2c = char$i2c
+	if ~_directory_with_drive(dir) then
+	    return("", dir)
+	end
+	drive: str
+	c: char := dir[1]
+	if 'A' <= c & c <= 'Z' then
+	    drive := str$append(str$c2s(i2c(c2i(c) + diff_to_lower)), ':')
+	else
+	    drive := str$substr(dir, 1, 2)
+	end
+	return(drive, str$rest(dir, 3))
+    end clip_drive
+
+
+    % Returns the path name represented in PATH.
+
+    concat_entries = proc(path: as) returns(str)
+
+	% Handles trivial cases.
+	if as$empty(path) then
+	    return("")
+	elseif as$size(path) = 1 then
+	    return(as$bottom(path))
+	end
+
+	% General case.  Treatment of absolute paths may be rather
+	% tricky.
+	dir: str
+	first: str := as$reml(path)
+	if str$size(first) = 1 cand _is_path_delimiter(first[1]) then
+	    dir := ""
+	else
+	    dir := first
+	end
+	for ent: str in as$elements(path) do
+	    dir := string$append(dir, _path_delimiter()) || ent
+	end
+	return(dir)
+
+    end concat_entries
+
+
+    % Requires that S does not start with a drive specification.
+    % Returns the same string as S except that optional path
+    % delimiters at the end of S is discarded.
+
+    chop_trailing_delims = proc(s: string) returns(string)
+	size: int := str$size(s)
+	i: int := size
+	while i > 1 cand _is_path_delimiter(s[i]) do
+	    i := i - 1
+	end
+	if i < size then
+	    s := str$substr(s, 1, i)
+	end
+	return(s)
+    end chop_trailing_delims
+
+
+    % Yields directory entries in DIR.  If DIR is an absolute path,
+    % the first item is "/", i.e., the root directory.  Yields nothing
+    % if DIR is empty.  For example,
+    %	trace_entries("/foo/bar/baz") yields "/", "foo", "bar", and "baz";
+    %	trace_entries("./foo/bar") yields ".", "foo", and "bar";
+    %	trace_entries("foo/bar/") yields "foo" and "bar";
+    %	trace_entries("") yields nothing; and
+    %	trace_entries("foo") yields "foo".
+
+    trace_entries = iter(dir: string) yields(string)
+
+	% Start index of directory component.
+	start: int := 1
+
+	% In case of absolute path, the first item is the root
+	% directory.
+	if _is_path_delimiter(dir[1]) then
+	    yield(str$c2s(_path_delimiter()))
+	    start := 2
+	end
+	    except when bounds:
+		% Empty string is OK: returns immediately without
+		% yielding any item.
+		return
+	    end
+
+	size: int := string$size(dir)
+	for i: int in int$from_to(start, size) do
+	    if _is_path_delimiter(dir[i]) then
+		yield(string$substr(dir, start, i - start))
+		start := i + 1
+	    end
+	end
+	if start <= size then
+	    yield(string$rest(dir, start))
+	end
+    end trace_entries
+
+
+end file_name

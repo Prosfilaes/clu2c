@@ -1,0 +1,81 @@
+dnl $Id: Makefile.in,v 2.7 1997/02/05 11:14:25 ushijima Exp $
+include(`mk.m4')
+MK_REQUIRE(`archive')
+MK_REQUIRE(`clusrc')
+MK_REQUIRE(`spcsrc')
+MK_REQUIRE(`csrc')
+MK_CURRENT_DIRECTORY(`lib', `clu2c')
+MK_ARCHIVE_NAME(`../libclu2c.a')
+MK_APPEND_VARIABLE(`DEFAULT_CFLAGS', `-I$(topdir)')
+MK_APPEND_VARIABLE(`ALL_OBJ', `_fs.o')
+MK_SPC_DIRECTORY(`$(clu2c_libdir)')
+MK_CLU_SOURCES(`cur_dir.clu de_names.clu dir_fn.clu f_date.clu f_exists.clu')
+MK_CLU_SOURCES(`filetype.clu fn_abs.clu fn_apply.clu fn_asdir.clu')
+MK_CLU_SOURCES(`fn_drive.clu fn_f_dir.clu fn_f_suf.clu fn_isabs.clu')
+MK_CLU_SOURCES(`fn_nodir.clu fn_pdir.clu fn_simpl.clu fn_tostr.clu')
+MK_CLU_SOURCES(`fn_xhome.clu getenv.clu getopt.clu home_dir.clu input_st.clu')
+MK_CLU_SOURCES(`intopars.clu intounpa.clu intxpars.clu intxunpa.clu')
+MK_CLU_SOURCES(`progargs.clu progname.clu pstream.clu rtenv.clu split_de.clu')
+MK_CLU_SOURCES(`terminat.clu system.clu')
+MK_SPC_SOURCES(`dfltroot.spc math.spc pstream.spc')
+MK_EQU_SOURCES(`getopt.equ')
+MK_C_SOURCES(`acos.c asin.c atan.c atan2.c clurt.c cos.c cosh.c dfltroot.c')
+MK_C_SOURCES(`exp.c log.c log10.c sin.c sinh.c sqrt.c tan.c tanh.c')
+MK_MISC_SOURCES(`LIB.xld mkdfltrt.c')
+MK_NON_SOURCES(`version.equ')
+MK_APPEND_VARIABLE(`CLU_SRC', `_fs_dos.clu _fs_unix.clu')
+MK_APPEND_VARIABLE(`CLU_INT', `_fs_dos.c _fs_unix.c')
+MK_APPEND_PREREQ(`all', `$(POUT).c')
+MK_APPEND_PREREQ(`install', `all')
+MK_APPEND_ACTION(`install',
+	`MK_INSTALL_SOURCE_DATA(`getopt.equ', `$(clu2c_libdir)')')
+MK_MOSTLYCLEAN_FILES(`_fs.o dfltroot.h')
+ifelse(MK_SHORT_COMMAND_LINES, `1', `MK_CLEAN_FILES(`_fs_dos.c _fs_unix.c')')
+ifelse(OSTYPE, `dos',
+`MK_MOSTLYCLEAN_FILES(`mkdfltrt mkdfltrt.exe')',
+OSTYPE, `x68',
+`MK_MOSTLYCLEAN_FILES(`mkdfltrt.x')')
+MK_APPEND_PREREQ(`clu2c_time', `MK_PATH_NAME(`$(srcdir)', `version.equ')')
+MK_ARCHIVE_FILES(`_fs.o')
+MK_DEFINE_RULE(`_fs_o',
+	`_fs.o',
+	`$(srcdir)/_fs_$(FS_TYPE).c',
+	`$(CC) $(ALL_CFLAGS) -c $(srcdir)/_fs_$(FS_TYPE).c -o _fs.o')
+MK_DEFINE_RULE(`dfltroot_o',
+	`dfltroot.o',
+	`$(srcdir)/dfltroot.c dfltroot.h',
+	`$(CC) $(ALL_CFLAGS) -I. -c $(srcdir)/dfltroot.c')
+MK_DEFINE_RULE(`dfltroot_h',
+	`dfltroot.h',
+	`Makefile')
+ifelse(OSTYPE, `dos', `MK_APPEND_PREREQ(`dfltroot_h', `mkdfltrt.exe')',
+       OSTYPE, `x68', `MK_APPEND_PREREQ(`dfltroot_h', `mkdfltrt.x')')
+ifelse(OSTYPE, `unix',
+	`MK_DEFINE_ACTION(`dfltroot_h',
+		`echo \`#'define CLU2C_ROOTDIR \"$(clu2c_rootdir)\" >dfltroot.h')',
+	`MK_DEFINE_ACTION(`dfltroot_h',
+		`mkdfltrt $(clu2c_rootdir)')')
+ifelse(OSTYPE, `dos',
+`MK_DEFINE_RULE(`mkdfltrt', `mkdfltrt.exe', `mkdfltrt.c',
+	`$(CC) $(ALL_CFLAGS) mkdfltrt.c -o mkdfltrt`'ifelse(DJGPP, 1, `
+	$(COFF2EXE) mkdfltrt')')',
+OSTYPE, `x68',
+`MK_DEFINE_RULE(`mkdfltrt', `mkdfltrt.x', `mkdfltrt.c',
+	`$(CC) $(ALL_CFLAGS) mkdfltrt.c -o mkdfltrt.x')')
+MK_DEFINE_RULE(`version_equ',
+	`version.equ', `$(top_srcdir)/config/configmk.in',
+	`rm -f version.equ
+	echo "% version.equ.  Generated automatically by make." >version.equ
+	echo "version = \"$(VERSION)\"" >>version.equ
+	chmod 444 version.equ')
+MK_SPECIFIC_RULES
+MK_RULE_DEFINITION(`_fs_o', `Creates _fs.o from _fs_*.c')
+MK_RULE_DEFINITION(`dfltroot_o', `Creates dfltroot.o')
+MK_RULE_DEFINITION(`dfltroot_h', `Creates dfltroot.h')
+ifelse(OSTYPE, `unix',
+`dnl',
+`MK_RULE_DEFINITION(`mkdfltrt', `Creates mkdfltrt')')
+MK_END
+MK_MAINTENANCE_RULES
+MK_RULE_DEFINITION(`version_equ', `Creates version.equ')
+MK_END

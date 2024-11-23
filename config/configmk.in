@@ -1,0 +1,97 @@
+
+
+######################################################################
+#
+# config.mk.  @configure_input@
+#
+# Identification for configmk.in is:
+#	$Id: configmk.in,v 2.1 1997/02/06 04:21:15 ushijima Exp $
+#
+
+# Avoids SHELL from inherited from the environment
+SHELL = @SHELL@
+
+# Common prefix
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+# The directory where executable commands are installed
+bindir = @bindir@
+
+# The directory where libraries are installed
+libdir = @libdir@
+
+# The directory where info files are installed
+infodir = @infodir@
+
+# CLU2C system root directory
+clu2c_rootdir = @clu2c_rootdir@
+
+# The directory where CLU2C executable commands are installed
+clu2c_bindir = @clu2c_bindir@
+
+# The directory where CLU2C libraries are installed
+clu2c_libdir = @clu2c_libdir@
+
+# The directory where CLU2C header files are installed
+clu2c_includedir = @clu2c_includedir@
+
+# Support for make (may be null)
+@SET_MAKE@
+
+# CLU compiler and related things
+CLU2C = @CLU2C@
+CLU2CFLAGS = @CLU2CFLAGS@
+PLINK = @PLINK@
+PLINKFLAGS = @PLINKFLAGS@
+PLINK_METHOD = @PLINK_METHOD@
+
+# C compiler and its flags
+CC = @CC@
+CFLAGS = @CFLAGS@
+
+# Assembler
+AS = @AS@
+
+# Flags to linker
+LIBS = @LIBS@
+LDFLAGS = @LDFLAGS@
+
+# Library directory for linking executable commands
+LIBDIR = @LIBDIR@
+
+# Commands for archive
+AR = @AR@
+ARFLAGS = @ARFLAGS@
+RANLIB = @RANLIB@
+
+# Commands for installation
+INSTALL = @INSTALL@
+INSTALLFLAGS = @INSTALLFLAGS@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+
+# Command for preparation of file
+LN_S = @LN_S@
+
+# Support for DJGPP
+COFF2EXE = @COFF2EXE@
+
+# Command interpreter (MS-DOS and its variants only)
+COMMAND = @COMMAND@
+COMMANDFLAGS = @COMMANDFLAGS@
+
+# M4 macro processor (maintainers only)
+M4 = @M4@
+M4FLAGS = @M4FLAGS@
+
+# File system type
+FS_TYPE = @FS_TYPE@
+
+# Names for distribution
+distname = @distname@
+dos_distname = @dos_distname@
+
+# Version of the distribution
+VERSION = 1.99.3
+ABRIDGED_VERSION = 193

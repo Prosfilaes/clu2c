@@ -1,0 +1,23 @@
+#! /bin/sh
+
+# clulink.sh - invoke real clulink
+#
+# Copyright (c) 1996
+#	Department of Mathematical and Computing Sciences,
+#	Tokyo Institute of Technology.  All rights reserved.
+#
+# $Id: clulnksh.in,v 2.0 1996/06/10 09:05:28 ushijima Exp $
+
+
+program=clulink
+bindir=${CLU2CROOT-'@clu2c_rootdir@'}/bin
+programfile=$bindir/$program
+if test -x $programfile; then
+	PATH=$bindir:$PATH
+	exec $program "$@"
+elif test -f $programfile; then
+	echo $programfile: nonexecutable 1>&2
+else
+	echo $programfile: nonexistent 1>&2
+fi
+exit 1

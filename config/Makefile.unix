@@ -1,0 +1,161 @@
+
+
+######################################################################
+#
+# Makefile.unix.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = config
+
+# Top-level build directory
+topdir = ..
+
+# Ready-made configuration files for some systems
+CONFIG = configh.98 configh.dos configh.x68 configmk.98 configmk.dos configmk.x68
+
+
+#### Source files ####
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README ALLDIRS configmk.in defs.98 defs.dos defs.x68 dosfile fakeclush.in install-sh insubdir.bat m4all makedist mkconfh mkconfmk mkmf.sh mkmf1.bat mkmkmfbat remove.bat
+
+# All the source files
+ALL_SRC = $(MISC_SRC)
+
+
+#### Variables for source code maintenance ####
+
+# Non-source files included in the distribution
+NON_SRC = Makefile.dos Makefile.unix $(CONFIG) mkmf.bat
+
+# All the files included in the distribution
+DIST = $(ALL_SRC) $(NON_SRC)
+
+# Default flags to m4
+DEFAULT_M4FLAGS = -I$(top_srcdir)/mk
+
+# All the flags to m4
+ALL_M4FLAGS = $(DEFAULT_M4FLAGS) $(M4FLAGS)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all:
+
+# Copies all the products
+install:
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+
+# Makes clean
+clean:
+
+# Makes clean as disributed
+distclean:
+	rm -f Makefile Makefile.top
+
+# Makes really clean
+realclean:
+	rm -f Makefile Makefile.top
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+
+# Does some check
+check:
+
+
+#### Rules specific to this directory ####
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	cat Makefile.top $(topdir)/config.mk $(srcdir)/Makefile.unix > Makefile
+
+# Forces a particular target to be made
+always:
+
+
+#### Rules for source code maintenance ####
+
+# Creates ready-made configuration files
+config-files: $(CONFIG)
+
+# Creates configh.98
+configh.98: defs.98 ../configh.in
+	./mkconfh 98
+
+# Creates configh.dos
+configh.dos: defs.dos ../configh.in
+	./mkconfh dos
+
+# Creates configh.x68
+configh.x68: defs.x68 ../configh.in
+	./mkconfh x68
+
+# Creates configmk.98
+configmk.98: defs.98 configmk.in
+	./mkconfmk 98
+
+# Creates configmk.dos
+configmk.dos: defs.dos configmk.in
+	./mkconfmk dos
+
+# Creates configmk.x68
+configmk.x68: defs.x68 configmk.in
+	./mkconfmk x68
+
+# Creates mkmf.bat
+mkmf.bat: ALLDIRS
+	./mkmkmfbat
+
+# Processes m4 files
+m4:
+	@for os in unix dos; do					\
+	    mk=Makefile.$$os;						\
+	    echo creating $$mk;						\
+	    $(M4) $(ALL_M4FLAGS) -DOSTYPE=$$os Makefile.in >$$mk.new;	\
+	    if test ! $$?; then						\
+		echo $$mk is unchanged;					\
+		rm -f $$mk.new;						\
+		exit 1;							\
+	    elif cmp -s $$mk $$mk.new 2>/dev/null; then			\
+		echo $$mk is unchanged;					\
+		rm -f $$mk.new;						\
+	    else							\
+		rm -f $$mk;						\
+		mv $$mk.new $$mk;					\
+	    fi;								\
+	done
+
+# Creates dos distribution
+dosdist: $(DIST)
+	@$(top_srcdir)/config/makedist -d $(dos_distname) $(curdir) $(DIST)
+
+# Creates the list of source files
+source-list:
+	@if [ $(curdir) = . ]; then\
+	    cp /dev/null source-list;\
+	    for i in $(ALL_SRC); do\
+		echo $$i >>source-list;\
+	    done;\
+	else\
+	    for i in $(ALL_SRC); do\
+		echo $(curdir)/$$i >>$(topdir)/source-list;\
+	    done;\
+	fi

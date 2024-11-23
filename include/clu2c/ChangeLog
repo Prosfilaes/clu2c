@@ -1,0 +1,414 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Wed Feb  5 09:55:49 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.h, oneof.h, istream.h, any.h: Doc fix.
+
+Fri Jan 24 09:57:41 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* any.h, istream.h, oneof.h, variant.h: Doc fix.
+
+Thu Jan 23 06:13:32 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* any.h, istream.h, oneof.h, variant.h: Use `object' instead of
+        `elt'.
+
+Mon Oct  7 07:39:58 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.h: Added "out of memory" as a new string literal.
+
+	* clu2c.h, glo.h, type.h: Now these files simply include
+	<clu2c.h>.  These files will be removed after all the files that
+	includes these files are modified so that they include <clu2c.h>
+	directly.
+
+Sun Oct  6 13:50:38 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* fname.h, main.h, wvec.h: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* type.h: Do not include <clu2c/fname.h>, <clu2c/istream.h>, and
+        <clu2c/wvec.h>.
+
+	* istream.h (struct istream_rep): Use `object' instead of
+        `file_name'.
+
+	* istream.h: Include <stdio.h> by itself.
+
+Fri Jun 21 13:54:06 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* int.h (div, mod): Do not need temporary variables any more.
+
+Thu Jun 20 13:23:24 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* int.h (div, mod): Calculate inline only if both arguments are
+        nonnegative.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sun May 12 06:46:57 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* any.h, array.h, bool.h, char.h, clu2c.h, fname.h, glo.h, int.h,
+	istream.h, itertype.h, main.h, null.h, oneof.h, proctype.h,
+	real.h, record.h, sequence.h, stream.h, string.h, struct.h,
+	type.h, variant.h, wvec.h: Doc fix.
+
+Sat Apr 27 05:05:54 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed `remove.bat' from the list of non-source
+        files.
+
+Sun Jan 14 14:23:40 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.h: Changed according to the changes to the Japanese I/O
+        library.
+
+Sat Oct 28 13:20:15 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.h: Do not include <config.h>.  This header is now
+        included from <config/*.h>.
+
+Fri Oct 27 12:55:46 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.h: String version defaults to 3.
+
+	* sequence.h: Implemented sequence version 2 (this is the
+        default).
+
+Tue Oct 17 05:03:25 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.h (STRING_ALLOC_SIZE): New macro.
+	* string.h: Changed the representation for version 3.
+
+Mon Sep 18 14:12:11 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.h (Fnputs): New macro.
+
+	* string.h (_chars): New macro.
+
+Wed Aug 23 08:04:18 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* strlit.h: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* char.h: Introduced a notion of char version.
+	* string.h: Introduced a notion of string version.
+
+	* char.h, string.h: Definition of `char_t' is moved from
+        `string.h' to `char.h'.
+
+Mon Aug 21 11:23:17 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.h: Support for Japanization switching (moved from
+        include/config/stdio.h).
+
+	* stream.h (struct rbuf): Added `buffered' as a new member.
+
+Sat Aug 12 14:02:33 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* char.h: `char_' is always `int'.
+
+	* string.h (char_t): New type name.
+	(string, string_rep): Defined in terms of `char_t'.
+
+Sun Jun 25 11:16:33 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of non-source files.
+
+Sun Jun 11 06:12:38 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* strlit.h: Added declarations for "overflow" and "underflow".
+
+Sat May 20 11:39:42 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Do not define MISC_SRC.
+
+Wed May 17 06:39:39 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Use hdrsrc.m4.
+
+Wed May  3 16:52:39 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* jio.h: Removed.
+
+Sun Apr 30 11:50:34 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Create installation directory by itself.
+
+Wed Apr 26 12:48:23 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.h (struct tbuf): Have two file pointers for input and
+        output.
+
+Thu Apr 20 02:57:42 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.h: Added declarations for hidden operations.
+
+Wed Apr 12 10:12:54 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Changed installation directory.
+
+Fri Mar 31 06:00:12 1995  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* Makefile.in: Define MISC_SRC.
+
+Wed Mar 29 13:46:06 1995  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Fri Mar 24 13:48:39 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.h: Changed configuration header to be included.
+
+Sat Jan 21 17:18:08 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* array.h (array_rep, set_low, fetch, store, remh, reml, bottom,
+	top): Use object instead of elt.
+	* glo.h (retval_area, sigarg_area): Use object instead of elt.
+	* record.h (record): Use object instead of elt.
+	* struct.h (struct_): Use object instead of elt.
+
+	* array.h (addh, addl): Call function version of add? instead of
+        add?_malloc.
+
+	* array.h: Added declaration for _alloc.
+	* record.h: Added declaration for _alloc.
+	* struct.h: Added declaration for _alloc.
+
+	* glo.h: Added declarations for gargc and gargv.
+
+	* oneof.h (_tag, _value): New macros.
+	* variant.h (_tag, _value): New macros.
+
+	* real.h (conv, f2i, i2f): Moved to real.c.
+
+	* real.h (add, sub, mul, minus, abs, i2r, r2i, trunc, lt, le, ge,
+	gt, equal, similar, copy): Removed, because these macros are never
+	used.
+
+	* struct.h (_set): Renamed from set.
+
+Mon Jan 16 19:37:37 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.h (realloc): New macro.
+
+Thu Oct  6 07:14:47 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.h (empty): Efficient implementation for non-Japanized
+        version.
+
+Wed Sep 28 03:06:03 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* sequence.h (_store): New macro.
+	(_alloc): Declaration for new function.
+
+	* type.h (stream): Removed.
+
+Tue Sep 27 13:02:27 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* type.h (object): New type.
+	(<clu2c/stream.h>): Do not include.
+	(stream): Equivalent to object.
+
+	* string.h, stream.h, clu2c.h, char.h: Support for J10N switching.
+
+Sat Oct 30 08:10:40 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.h: Support for the new GC library's naming convention.
+
+Tue Jul  6 12:31:21 1993  93M04218 mori akihito  <mori@is.titech.ac.jp>
+
+	* jio.h (DEFAULT_INPUT_CODE, DEFAULT_OUTPUT_CODE): Set to sjis on
+        MSDOS/X68000.
+
+	* type.h: Changed the header specification about file_name.
+
+Tue Jun  1 13:09:11 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* char.h (width): Renamed from length.
+
+Wed May 19 08:57:14 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* proctype.h: Typo fix.
+
+Sat Apr 17 06:21:14 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* type.h, string.h, stream.h: Changed the include directory
+        conventions.
+
+Fri Feb 19 02:26:33 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* glo.h, main.h (iter_end): Removed.
+
+Tue Feb 16 12:15:13 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* clu2c.h (iter_end): Removed.
+
+Mon Dec 28 03:50:17 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.h, struct.h, string.h, sequence.h, record.h, real.h,
+        proctype.h, oneof.h, null.h, itertype.h, int.h, char.h, bool.h,
+        array.h: Changed the naming conventions.
+
+Fri Dec  4 07:25:13 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* array.h (addh, addl): Bug fix.
+
+Sun Nov 29 03:10:09 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* array.h: Changed the representation.
+
+Fri Nov 27 12:34:31 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* int.h: Modified macro definitions: cast to int explicitly.
+
+Sun Nov  8 04:15:27 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* int.h: Decreased the number of temporary variables for inline
+        expansion.
+
+Mon Oct 26 12:27:41 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* char.h: In-line expansion for i2c.
+
+	* string.h: In-line expansion for fetch.
+
+Sat Oct 24 13:28:48 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.h, stream.h, char.h: Support for Japanese.
+
+	* strlit.h, jio.h: New files.
+
+	* type.h, main.h, glo.h: Support for Japanese.
+
+Wed Sep 23 12:33:04 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* Version 1.1 released.
+
+Fri Sep  4 03:43:23 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* int.h (mod): Bug fix.
+
+Tue Sep  1 08:38:40 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* int.h (mod): Bug fix.
+
+Tue Aug 11 06:25:38 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.h: Modified representation (See an MIT version of stream).
+
+Mon Aug 10 05:49:26 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* int.h: In-line expansion for mod, div, max, min, and abs.
+
+	* sequence.h: In-line expansion for fetch, top, and bottom.
+
+	* array.h: In-line expansion for fetch, store, top, bottom, and
+        remh.
+
+Sat Jul 18 07:22:06 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.h: Added macros for CLU "return" and "signal" statements.
+
+Thu Jun 18 04:49:09 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* array.h: Support for in-line expansion of fetch, store, remh,
+        reml, bottom, and top.
+
+Wed Jun  3 07:48:03 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* real.h (f2i, i2f): Modified.
+
+Fri Apr 17 22:38:27 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* char.h: Bug fix: number of binary operation's argument is 2.
+
+	* any.h: New file.
+	* type.h: Include <any.h>.
+
+Fri Apr 10 17:52:41 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* struct.h: Typo fix.
+
+Thu Apr  9 19:47:37 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* variant.h, struct.h, string.h, sequence.h, record.h, real.h,
+        proctype.h, oneof.h, null.h, itertype.h, int.h, char.h, bool.h,
+        array.h: Changed macro names for in-line expansion.
+
+Sat Apr  4 21:32:57 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.h: Doc fix
+
+	* clu2c.h (TRUE, FALSE): Removed.  These macro definitions have
+        been moved to bool.h.
+
+	* clu2c.h (NIL): Removed.  This macro definitions have been moved
+        to null.h.
+
+	* type.h: Include each header for each type. 
+
+	* wvec.h, variant.h, struct.h, string.h, stream.h, sequence.h,
+	record.h, real.h, proctype.h, oneof.h, null.h, itertype.h,
+	istream.h, int.h, fname.h, char.h, bool.h, array.h: New files.
+
+Sat Apr  4 18:42:44 1992  jibiki  <jibiki@is.titech.ac.jp>
+
+	* main.h, glo.h: Added debugging mode.
+
+Thu Mar 19 20:39:48 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* type.h: Support for value parameters.
+
+Sun Feb 16 19:23:56 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* clu2c.h (NO_OPERATION): New macro.  Used as a place holder after
+        label.
+
+Fri Feb 14 05:08:56 1992  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* type.h (proctype): Changed.
+
+Thu Feb 13 21:27:28 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* type.h (stream_rep): Modified.
+
+Thu Feb 13 21:00:36 1992  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* type.h: Support for user-defined parameterized modules.
+
+Fri Dec 13 10:59:47 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* type.h (istream): Use hash table instead of binary tree.
+
+Fri Nov 15 22:23:23 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* type.h, clu2c.h: Enabled to encode/decode cyclic objects.
+
+Fri Jul 12 20:20:27 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.h (malloc_atomic): New macro.
+
+Tue Jul  9 17:15:55 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.h: support for GC library.
+
+Sun Jul  7 04:53:53 1991  91M04040 urano mikio  <urano@is.titech.ac.jp>
+
+	* type.h (i2f, f2i): Modified.
+
+Sat Jun 29 15:02:10 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* type.h (struct stream_rep): Added `name' as a new member. 
+
+Sat Jun 29 12:56:06 1991  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* type.h: Changed the treatment of real.  Support for stream.
+
+Wed Jun 19 15:59:41 1991  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* type.h, main.h, glo.h, clu2c.h: New files.

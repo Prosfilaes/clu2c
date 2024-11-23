@@ -1,0 +1,301 @@
+Thu Feb  6 09:50:45 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+	* xgetenv.c (_external_getenv): Avoid the use of `NULL'.
+
+Wed Feb  5 09:56:25 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* xunlink.c, xsystem.c, xsuspend.c, xstat.c, xs_tm.c, xs_stat.c,
+	xs_passw.c, xrename.c, xlocalti.c, xgettime.c, xgetpwna.c,
+	xgetenv.c, xgetdcwd.c, xgetcwd.c, xexit.c, xerrno.c, xdir.c,
+	xclock_t.c, xclock.c, xchmod.c, xchdir.c, xargv.c, xargc.c,
+	uint.c: Doc fix.
+
+Tue Feb  4 06:42:01 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* xdir.c (open, read): Avoid the use of `NULL'.
+
+Fri Jan 31 12:56:13 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* xword.c: Removed.
+	* Makefile.in, external.spc: Changed accordingly.
+
+	* uint.c, uint.spc: New files.
+	* Makefile.in: Changed accordingly.
+
+Fri Jan 24 09:57:41 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* xargc.c, xargv.c, xchdir.c, xchmod.c, xclock.c, xclock_t.c,
+	xdir.c, xerrno.c, xexit.c, xgetcwd.c, xgetdcwd.c, xgetenv.c,
+	xgetpwna.c, xgettime.c, xlocalti.c, xrename.c, xs_passw.c,
+	xs_stat.c, xs_tm.c, xstat.c, xsuspend.c, xsystem.c, xunlink.c: Doc
+	fix.
+
+Thu Jan 23 13:10:15 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* xargc.c: Renamed from `argc.c'.
+	* xargv.c: Renamed from `argv.c'.
+	* xchdir.c: Renamed from `chdir.c'.
+	* xchmod.c: Renamed from `chmod.c'.
+	* xclock.c: Renamed from `clock_.c'.
+	* xclock_t.c: Renamed from `clock_t.c'.
+	* xdir.c: Renamed from `dir.c'.
+	* xerrno.c: Renamed from `errno.c'.
+	* xexit.c: Renamed from `exit.c'.
+	* xgetcwd.c: Renamed from `getcwd.c'.
+	* xgetdcwd.c: Renamed from `getdcwd.c'.
+	* xgetenv.c: Renamed from `getenv.c'.
+	* xgetpwna.c: Renamed from `getpwnam.c'.
+	* xgettime.c: Renamed from `gettime.c'.
+	* xlocalti.c: Renamed from `localtime.c'.
+	* xrename.c: Renamed from `rename.c'.
+	* xs_passw.c: Renamed from `s_passwd.c'.
+	* xs_stat.c: Renamed from `s_stat.c'.
+	* xs_tm.c: Renamed from `s_tm.c'.
+	* xstat.c: Renamed from `stat.c'.
+	* xsuspend.c: Renamed from `suspend.c'.
+	* xsystem.c: Renamed from `system.c'.
+	* xunlink.c: Renamed from `unlink.c'.
+	* Makefile.in: Changed accordingly.
+
+	* system.c (_external_system): Return an integer.
+
+Mon Oct  7 05:17:07 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* argc.c: Include <clu2c.h> instead of <clu2c/clu2c.h>,
+	<clu2c/type.h>, and <clu2c/glo.h>.
+	* argv.c: Ditto.
+	* chdir.c: Ditto.
+	* chmod.c: Ditto.
+	* clock_.c: Ditto.
+	* clock_t.c: Ditto.
+	* dir.c: Ditto.
+	* errno.c: Ditto.
+	* exit.c: Ditto.
+	* getcwd.c: Ditto.
+	* getdcwd.c: Ditto.
+	* getenv.c: Ditto.
+	* getpwnam.c: Ditto.
+	* gettime.c: Ditto.
+	* localtime.c: Ditto.
+	* rename.c: Ditto.
+	* s_passwd.c: Ditto.
+	* s_stat.c: Ditto.
+	* s_tm.c: Ditto.
+	* stat.c: Ditto.
+	* suspend.c: Ditto.
+	* system.c: Ditto.
+	* unlink.c: Ditto.
+	* xerrname.c: Ditto.
+	* xword.c: Ditto.
+
+Sun Oct  6 12:16:27 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* getpwnam.c (_external_getpwnam): Avoid the use of `NULL'.
+
+Sun Jun 30 13:25:47 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* xword.c: New file.
+	* Makefile.in, external.spc: Changed accordingly.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Thu May 16 08:08:43 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* errno.equ: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* xerrname.c: New file.
+	* Makefile.in, external.spc: Changed accordingly.
+
+Wed May 15 13:57:27 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* s_passwd.c (get_passwd, get_gecos): Return an empty string if
+	the corresponding member does not exist.
+
+	* getcwd.c (getcwd): Declare the second argument to be of the type
+	size_t when DJGPP Version 2 is used.
+
+Sun May 12 06:37:07 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* argc.c, argv.c, chdir.c, chmod.c, clock_.c, clock_t.c, dir.c,
+        errno.c, exit.c, external.spc, getcwd.c, getdcwd.c, getenv.c,
+        getpwnam.c, gettime.c, localtime.c, rename.c, s_passwd.c,
+        s_stat.c, s_tm.c, stat.c, suspend.c, system.c, unlink.c: Doc fix.
+
+Sat Apr 27 05:13:20 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed `remove.bat' from the list of non-source
+        files.
+
+Sat Feb 17 11:56:19 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Moved `external.spc' from the list of miscellaneous
+        source files to the list of interface specification files.
+	(install): Changed accordingly.
+
+Sun Oct 29 09:45:07 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* s_passwd.c, s_stat.c, s_tm.c: Include <config/string.h> instead
+        of <config/memory.h>.
+
+	* getcwd.c (getcwd): Declare the second argument to be of the type
+        size_t.
+
+Sat Oct 28 14:01:17 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* getdcwd.c: Include <config/param.h> instead of directly
+	including <sys/param.h> or defining MAXPATHLEN.
+
+	* getcwd.c (getcwd): New function defined only when needed.
+
+	* chdir.c, chmod.c, clock_.c, clock_t.c, dir.c, errno.c, exit.c,
+        getcwd.c, getenv.c, getpwnam.c, gettime.c, localtime.c,
+        s_passwd.c, s_stat.c, s_tm.c, stat.c, unlink.c: Do not include
+        <config.h>.  This header is now included from <config/*.h>.
+
+Sun Sep 24 10:06:57 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* errno.equ: New file.
+	* Makefile.in: Changed accordingly.
+
+Thu Aug 24 06:55:15 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Requires `all' and install `external.spc'
+        to `$(clu2c_libdir).
+
+	* external.spc: New file.
+	* Makefile.in: Changed accordingly.
+
+Sat Jul 15 03:58:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* s_stat.c (is_block_device, is_character_device, is_directory,
+        is_fifo, is_regular, is_symbolic_link): New operations.
+
+Sat May 20 11:52:28 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Make use of MK_NON_SOURCES.
+
+Mon May 15 04:55:36 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* system.c: New file.
+	* Makefile.in: Changed accordingly.
+
+Sat May  6 12:28:51 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of miscellaneous
+        source files.
+
+	* clock_.c: Renamed from clock.c.  The old name has a problem on
+        some version of MS-DOS.
+	* Makefile.in: Changed accordingly.
+
+Sun Apr 30 12:01:39 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Restricted the use of MK_PATH_NAME.
+
+Thu Apr 20 08:49:31 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clock_t.c (get_msec, get_usec): Extract the component precisely.
+
+Wed Apr 19 04:52:21 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed getdate.c from the list of C source files.
+	Added gettime.c to the list of C source files.
+
+	* gettime.c (gettime): Renamed from getdate.
+	(_external_gettime): Renamed from _external_getdate.
+
+	* gettime.c: Renamed from getdate.c.
+
+	* Makefile.in: Added clock.c and clock_t.c to the list of C source
+        files.
+	* clock.c, clock_t.c: New files.
+
+Sat Apr  1 13:25:50 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Fri Mar 31 22:05:54 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* getdate.c: New file.
+
+	* argc.spc, argv.spc, chdir.spc, chmod.spc, dir.spc, errno.spc,
+        errno.equ, exit.spc, getcwd.spc, getdate.spc, getdcwd.spc,
+        getenv.spc, getpwnam.spc, localtime.spc, rename.spc, s_passwd.spc,
+        s_stat.spc, s_tm.spc, stat.spc, suspend.spc, unlink.spc: Removed.
+        These files have been moved to spc/external.
+
+Mon Mar 27 12:53:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* getdcwd.spc: Typo fix.
+
+	* getdcwd.c (getcurdir, getdrive, getdcwd): New functions.
+
+	* suspend.c, suspend.spc: New files.
+
+Fri Mar 24 13:09:43 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* rename.c: Unconditionally include <stdio.h>.
+
+	* exit.c, getenv.c: Make use of <config/stdlib.h>.
+
+	* chdir.c, chmod.c, unlink.c: Make use of <config/unistd.h>.
+
+Thu Mar 23 14:22:17 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* getcwd.c: Changed configuration header to be included.  Do not
+	define MAXPATHLEN (defined in <config/cwd.h>).  Use GETCWD defined
+	in <config/cwd.h>.
+
+	* s_tm.c, localtime.c: Changed configuration header to be
+        included.
+
+	* s_stat.c, s_tm.c (equal, similar): Use MEMEQ instead of bcmp.
+
+	* stat.c, s_stat.c: Changed configuration header to be included.
+
+	* s_passwd.c: Changed configuration header to be included.
+	(equal, similar): Use MEMEQ instead of bcmp.
+
+	* getpwnam.c: Changed configuration header to be included.
+	(_external_getpwnam): Exactly one implementation.
+
+Wed Mar 22 14:19:35 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* dir.c, errno.c: Changed configuration header to be included.
+
+	* unlink.c: Do not include <c/unlink.h>.  Instead, include
+        <unistd.h> if available.
+	(_external_unlink): Declare return type.
+
+	* rename.c: Do not include <c/rename.h>.  Instead, include
+        <stdio.h> if available.
+
+	* getenv.c: Do not include <c/getenv.h>.  Instead, include
+	<stdlib.h> if available; otherwise declare getenv explicitly.
+
+	* exit.c: Do not include <c/exit.h>.  Instead, include <stdlib.h>
+        if available.
+
+	* chmod.c: Do not include <c/chmod.h>.  Instead, include
+        <unistd.h> if available.
+
+	* chdir.c: Do not include <c/chdir.h>.  Instead, include
+        <unistd.h> if available.
+
+	* s_passwd.c, s_stat.c, s_tm.c: Changed configuration headers to
+        be included.
+
+Tue Mar 21 13:17:01 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* unlink.spc, stat.spc, s_tm.spc, s_stat.spc, s_passwd.spc,
+	rename.spc, localtime.spc, getpwnam.spc, getenv.spc, getdcwd.spc,
+	getcwd.spc, exit.spc, errno.spc, dir.spc, chmod.spc, chdir.spc,
+	argv.spc, argc.spc, errno.equ, unlink.c, stat.c, s_tm.c, s_stat.c,
+	s_passwd.c, rename.c, localtime.c, getpwnam.c, getenv.c,
+	getdcwd.c, getcwd.c, exit.c, errno.c, dir.c, chmod.c, chdir.c,
+	argv.c, argc.c: New files.

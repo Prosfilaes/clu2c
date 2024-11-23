@@ -1,0 +1,41 @@
+% intxunpa.clu - convert integer to hexadecimal notation
+%
+% Copyright (c) 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: intxunpa.clu,v 1.2 1997/02/05 09:55:56 ushijima Exp $
+
+
+% Equivalent to int$unparse except that each digit in the result is
+% hexadecimal.  The letters from 'a' through 'f' are used for
+% hexadecimal digits with values from 10 to 15, respectively.
+
+int_hex_unparse = proc(i: int) returns(string)
+    ac = array[char]
+    digits = "0123456789abcdef"
+    if i = 0 then
+	return("0")
+    end
+    buffer: ac := ac$new()
+    if i > 0 then
+	while i > 0 do
+	    ac$addl(buffer, digits[i // 16 + 1])
+	    i := i / 16
+	end
+    else
+	while i < 0 do
+	    r: int := i // 16
+	    d: int := r
+	    a: int := 0
+	    if r > 0 then
+		d := 16 - r
+		a := 1
+	    end
+	    ac$addl(buffer, digits[d + 1])
+	    i := i / 16 + a
+	end
+	ac$addl(buffer, '-')
+    end
+    return(string$ac2s(buffer))
+end int_hex_unparse

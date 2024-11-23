@@ -1,0 +1,18 @@
+% fn_isabs.clu - check whether file name is absolute
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: fn_isabs.clu,v 2.0 1996/06/10 09:02:10 ushijima Exp $
+
+
+% Returns true if FN represents an absolute file name; otherwise
+% returns false.
+
+file_name_is_absolute = proc(fn: file_name) returns(bool)
+    return(_is_path_delimiter(file_name_proper_directory(fn)[1])
+	   cor fn.dir[1] = '~')
+	except when bounds: end
+    return(false)
+end file_name_is_absolute

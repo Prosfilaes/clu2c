@@ -1,0 +1,8 @@
+dnl $Id: Makefile.in,v 2.0 1996/06/10 09:05:52 ushijima Exp $
+include(`mk.m4')
+MK_REQUIRE(`hdrsrc')
+MK_CURRENT_DIRECTORY(`include', `config')
+MK_HDR_DIRECTORY(`MK_PATH_NAME(`$(clu2c_includedir)', `config')')
+MK_HDR_SOURCES(`dirent.h errno.h float.h limits.h math.h param.h pwd.h')
+MK_HDR_SOURCES(`signal.h stat.h stdarg.h stdio.h stdlib.h string.h time.h')
+MK_HDR_SOURCES(`unistd.h')

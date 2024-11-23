@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# m4all - apply m4 in all the directories
+#
+# Copyright (c) 1996
+#	Department of Mathematical and Computing Sciences,
+#	Tokyo Institute of Technology.  All rights reserved.
+#
+# $Id: m4all,v 2.0 1996/06/10 09:06:14 ushijima Exp $
+
+
+# This shell script creates `Makefile.unix' in all the directories.
+# Must be run in the top source directory.  For developers only.
+
+for dir in `sed '/^#/d' config/ALLDIRS`; do
+	echo creating $dir/Makefile.unix
+	m4 -Imk -DOSTYPE=unix $dir/Makefile.in >$dir/Makefile.unix
+done

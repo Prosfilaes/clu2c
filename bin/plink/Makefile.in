@@ -1,0 +1,12 @@
+dnl $Id: Makefile.in,v 2.1 1997/01/24 09:24:47 ushijima Exp $
+include(`mk.m4')
+MK_REQUIRE(`exe')
+MK_REQUIRE(`clusrc')
+MK_CURRENT_DIRECTORY(`bin', `plink')
+MK_EXE_NAME(`plink')
+MK_CLU_SOURCES(`appgen.clu appinst.clu argument.clu assoc.clu clugen.clu')
+MK_CLU_SOURCES(`cluinst.clu debug.clu error.clu formal.clu gentab.clu')
+MK_CLU_SOURCES(`main.clu name.clu nameconv.clu parse.clu read.clu replace.clu')
+MK_CLU_SOURCES(`selgen.clu selinst.clu unparse.clu')
+MK_EQU_SOURCES(`config.equ plink.equ')
+MK_MISC_SOURCES(`LIB.xld')

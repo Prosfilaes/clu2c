@@ -1,0 +1,120 @@
+% $Id: clu2c.equ,v 2.7 1996/05/12 06:43:44 ushijima Exp $
+
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+
+
+ecpt_info = record[level:int, 	
+		   nth:int,
+		   upper_scp:int,	% upper scope number of this scope.
+		   hnds:array[hnd_info]]
+
+hnd_info = record[sig_names:sequence[string],
+		  label:string]
+
+%
+% information for variabel kind
+%
+vkind = int
+AUTO	  = 1		% ordinary local variable
+LOCAL_OWN = 2		% local own variable
+ARG	  = 3		% argment
+SYS	  = 4		% system local variable
+
+%
+% expression of proctype
+%
+
+opt_iter_proc = proctype(g_env, forstmt) returns(str)
+
+proc_kind = oneof[
+    pointer:	 null,		% pointer to function
+    name:	 null,		% function name
+    macro:	 null,		% macro name
+    inline_iter: opt_iter_proc	% iterator compiled inline
+]
+
+proc_expr = record[
+    kind:  proc_kind,		% kind of proctype expr
+    code:  str,			% code which corresponds to function or macro
+    parg:  mparg,		% may be pre-argument
+    expt:  expt,		% the data for exceptions(inline expansion)
+    check: bool			% true iff check for exceptions is required
+]
+
+mparg = oneof[
+    one:  str,
+    none: null
+]
+
+expt = oneof[
+    one:  except_info,
+    none: null
+]
+
+except_info = struct[
+    ntmp: int,			% number of the temporary variables
+				% except for the arguments
+    info: sequence[rexp]	% siganls raised by the procedure
+]
+
+rexp = struct[
+    signame: string,		% the exception name which may be raised
+    macroname: string,		% the macro name which catch an exception
+    macroarg: sequence[int]	% the arguments of the macro
+]
+
+%
+% operation list
+%
+
+oplist = sequence[oper]
+oper = struct[gen, ops: str]
+
+inline_without_exception = oplist$[
+    oper${gen: "null",     ops: "/equal/similar/copy/"},
+    oper${gen: "bool",     ops: "/and/or/not/equal/similar/copy/"},
+    oper${gen: "int",      ops: "/add/sub/mul/minus/lt/le/ge/gt/equal/similar/copy/abs/max/min/"},
+    oper${gen: "char",     ops: "/c2i/lt/le/ge/gt/equal/similar/copy/"},
+    oper${gen: "string",   ops: "/size/empty/lt/le/ge/gt/equal/similar/copy/"},
+    oper${gen: "array",    ops: "/equal/low/size/high/empty/set_low/addl/addh/"},
+    oper${gen: "sequence", ops: "/size/empty/"},
+    oper${gen: "record",   ops: "/get/set/"},
+    oper${gen: "struct",   ops: "/get/set/"},
+    oper${gen: "oneof",    ops: "/is/"},
+    oper${gen: "variant",  ops: "/is/equal/"},
+    oper${gen: "proctype", ops: "/equal/similar/copy/"},
+    oper${gen: "itertype", ops: "/equal/similar/copy/"}
+]
+
+
+% Built-in operations that have to be checked for exceptions.  Note that
+% exceptions include the "failure" exception.  For example, the
+% "array$similar" operation may raise the "failure" exception although
+% it does not have SIGNALS clause in its specification, when the
+% "similar" operation of the element type signals an exception.
+% For types (or type generators) not listed here, all operations of them
+% are considered to have to be checked for exceptions.
+
+exception_ops = oplist$[
+    oper${gen: "null",     ops: "/encode/decode/"},
+    oper${gen: "bool",     ops: "/encode/decode/"},
+    oper${gen: "char",     ops: "/i2c/encode/decode/"},
+    oper${gen: "int",      ops: "/add/sub/mul/minus/div/mod/power/abs/parse/encode/decode/"},
+    oper${gen: "string",   ops: "/fetch/rest/substr/encode/decode/"},
+    oper${gen: "array",	   ops: "/trim/fill/fill_copy/fetch/bottom/top/store/remh/reml/similar/similar1/copy/encode/decode/"},
+    oper${gen: "sequence", ops: "/subseq/fill/fill_copy/fetch/bottom/top/replace/remh/reml/equal/similar/copy/encode/decode/"},
+    oper${gen: "record",   ops: "/similar/similar1/copy/encode/decode/"},
+    oper${gen: "struct",   ops: "/equal/similar/copy/encode/decode/"},
+    oper${gen: "oneof",    ops: "/value/equal/similar/copy/"},
+    oper${gen: "variant",  ops: "/value/similar/similar1/copy/"},
+    oper${gen: "proctype", ops: "/equal/similar/copy/"},
+    oper${gen: "itertype", ops: "/equal/similar/copy/"}
+]
+
+% for g_normlize_type
+
+cvt_direction = int
+cvt_up   = 0					% `cvt' means ADT
+cvt_down = 1					% `cvt' means rep

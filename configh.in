@@ -1,0 +1,138 @@
+/* configh.in.  Generated automatically from configure.in by autoheader.  */
+
+#ifndef CLU2C_CONFIG_H
+#define CLU2C_CONFIG_H
+
+
+/* Define if the `long double' type works.  */
+#undef HAVE_LONG_DOUBLE
+
+/* Define as the return type of signal handlers (int or void).  */
+#undef RETSIGTYPE
+
+/* Define to `unsigned' if <sys/types.h> doesn't define.  */
+#undef size_t
+
+/* Define if you have the ANSI C header files.  */
+#undef STDC_HEADERS
+
+/* Define if you can safely include both <sys/time.h> and <time.h>.  */
+#undef TIME_WITH_SYS_TIME
+
+/* Define to `long' if <time.h> doesn't define.  */
+#undef clock_t
+
+/* Define to `long' if <sys/types.h> doesn't define.  */
+#undef time_t
+
+/* Define if GNU assembler is used.  */
+#undef WITH_GNU_AS
+
+/* Define to default input coding system.  */
+#undef DEFAULT_INPUT_CODING_SYSTEM
+
+/* Define to default output coding system.  */
+#undef DEFAULT_OUTPUT_CODING_SYSTEM
+
+/* Define if MS-DOS text format is used.  */
+#undef MSDOS_TEXT
+
+/* Define if BSD byte operations are preferred.  */
+#undef WITH_BSD_BYTE_OPERATIONS
+
+/* Define if getwd is preferred to getcwd.  */
+#undef WITH_GETWD
+
+/* Define if emu387 that comes with djgpp is broken.  */
+#undef DJGPP_EMU387_BROKEN
+
+/* Define if you do not want the garbage collector to scan data
+   segments associated with dynamic libraries.  */
+#undef DISABLE_DYNAMIC_LOADING
+
+/* Define if you have the atexit function.  */
+#undef HAVE_ATEXIT
+
+/* Define if you have the clock function.  */
+#undef HAVE_CLOCK
+
+/* Define if you have the getcwd function.  */
+#undef HAVE_GETCWD
+
+/* Define if you have the memcpy function.  */
+#undef HAVE_MEMCPY
+
+/* Define if you have the on_exit function.  */
+#undef HAVE_ON_EXIT
+
+/* Define if you have the setvbuf function.  */
+#undef HAVE_SETVBUF
+
+/* Define if you have the sighold function.  */
+#undef HAVE_SIGHOLD
+
+/* Define if you have the strchr function.  */
+#undef HAVE_STRCHR
+
+/* Define if you have the strerror function.  */
+#undef HAVE_STRERROR
+
+/* Define if you have the <dirent.h> header file.  */
+#undef HAVE_DIRENT_H
+
+/* Define if you have the <errno.h> header file.  */
+#undef HAVE_ERRNO_H
+
+/* Define if you have the <error.h> header file.  */
+#undef HAVE_ERROR_H
+
+/* Define if you have the <float.h> header file.  */
+#undef HAVE_FLOAT_H
+
+/* Define if you have the <ndir.h> header file.  */
+#undef HAVE_NDIR_H
+
+/* Define if you have the <pwd.h> header file.  */
+#undef HAVE_PWD_H
+
+/* Define if you have the <signal.h> header file.  */
+#undef HAVE_SIGNAL_H
+
+/* Define if you have the <stat.h> header file.  */
+#undef HAVE_STAT_H
+
+/* Define if you have the <stdarg.h> header file.  */
+#undef HAVE_STDARG_H
+
+/* Define if you have the <sys/dir.h> header file.  */
+#undef HAVE_SYS_DIR_H
+
+/* Define if you have the <sys/ndir.h> header file.  */
+#undef HAVE_SYS_NDIR_H
+
+/* Define if you have the <sys/param.h> header file.  */
+#undef HAVE_SYS_PARAM_H
+
+/* Define if you have the <sys/stat.h> header file.  */
+#undef HAVE_SYS_STAT_H
+
+/* Define if you have the <sys/time.h> header file.  */
+#undef HAVE_SYS_TIME_H
+
+/* Define if you have the <sys/types.h> header file.  */
+#undef HAVE_SYS_TYPES_H
+
+/* Define if you have the <unistd.h> header file.  */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the <values.h> header file.  */
+#undef HAVE_VALUES_H
+
+/* Define if you have the m library (-lm).  */
+#undef HAVE_LIBM
+
+/* Define if you have the sun library (-lsun).  */
+#undef HAVE_LIBSUN
+
+
+#endif /* not CLU2C_CONFIG_H */

@@ -1,0 +1,19 @@
+# $Id: ALLDIRS,v 2.1 1997/02/05 08:56:45 ushijima Exp $
+.
+bin
+bin/clu2c
+bin/clulink
+bin/plink
+config
+doc
+include
+include/clu2c
+include/config
+lib
+lib/built-in
+lib/clu2c
+lib/external
+lib/gc
+lib/jaio
+lib/stdio
+mk

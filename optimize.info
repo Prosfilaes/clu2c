@@ -1,0 +1,90 @@
+
+
+	    CLU 言語処理系 clu2c の OPTIMIZE オプションについて
+
+			       1992 年 8 月
+
+				 東平洋史
+
+
+  CLU 言語処理系 clu2c の OPTIMIZE オプションについて説明します。基本的には
+MIT で作成された処理系 clu の OPTIMIZE オプションの仕様に準じています。すな
+わち、TIME, SPACE, FALSE の 3つの状態を指定できます。
+
+
+1. 状態の種類
+
+  FALSE … 何の最適化も行なわない状態。デフォルトではこの状態です。
+  SPACE … ある程度の最適化を行なうが, コードサイズは増加させない。
+  TIME  … 速度向上を目的とした最適化を行なう。
+           コードサイズが増加する可能性あり。
+
+
+2. インライン展開する操作
+
+  TIME もしくは SPACE を指定すると以下の操作のインライン展開を行ないます。
+
+    ・ int 型の操作
+       minus, add, sub, mul, lt, gt, ge, le, equal
+
+    ・ bool 型の操作
+       not, and, or, equal, similar
+
+    ・ char 型の操作
+       c2i, copy, lt, gt, le, ge, equal, similar
+
+    ・ string 型の操作
+       size, empty, copy, lt, gt, le, ge, equal, similar
+
+    ・ array 型の操作
+       low, size, high, empty, equal, set_low
+
+    ・ sequence 型の操作
+       size, empty
+
+  また TIME を指定すると, さらに以下の操作のインライン展開を行ないます。
+
+    ・ int 型の操作
+       div, mod, min, max, abs
+
+    ・ array 型の操作
+       fetch, store, remh, top, bottom
+
+    ・ sequence 型の操作
+       fetch, top, bottom
+
+    ・ string 型の操作
+       fetch
+
+
+3. 最適化するイテレータ
+
+  TIME もしくは SPACE を指定すると以下のイテレータを最適化します。
+
+    ・ int$int_from_to
+
+    ・ int$int_from_to_by
+
+    ・ string$chars
+
+    ・ array$indexes
+
+    ・ array$elements
+
+    ・ sequence$indexes
+
+    ・ sequence$elements
+
+
+4. 状態の指定方法
+
+  clu2c のコマンドラインで
+
+    command(s):optimize time
+
+もしくは、clu2cの引数に
+
+    #optimize time
+
+を与えると、最適化の状態を TIME に指定することができます。SPACE, FALSEも
+同様です。

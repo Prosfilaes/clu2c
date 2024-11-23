@@ -1,0 +1,44 @@
+% f_form.clu - implementation of f_form
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: f_form.clu,v 2.0 1996/06/10 09:01:35 ushijima Exp $
+
+
+f_form = proc (x: real, int_width, frac_width: int)
+	 returns (string)
+	 signals (illegal_field_width, insufficient_field_width)
+    ac = array[char]
+    if int_width < 0 cor frac_width < 0 cor int_width + frac_width < 1 then
+	signal illegal_field_width
+    end
+    result: ac := ac$new ()
+    if x < 0.0 then
+	ac$addh (result, '-')
+	x := -x
+    end
+    digits: string, exponent: int := real$_unparse (x)
+    digits, exponent := _real_round (digits,
+				     exponent,
+				     exponent + frac_width + 1)
+	except when negative_field_width: end
+    if int_width < exponent + 1 then
+	signal insufficient_field_width
+    end
+    int_field_nonempty: bool := exponent >= 0 cor int_width > 0
+    for i: int in int$from_to_by (int$max (exponent, 0), -frac_width, -1) do
+	% Generate a digit at the 10**I position.
+	ac$addh (result, digits[exponent - i + 1])
+	    except when bounds:
+		if i ~= 0 cor int_field_nonempty then
+		    ac$addh (result, '0')
+		end
+	    end
+	if i = 0 then
+	    ac$addh (result, '.')
+	end
+    end
+    return (string$ac2s (result))
+end f_form

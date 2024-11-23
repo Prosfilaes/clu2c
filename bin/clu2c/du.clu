@@ -1,0 +1,217 @@
+% du.clu - description unit
+%
+% This file was derived from PCLU distribution (as of 11/18/93), and
+% has been modified by Department of Mathematical and Computing
+% Sciences, Tokyo Institute of Technology.
+%
+% Conditions for using, copying, modifying, and distributing this
+% file are the same as those of PCLU.
+%
+% $Id: du.clu,v 2.5 1996/05/12 07:30:06 ushijima Exp $
+
+
+%  Copyright	Massachusetts Institute of Technology     1989
+%	DU CLU
+%
+%	CLU Compiler Version 3: hack DU cluster
+
+DU = cluster is		create,		% name -> DU
+			get_unique,	% DU -> name
+			get_common,	% DU -> name
+			read_specs,	% DU -> DUspecs, bool
+			add_specs,	% DU, DUspecs -> bool => specs_exist
+					%  returns TRUE if DUspec has changed.
+			set_cdate,  	% set "change DUspec" date.
+			get_cdate,  	% get "change DUspec" date.
+			set_pdate,	% set "parse file" date.
+			get_pdate,	% get "parse file" date.
+			set_kind,	% set _spc or _clu.
+			get_kind,	% get _spc or _clu.
+			get_mspecs,	% DU -> mspecs
+			set_mspecs,	% DU, mspecs ->
+			get_dump_info,	% DU -> DUspecs, bool
+			update_specs,	% DU, specs ->
+			forget_specs,	% DU ->
+			is_none,	% DU -> bool
+			keep,		% ->
+			reset,		% ->
+			equal,		% same object
+			similar,	% same name
+			copy,		% same object
+			encode,
+			decode
+
+speclist = array[DUspecs]
+mspeclist = array[mspecs]
+ab = array[bool]
+
+rep = record[name:   name,
+	     index:  int,
+	     cdate:  date,
+	     pdate:  date,
+	     kind:   int]
+    
+own store: speclist := speclist$predict(1, 100)
+own fixups: flaglist := flaglist$predict(1, 100)
+own cache: mspeclist := mspeclist$predict(1, 100)
+own protected: ab := ab$predict(1, 100)
+
+create = proc (common: name) returns (cvt)
+	own def_date: date := date$create(1,1,1900,1,1,1) %1 Jan 1900 01:01:01
+	speclist$addh(store, DUspecs$make_none(nil))
+	flaglist$addh(fixups, false)
+	mspeclist$addh(cache, mspecs$make_none(nil))
+	ab$addh(protected, false)
+	return(rep${name:  common,
+		    index: speclist$size(store),
+		    pdate: date$create(1,1,1900,1,1,1),
+		    cdate: date$create(1,1,1900,1,1,1),
+		    kind:  _clu})
+	end create
+
+get_unique = proc (d: cvt) returns (name)
+	return(d.name)
+	end get_unique
+
+get_common = proc (d: cvt) returns (name)
+	return(d.name)
+	end get_common
+
+read_specs = proc (d: cvt) returns (DUspecs, bool)
+	fixdus: bool := fixups[d.index]
+	if fixdus
+	   then fixups[d.index] := false end
+	return(store[d.index], fixdus)
+	end read_specs
+
+add_specs = proc (d: cvt, specs: DUspecs) returns (bool) signals (specs_exist)
+	changed: bool := ~DUsimilar(store[d.index], specs)
+	store[d.index] := specs
+	if DUspecs$is_atype(specs)
+	   then p_env$add_token(cmpvar$stuffs().penv,
+				d.name,
+				token$make_typekey(
+				       typekey$make_applytype_(up(d))))
+	   end
+	return(changed)
+	end add_specs
+        
+get_cdate = proc(d:cvt)returns(date)
+	return(d.cdate)
+	end get_cdate
+        
+set_cdate = proc(d:cvt, cdate:date)
+	d.cdate := cdate
+	end set_cdate
+        
+get_pdate = proc(d:cvt)returns(date)
+	return(d.pdate)
+	end get_pdate
+        
+set_pdate = proc(d:cvt, pdate:date)
+	d.pdate := pdate
+	end set_pdate
+        
+get_kind = proc(d:cvt)returns(int)
+	return(d.kind)
+	end get_kind
+        
+set_kind = proc(d:cvt, kind:int)
+	d.kind := kind
+	end set_kind
+
+get_mspecs = proc (d: cvt) returns (mspecs)
+	return(cache[d.index])
+	end get_mspecs
+
+set_mspecs = proc (d: cvt, specs: mspecs)
+	cache[d.index] := specs
+	end set_mspecs
+
+get_dump_info = proc (d: cvt) returns (DUspecs, bool)
+	return(store[d.index], ~protected[d.index])
+	end get_dump_info
+
+update_specs = proc (d: cvt, specs: DUspecs)
+	if DUspecs$is_none(store[d.index])
+	   then store[d.index] := specs
+		fixups[d.index] := true
+		if DUspecs$is_atype(specs)
+		   then p_env$add_token(cmpvar$stuffs().penv,
+					d.name,
+					token$make_typekey(
+					       typekey$make_applytype_(up(d))))
+		   end
+	   end
+	end update_specs
+
+forget_specs = proc (d: cvt)
+	if ~protected[d.index]
+	   then store[d.index] := DUspecs$make_none(nil)
+		fixups[d.index] := false
+		cache[d.index] := mspecs$make_none(nil)
+	   end
+	end forget_specs
+
+is_none = proc(d:cvt)returns(bool)
+	return(DUspecs$is_none(store[d.index]))
+	end is_none       
+
+keep = proc ()
+	for i: int in ab$indexes(protected) do
+		tagcase store[i]
+		   tag none:
+		   others:
+			protected[i] := true
+		   end
+		end
+	end keep
+
+reset = proc ()
+	for i: int in speclist$indexes(store) do
+		if protected[i]
+		   then continue end
+		store[i] := DUspecs$make_none(nil)
+		fixups[i] := false
+		cache[i] := mspecs$make_none(nil)
+		end
+	end reset
+
+equal = proc (d1, d2: cvt) returns (bool)
+	return(d1 = d2)
+	end equal
+
+similar = proc (d1, d2: cvt) returns (bool)
+	return(d1.name = d2.name)
+	end similar
+
+copy = proc (d: DU) returns (DU)
+	return(d)
+	end copy
+
+% Note that following encode/decode operations are extraordinary.
+% DU's have a close relation with XLIB. DU objects are created only
+% in XLIB.
+
+encode = proc (d: cvt, s: istream) signals (not_possible(str))
+	name$encode(d.name, s)
+	    resignal not_possible
+	end encode
+
+decode = proc (s: istream) returns (DU)
+			   signals (end_of_file, not_possible(str))
+	return(XLIB$get_DU(name$decode(s)))
+	    resignal end_of_file, not_possible
+	end decode
+
+end DU
+
+
+DUsimilar = proc(x, y: DUspecs) returns(bool)
+	typespec$set_similar_mode(false)
+	idn$set_similar_mode(false)
+	result: bool := DUspecs$similar(x, y)
+	typespec$set_similar_mode(true)
+	idn$set_similar_mode(true)
+	return(result)
+	end DUsimilar

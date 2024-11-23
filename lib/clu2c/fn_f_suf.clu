@@ -1,0 +1,16 @@
+% fn_f_suf.clu - fill suffix of file name
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: fn_f_suf.clu,v 2.0 1996/06/10 09:02:09 ushijima Exp $
+
+
+file_name_fill_suffix = proc(fn: file_name, suffix: string) returns(file_name)
+    if string$empty(fn.suffix) cand ~string$empty(suffix) then
+	fn := file_name$create(fn.dir, fn.name, suffix, fn.other)
+	    except when bad_format: end
+    end
+    return(fn)
+end file_name_fill_suffix

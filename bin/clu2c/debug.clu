@@ -1,0 +1,330 @@
+% debug.clu
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: debug.clu,v 2.7 1996/05/12 06:42:33 ushijima Exp $
+
+
+% dbinfo - debugging information manager.
+
+dbinfo = cluster is create, reset, 
+                    type_info, tid_info, 
+                    local_var_info, own_var_info,
+                    line_info, 
+                    cluster_info, invoke_info, param_info, 
+                    begin_routine, end_routine
+
+    % Representation.
+
+    rep = record[
+	debug: bool,			% whether in debug mode or not
+	co:    code_man,		% object code manager
+	idtab: ai			% table of type id's
+    ]
+
+
+    % Operations.  All operations other than `create' and `reset' do
+    % nothing when the debugging mode is not set.
+
+
+    % Returns a new debugging information manager.
+
+    create = proc(co: code_man) returns(cvt)
+	return(rep${debug: cmpvar$debug(), co: co, idtab: ai$new()})
+    end create
+
+
+    % Resets `db'.
+
+    reset = proc(db: cvt, co: code_man)
+	db.debug := cmpvar$debug()
+	db.co := co
+	ai$trim(db.idtab, 1, 0)
+    end reset
+
+
+    % Puts typespec information about `t'.
+
+    type_info = proc(db: cvt, e: g_env, t: typespec)
+
+	parm_ids = array[parm_id]
+	parm_id = oneof[
+	    lit:   str,
+            formal:int,
+	    expr:  int,
+	    fspec: field_id
+	]
+	field_id = record[
+	    sel: str,
+	    id:  int
+	]
+
+	if ~db.debug then
+	    return
+	end
+
+	id: int := t.id
+	enroll(db.idtab, id)
+	    except when duplicate:
+		return
+	    end
+
+	% get ID's of parameter types to "ids"
+	ids: parm_ids := parm_ids$new()
+	types: array[typespec] := array[typespec]$new()
+	tagcase t.abs
+	tag cluster_(clut: clutype):
+	    for x: expr in exprlist$elements(clut.parms) do
+		tagcase x.abs
+		tag type_(t1: typespec):
+		    parm_ids$addh(ids, parm_id$make_expr(t1.id))
+		    array[typespec]$addh(types, t1)
+		tag null_(val:null):
+		    parm_ids$addh(ids, parm_id$make_lit(null_expr()))
+		tag bool_(val:bool):
+		    parm_ids$addh(ids, parm_id$make_lit(bool_expr(val)))
+		tag int_(val:int):
+		    parm_ids$addh(ids, parm_id$make_lit(int_expr(val)))
+		tag real_(val:real):
+		    parm_ids$addh(ids, parm_id$make_lit(real_expr(val)))
+		tag char_(val:char):
+		    parm_ids$addh(ids, parm_id$make_lit(char_expr(e, val)))
+		tag str(val:string):
+		    parm_ids$addh(ids, parm_id$make_lit(string_expr1(e,val, false)))
+		tag idn(i: idn):
+		    parm_ids$addh(ids, parm_id$make_formal(param$nth_idn(i.str)))
+		others:
+		end
+	    end
+	tag select(selt: seltype):
+	    for fspec: fieldspec in fieldspeclist$elements(selt.parms) do
+		parm_ids$addh(
+		    ids,
+		    parm_id$make_fspec(
+			field_id${sel: fspec.sel, id: fspec.type_.id}
+		    )
+		)
+		array[typespec]$addh(types, fspec.type_)
+	    end
+	others:
+	end
+
+	% put information of parameter types
+	for t1: typespec in array[typespec]$elements(types) do
+	    type_info(up(db), e, t1)
+	end
+
+	% put information
+	info: str := " db_info, type,"
+		     || int$unparse(id) || "," || g_cluname_type(t)
+
+	% If the typespec is a formal type parameter, put the order
+	% number of it in the parameter declarations.
+	tagcase t.abs
+	tag idn(i: idn):
+	    info := info || "[" || int$unparse(param$nth_idn(i.str)) || "]"
+	others:
+
+	end
+
+	% put type id's of the parameters.
+	
+	parms:str := ""
+	first_parm:bool := true
+	for pid: parm_id in parm_ids$elements(ids) do
+	    if first_parm then
+		first_parm := false
+	    else
+		parms := parms || " "
+	    end
+	    tagcase pid
+	    tag expr(i: int):
+		parms := parms || int$unparse(i)
+	    tag fspec(i: field_id):
+		parms := parms || i.sel || ":" || int$unparse(i.id)
+	    tag lit(s:str):
+		parms := parms || "#vparm[" || s || "]"
+	    tag formal(i:int):
+		parms := parms || "formal" || int$unparse(i) || "_"
+	    end
+	end
+	if ~str$empty(parms) then
+	    info := info || "[" || parms || "]"
+	end
+
+	code_man$tinfo(db.co, info)
+
+    end type_info
+
+    tid_info = proc(db:cvt, var:str, id:int)
+	if ~db.debug then
+	    return
+	end
+	code_man$info(
+	    db.co,
+	    " db_info, tid, " || var || ", " || int$unparse(id) || " "
+	)
+    end tid_info
+
+    % Signals `not_debug_mode' if the debugging mode is not set;
+    % otherwise puts variable information about `name', whose value in
+    % C is `val' and the type id of `name' is `id'.
+
+    local_var_info = proc(db: cvt, name, val: str, id: int, sc_decl, sc_end: int) 
+	                                 returns(str) signals(not_debug_mode)
+	if ~db.debug then
+	    signal not_debug_mode
+	end
+	return("\t/* db_info, var, local, " || name || ", " || val || ", "
+	       || int$unparse(id) || ", "|| int$unparse(sc_decl) || ", " ||
+	       int$unparse(sc_end) || " */")
+    end local_var_info
+
+    % Signals `not_debug_mode' if the debugging mode is not set;
+    % otherwise puts variable information about `name', whose value in
+    % C is `val' and the type id of `name' is `id'.
+
+    own_var_info = proc(db:cvt, mod_type,param_type:str, name,val:str, 
+		    id:int, mod_name:str) 
+	       returns(str)
+	       signals(not_debug_mode)
+
+	if ~db.debug then
+	    signal not_debug_mode
+	end
+	index:str:=""
+	if mod_type = "clus" & param_type = "param" then
+	    index := "[pi->clus_own_id]"
+	elseif mod_type = "apply" & param_type = "param" then
+	    index := "[pi->local_own_id]"
+	end
+
+	clu_var:str := name
+	c_var  :str := val || index
+
+	return("\t/* db_info, var, own, " || mod_type||  ", " || 
+	        param_type || ", " || mod_name || ", " || 
+		clu_var || ", " ||  c_var|| ", " || int$unparse(id) || " */")
+    end own_var_info
+
+    % Puts line number (in CLU source code) information.
+
+    line_info = proc(db: cvt, line: int)
+	if db.debug then
+	    code_man$putl(
+		db.co,
+		"/* db_info, line, " || int$unparse(line) || " */"
+	    )
+	end
+    end line_info
+
+
+    % Puts the information about the mapping of ADT `u' (stands for
+    % "up" type) and its representation `d' (stands for "down" type).
+
+    cluster_info = proc(db: cvt, e: g_env, u, d: typespec)
+
+	if ~db.debug then
+	    return
+	end
+
+	dbinfo$type_info(up(db), e, d)
+
+	code_man$rinfo(
+	    db.co,
+	    " db_info, clus,"
+	    || int$unparse(u.id)
+	    || ","
+	    || g_cluname_type(u)
+	    || ","
+	    || int$unparse(d.id)
+	)
+
+    end cluster_info
+
+
+    % Puts the invocation information.
+
+    invoke_info = proc(db: cvt, e: g_env, apply: expr, line: int)
+	if ~db.debug then
+	    return
+	end
+	ivk_name: str := g_cluname_routine(apply)
+	    except when no_name:
+		ivk_name := ""
+	    end
+	co: code_man := db.co
+	code_man$put_assign(co, "ivk_name", string_expr(e, ivk_name))
+	code_man$put_assign(co, "ivk_line", int$unparse(line))
+	code_man$putl(co, "catch_signal(ivk_name, ivk_line);")
+    end invoke_info
+    
+    param_info = proc(db: cvt, kind, entryp, callee, arglist: str)
+	if ~db.debug then
+	    return
+	end
+	info:str := " db_info, param, " || kind || "," || entryp || "," ||
+	            callee || "," || arglist || " "
+	code_man$info(db.co, info)
+    end param_info
+
+    % Puts the information about the routine `name' (a routine
+    % includes a cluster operation), with routine type ("proctype" or
+    % "itertype") being `rtype', and start and end line being `sline'
+    % and `eline', respectively.
+
+    begin_routine = proc(db: cvt, name, rtype: str, sline, eline: int)
+	if ~db.debug then
+	    return
+	end
+	kind: str
+	if name[1] = '%' then
+	    kind := "internal"
+	elseif name[1] = '#' then
+	    kind := "system"
+	else
+	    kind := "external"
+	end
+	code_man$putl(
+	    db.co,
+	    "/* db_info, routine_begin, "
+	    || rtype
+	    || ", "
+	    || kind
+	    || ", "
+	    || int$unparse(sline)
+	    || ", "
+	    || int$unparse(eline)
+	    || " */"
+	)
+    end begin_routine
+
+
+    % Puts the information marking the end of routine.
+
+    end_routine = proc(db: cvt)
+	if db.debug then
+	    code_man$putl(db.co, "/* db_info, routine_end */")
+	end
+    end end_routine
+
+
+    % Internal routine.
+
+
+    % Signals `duplicate' if `id' has already been enrolled in
+    % `idtab'; otherwise enrolls `id' in `idtab'.
+
+    enroll = proc(idtab: ai, id: int) signals(duplicate)
+	for i: int in ai$elements(idtab) do
+	    if i = id then
+		signal duplicate
+	    end
+	end
+	ai$addh(idtab, id)
+    end enroll
+
+
+end dbinfo

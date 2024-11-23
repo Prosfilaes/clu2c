@@ -1,0 +1,16 @@
+dnl $Id: Makefile.in,v 2.0 1996/06/10 09:04:19 ushijima Exp $
+include(`mk.m4')
+MK_CURRENT_DIRECTORY(`bin')
+MK_SUBDIRECTORIES(`clu2c plink clulink')
+MK_DEFINE_RULE(`cfiles', `cfiles')
+MK_APPEND_DELEGATING_ACTION(`cfiles')
+MK_DEFINE_RULE(`cfiles_clean',
+	`cfiles-clean',
+	`',
+	`MK_MAKE_IN_SUBDIRS(`cfiles-clean', `$(subdirs)')')
+MK_SPECIFIC_RULES
+MK_RULE_DEFINITION(`cfiles', `Creates all C files.')
+MK_END
+MK_MAINTENANCE_RULES
+MK_RULE_DEFINITION(`cfiles_clean', `Deletes all files created by making cfiles')
+MK_END

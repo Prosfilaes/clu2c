@@ -1,0 +1,29 @@
+/* This file has been modified by Department of Mathematical and
+   Computing Sciences, Tokyo Institute of Technology.
+
+   $Id: if_not_there.c,v 2.0 1996/06/10 08:59:07 ushijima Exp $ */
+
+/* Conditionally execute a command based if the file argv[1] doesn't exist */
+/* Except for execvp, we stick to ANSI C.				   */
+# include "gc_conf.h"
+# include <stdio.h>
+
+int main(argc, argv, envp)
+int argc;
+char ** argv;
+char ** envp;
+{
+    FILE * f;
+    if (argc < 3) goto Usage;
+    if ((f = fopen(argv[1], "rb")) != 0
+        || (f = fopen(argv[1], "r")) != 0) {
+        fclose(f);
+        return(0);
+    }
+    execvp(argv[2], argv+2);
+    
+Usage:
+    fprintf(stderr, "Usage: %s file_name command\n", argv[0]);
+    return(1);
+}
+

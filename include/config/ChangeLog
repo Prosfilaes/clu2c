@@ -1,0 +1,135 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Wed May 15 13:50:24 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* signal.h: Define NSIG if undefined, even when <signal.h> is
+        available.
+
+	* pwd.h: Define HAVE_PW_PASSWD and HAVE_PW_GECOS unless DJGPP
+        Version 2 is used.
+
+Sun May 12 07:09:01 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* dirent.h, errno.h, float.h, limits.h, math.h, param.h, pwd.h,
+        signal.h, stat.h, stdarg.h, stdio.h, stdlib.h, string.h, time.h,
+        unistd.h: Doc fix.
+
+Sat Apr 27 05:06:51 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed `remove.bat' from the list of non-source
+        files.
+
+Tue Feb 13 13:45:28 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* float.h: Rewritten.
+
+Wed Jan 10 09:43:55 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stdlib.h: Define `atexit' as a macro if unavailable.
+
+	* stdlib.h: Declare `strtol' if <stdlib.h> is unavailable.
+
+	* string.h: Declare `bzero', `bcmp', and `bcopy' if these
+        functions are used.
+
+	* stdarg.h: New file.
+	* Makefile.in: Changed accordingly.
+
+Sat Nov 18 11:15:35 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stdlib.h: Declare `strtod' unless the ANSI C header files are
+        available.
+
+	* float.h, limits.h, math.h: New files.
+	* Makefile.in: Changed accordingly.
+
+Sun Oct 29 09:52:57 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* string.h: Incorporated the contents of memory.h.
+	* memory.h: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* unistd.h: Include <sys/types.h> if available.
+
+Sat Oct 28 14:04:07 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* cwd.h: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* unistd.h: Declare `getcwd' if <unistd.h> does not exist.
+
+	* param.h: New file.
+	* Makefile.in: Changed accordingly.
+
+	* unistd.h, time.h, string.h, stdlib.h, stdio.h, stat.h, signal.h,
+        pwd.h, memory.h, errno.h, dirent.h, cwd.h: Include <config.h> in
+        itself.
+
+Tue Sep 12 10:07:59 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stdlib.h: Define EXIT_SUCCESS and EXIT_FAILURE if <stdlib.h>
+        does not define.
+
+Tue Sep  5 13:24:03 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* memory.h: Check whether WITH_BSD_BYTE_OPERATIONS is defined or
+        not.
+
+Mon Aug 21 11:25:49 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stdio.h: Japanese I/O stuff has been moved to
+        `include/clu2c/stream.h'.
+
+	* stdio.h: Support for the `setvbuf' function.
+
+Sat Jul 15 03:56:28 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stat.h: Define S_IFBLK, S_IFIFO, and S_IFLNK if the <sys/stat.h>
+	header does not define.
+
+Sun Jun 25 11:17:28 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of non-source files.
+
+Sat May 20 11:40:43 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Do not define MISC_SRC.
+
+Wed May 17 06:38:47 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Use hdrsrc.m4.
+
+Fri May  5 09:58:18 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* pwd.h: Define struct passwd if <pwd.h> does not exist.
+
+Wed Apr 19 12:21:58 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added signal.h to the list of miscellaneous source
+        files.
+
+	* signal.h: New file.
+
+	* time.h: Added support for the clock function.
+
+Fri Mar 31 06:01:46 1995  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Fri Mar 24 13:03:19 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stdio.h, stdlib.h, string.h, unistd.h: New files.
+
+Thu Mar 23 14:20:54 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* cwd.h, time.h, pwd.h, stat.h: New files.
+
+Wed Mar 22 14:07:44 1995  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* dirent.h, errno.h, memory.h: New files.

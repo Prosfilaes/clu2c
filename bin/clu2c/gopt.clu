@@ -1,0 +1,540 @@
+% gopt.clu
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: gopt.clu,v 2.14 1996/05/12 06:43:06 ushijima Exp $
+ 
+
+% Generates more efficient code for FOR statement with some built-in
+% iterators.
+
+opt_for_stmt = proc(e: g_env, s: forstmt, opt_iter: opt_iter_proc)
+
+    % Generates the header of FOR statement.
+    item: str := opt_iter(e, s)
+
+    co: code_man := e.co
+    code_man$begin_block(co)
+    lv$begin_scope()
+
+    % Generates assignments of the item to the control variable.
+    tagcase s.vars
+    tag old(ids: idnlist):
+	code_man$put_assign(co, vname(e, ids[1].str), item)
+    tag new(decls: decllist):
+	d : decl := decls[1]
+	id : idn := d.idns[1]
+	lv$decl(id, d.type_, AUTO, e.rtype, s.start_line, s.end_line)
+	code_man$put_assign(co, vname(e, id.str), item)
+    end
+
+    % Generates body
+    g_body(e, s.body)
+    if cmpvar$debug() then
+	dbinfo$line_info(e.db, s.end_line)
+	code_man$putl(co, "nop();")
+    end
+
+    lv$put_local_decls(e)
+    lv$end_scope()
+    code_man$end_block(co)
+end opt_for_stmt
+
+
+% Generates the header of FOR statement with INT$FROM_TO, and returns
+% the expression that evaluates to the item.
+%
+% For example, for the following FOR statement in CLU:
+%
+%	for i: int in int$from_to(ARG1, ARG2) do ...
+%
+% this procedure generates the following code:
+%
+%	for (T1 = ARG1, T2 = ARG2; T1 <= T2; T1++)
+%
+% and returns T1.
+
+opt_int_from_to = proc(e: g_env, s: forstmt) returns(str)
+
+    % Generates evaluation of arguments.
+    args: as := g_exprlist(e, s.call.args, true)
+
+    t1, t2: str
+
+    % Constructs initializing expression.
+    rtype: str := e.rtype
+    t1 := lv$new_temp(rtype)
+    init: str := t1 || " = " || args[1]
+    tagcase s.call.args[2].abs
+    tag int_:
+	% The second argument to INT$FROM_TO is a constant: no
+	% temporary variable is needed.
+	t2 := args[2]
+    others:
+	t2 := lv$new_temp(rtype)
+	init := init || ", " || t2 || " = " || args[2]
+    end
+
+    % Constructs conditional expression.
+    cond: str := t1 || " <= " || t2
+
+    % Constructs stepping expression.
+    step: str := t1 || "++"
+
+    % Generates header.
+    code_man$putl(e.co, "for (" || init || "; " || cond || "; " || step || ")")
+
+    % Returns the expression that evaluates to the item.
+    return(t1)
+end opt_int_from_to
+
+
+% Generates the header of FOR statement with INT$FROM_TO_BY, and
+% returns the expression that evaluates to the item.
+%
+% For example, for the following FOR statement in CLU:
+%
+%	for i: int in int$from_to_by(ARG1, ARG2, ARG3) do ...
+%
+% this procedure generates the following code:
+%
+%	for (T1 = ARG1, T2 = ARG2, T3 = ARG3;
+%	     (T3 > 0) ? (T1 <= T2) : ((T3 < 0) ? (T1 >= T2) : 1);
+%	     T1 += T3)
+%
+% and returns T1.
+
+opt_int_from_to_by = proc(e: g_env, s: forstmt) returns(str)
+
+    % Information about the third argument to INT$FROM_TO_BY.
+    unknown   = 0	% not a constant
+    increment = 1	% positive
+    decrement = 2	% negative
+    nochange  = 3	% zero
+
+    % Generates evaluation of arguments.
+    args: as := g_exprlist(e, s.call.args, true)
+
+    t1, t2, t3: str
+
+    % Constructs initializing expression.
+    rtype: str := e.rtype
+    t1 := lv$new_temp(rtype)
+    init: str := t1 || " = " || args[1]
+    tagcase s.call.args[2].abs
+    tag int_:
+	% The second argument to INT$FROM_TO_BY is a constant: no
+	% temporary variable is needed.
+	t2 := args[2]
+    others:
+	t2 := lv$new_temp(rtype)
+	init := init || ", " || t2 || " = " || args[2]
+    end
+    arg3: int := unknown
+    tagcase s.call.args[3].abs
+    tag int_(i: int):
+	% The third argument to INT$FROM_TO_BY is a constant: no
+	% temporary variable is needed.
+	t3 := args[3]
+	if i > 0 then
+	    arg3 := increment
+	elseif i < 0 then
+	    arg3 := decrement
+	else
+	    arg3 := nochange
+	end
+    others:
+	t3 := lv$new_temp(rtype)
+	init := init || ", " || t3 || " = " || args[3]
+    end
+
+    % Constructs conditional expression.
+    cond: str
+    if arg3 = unknown then
+	% General case.
+	cond := "(" || t3 || " > 0) ? ("
+		|| t1 || " <= " || t2
+		|| ") : ((" || t3 || " < 0) ? ("
+		|| t1 || " >= " || t2
+		|| ") : 1)"
+    elseif arg3 = increment then
+	cond := t1 || " <= " || t2
+    elseif arg3 = decrement then
+	cond := t1 || " >= " || t2
+    else
+	% The third argument is zero: iterates forever.
+	cond := "1"
+    end
+
+    % Constructs stepping expression.
+    step: str
+    if arg3 = decrement then
+	step := t1 || " -= " || int$unparse(-int$parse(t3))
+    else
+	step := t1 || " += " || t3
+    end
+
+    % Generates header.
+    if arg3 = unknown then
+	co: code_man := e.co
+	code_man$putl(co, "for (" || init || ";")
+	code_man$putl(co, "     " || cond || ";")
+	code_man$putl(co, "     " || step || ")")
+    else
+	code_man$putl(
+	    e.co,
+	    "for (" || init || "; " || cond || "; " || step || ")"
+	)
+    end
+
+    % Returns the expression that evaluates to the item.
+    return(t1)
+end opt_int_from_to_by
+
+
+% Generates the header of FOR statement with STRING$CHARS, and returns
+% the expression that evaluates to the item.
+%
+% For example, for the following FOR statement in CLU:
+%
+%	for c: char in string$chars(S) do ...
+%
+% this procedure generates the following code:
+%
+%	for (T1 = S, T2 = 1, T3 = string$size(T1); T2 <= T3; T2++)
+%
+% and returns string$fetch(T1, T2).
+
+opt_string_chars = proc(e: g_env, s: forstmt) returns(str)
+    own size: str := " = " || conv_opmac("string", "size") || "("
+    own fetch: str := conv_opmac("string", "fetch") || "("
+
+    % Generates evaluation of the argument to STRING$CHARS.
+    arg: str := g_expr(e, s.call.args[1])
+
+    % Reserves three temporary variables.
+    rtype: str := e.rtype
+    t1: str := lv$new_temp(rtype)    
+    t2: str := lv$new_temp(rtype)    
+    t3: str := lv$new_temp(rtype)    
+
+    % Constructs initializing expression.
+    init: str := t1 || " = " || arg || ", "
+		 || t2 || " = 1, "
+		 || t3 || size || t1 || ")"
+
+    % Constructs conditional expression.
+    cond: str := t2 || " <= " || t3
+
+    % Constructs stepping expression.
+    step: str := t2 || "++"
+
+    % Generates header.
+    co: code_man := e.co
+    code_man$putl(co, "for (" || init || ";")
+    code_man$putl(co, "     " || cond || ";")
+    code_man$putl(co, "     " || step || ")")
+
+    % Returns the expression that evaluates to the item.
+    return(fetch || t1 || ", " || t2 || ")")
+end opt_string_chars
+
+
+% Generates the header of FOR statement with ARRAY$INDEXES, and
+% returns the expression that evaluates to the item.
+%
+% For example, for the following FOR statement in CLU:
+%
+%	for i: int in array[...]$indexes(A) do ...
+%
+% this procedure generates the following code:
+%
+%	for (T1 = array$low(A), T2 = array$high(A); T1 <= T2; T1++)
+%
+% and returns T1.
+
+opt_array_indexes = proc(e: g_env, s: forstmt) returns(str)
+    own low: str := " = " || conv_opmac("array", "low") || "("
+    own high: str := " = " || conv_opmac("array", "high") || "("
+
+    % Generates evaluation of the argument to ARRAY$INDEXES.
+    arg: str := g_expr(e, s.call.args[1])
+
+    % Reserves two temporary variables.
+    rtype: str := e.rtype
+    t1: str := lv$new_temp(rtype)    
+    t2: str := lv$new_temp(rtype)    
+
+    % Constructs initializing expression.
+    init: str := t1 || low || arg || "), " || t2 || high || arg || ")"
+
+    % Constructs conditional expression.
+    cond: str := t1 || " <= " || t2
+
+    % Constructs stepping expression.
+    step: str := t1 || "++"
+
+    % Generates header.
+    code_man$putl(e.co, "for (" || init || "; " || cond || "; " || step || ")")
+
+    % Returns the expression that evaluates to the item.
+    return(t1)
+end opt_array_indexes
+
+
+% Generates the header of FOR statement with ARRAY$ELEMENTS, and
+% returns the expression that evaluates to the item.
+%
+% For example, for the following FOR statement in CLU:
+%
+%	for i: int in array[...]$elements(A) do ...
+%
+% this procedure generates the following code:
+%
+%	for (T1 = A, T2 = array$low(T1), T3 = array$high(T1); T2 <= T3; T2++)
+%
+% and returns array$fetch(T1, T2).
+
+opt_array_elements = proc(e: g_env, s: forstmt) returns(str)
+    own low: str := " = " || conv_opmac("array", "low") || "("
+    own high: str := " = " || conv_opmac("array", "high") || "("
+    own fetch: str := conv_opmac("array", "fetch") || "("
+
+    % Generates evaluation of the argument to ARRAY$ELEMENTS.
+    arg: str := g_expr(e, s.call.args[1])
+
+    % Reserves three temporary variables.
+    rtype: str := e.rtype
+    t1: str := lv$new_temp(rtype)    
+    t2: str := lv$new_temp(rtype)    
+    t3: str := lv$new_temp(rtype)    
+
+    % Constructs initializing expression.
+    init: str := t1 || " = " || arg || ", "
+		 || t2 || low || t1 || "), "
+		 || t3 || high || t1 || ")"
+
+    % Constructs conditional expression.
+    cond: str := t2 || " <= " || t3
+
+    % Constructs stepping expression.
+    step: str := t2 || "++"
+
+    % Generates header.
+    co: code_man := e.co
+    code_man$putl(co, "for (" || init || ";")
+    code_man$putl(co, "     " || cond || ";")
+    code_man$putl(co, "     " || step || ")")
+
+    % Returns the expression that evaluates to the item.
+    return(fetch || t1 || ", " || t2 || ")")
+end opt_array_elements
+
+
+% Generates the header of FOR statement with SEQUENCE$INDEXES, and
+% returns the expression that evaluates to the item.
+%
+% For example, for the following FOR statement in CLU:
+%
+%	for i: int in sequence[...]$indexes(S) do ...
+%
+% this procedure generates the following code:
+%
+%	for (T1 = 1, T2 = sequence$size(S); T1 <= T2; T1++)
+%
+% and returns T1.
+
+opt_sequence_indexes = proc(e: g_env, s: forstmt) returns(str)
+    own size: str := " = " || conv_opmac("sequence", "size") || "("
+
+    % Generates evaluation of the argument to SEQUENCE$INDEXES.
+    arg: str := g_expr(e, s.call.args[1])
+
+    % Reserves two temporary variables.
+    rtype: str := e.rtype
+    t1: str := lv$new_temp(rtype)    
+    t2: str := lv$new_temp(rtype)    
+
+    % Constructs initializing expression.
+    init: str := t1 || " = 1, " || t2 || size || arg || ")"
+
+    % Constructs conditional expression.
+    cond: str := t1 || " <= " || t2
+
+    % Constructs stepping expression.
+    step: str := t1 || "++"
+
+    % Generates header.
+    code_man$putl(e.co, "for (" || init || "; " || cond || "; " || step || ")")
+
+    % Returns the expression that evaluates to the item.
+    return(t1)
+end opt_sequence_indexes
+
+
+% Generates the header of FOR statement with SEQUENCE$ELEMENTS, and
+% returns the expression that evaluates to the item.
+%
+% For example, for the following FOR statement in CLU:
+%
+%	for i: int in sequence[...]$elements(S) do ...
+%
+% this procedure generates the following code:
+%
+%	for (T1 = S, T2 = 1, T3 = sequence$size(T1); T2 <= T3; T2++)
+%
+% and returns sequence$fetch(T1, T2).
+
+opt_sequence_elements = proc(e: g_env, s: forstmt) returns(str)
+    own size: str := " = " || conv_opmac("sequence", "size") || "("
+    own fetch: str := conv_opmac("sequence", "fetch") || "("
+
+    % Generates evaluation of the argument to SEQUENCE$ELEMENTS.
+    arg: str := g_expr(e, s.call.args[1])
+
+    % Reserves three temporary variables.
+    rtype: str := e.rtype
+    t1: str := lv$new_temp(rtype)    
+    t2: str := lv$new_temp(rtype)    
+    t3: str := lv$new_temp(rtype)    
+
+    % Constructs initializing expression.
+    init: str := t1 || " = " || arg || ", "
+		 || t2 || " = 1, "
+		 || t3 || size || t1 || ")"
+
+    % Constructs conditional expression.
+    cond: str := t2 || " <= " || t3
+
+    % Constructs stepping expression.
+    step: str := t2 || "++"
+
+    % Generates header.
+    co: code_man := e.co
+    code_man$putl(co, "for (" || init || ";")
+    code_man$putl(co, "     " || cond || ";")
+    code_man$putl(co, "     " || step || ")")
+
+    % Returns the expression that evaluates to the item.
+    return(fetch || t1 || ", " || t2 || ")")
+end opt_sequence_elements
+
+
+% Generates more efficient code for multiple STRING$CONCAT
+% combinations.
+%
+% E.g., for the following CLU expression:
+%
+%	S1 || S2 || ... || Sn
+%
+% this procedure generates the following code:
+%
+%	T1 = string$size(S1)
+%	     + string$size(S2)
+%	     :
+%	     + string$size(Sn);
+%	T2 = string$_predict(T1)
+%	string$_concat(T2, S1)
+%	string$_concat(T2, S2)
+%	:
+%	string$_concat(T2, Sn)
+%
+% and returns T2.
+
+opt_strcat = proc(e: g_env, ivk: invoke) returns(str)
+    own size: str := conv_opmac("string", "size") || "("
+    own predict: str := " = " || conv_opfun("string", "_predict") || "("
+    own concat: str := conv_opfun("string", "_concat") || "("
+
+    % Gets the list of strings that is being concatenated.
+    strs: as := g_exprlist(e, get_cated_str(ivk), false)
+
+    t1 : str := lv$new_temp(e.rtype)
+    indent: str := ""
+    for i: int in int$from_to(1, str$size(t1) + 3) do
+	indent := indent || " "
+    end
+    indent := indent || "+ "
+
+    % Generates code that computes the size of the result.
+    co: code_man := e.co
+    high: int := as$high(strs)
+    for i: int in as$indexes(strs) do
+	sz: str := size || strs[i] || ")"
+	if i = 1 then
+	    code_man$putl(co, t1 || " = " || sz)
+	elseif i < high then
+	    code_man$putl(co, indent || sz)
+	else
+	    code_man$putl(co, indent || sz || ";")
+	end
+    end
+
+    % Generates code that allocates and fills the result.
+    t2: str := lv$new_temp(e.rtype)
+    code_man$putl(co, t2 || predict || t1 || ");")
+    for s: str in as$elements(strs) do
+	code_man$putl(co, concat || t2 || ", " || s || ");")
+    end
+
+    % Returns the name of the temporary variable that denotes the
+    % result.
+    return(t2)
+end opt_strcat
+
+
+% Traverses the tree structure of STRING$CONCAT, where any expr other
+% than an invocation of STRING$CONCAT is considered to be one node,
+% and returns all leafs of the tree.
+
+get_cated_str = proc(ivk: invoke) returns(exprlist)
+    exprrow = array[expr]
+    own strs: exprrow := exprrow$new()
+    own stack: exprrow := exprrow$new()
+
+    exprrow$trim(strs, 1, 0)
+    exprrow$trim(stack, 1, 0)
+    args: exprlist := ivk.args
+    exprrow$addh(stack, args[2])
+    x: expr := args[1]
+    while true do
+	if is_string_concat(x) then
+	    args := exprabs$value_invoke(x.abs).args
+	    exprrow$addh(stack, args[2])
+	    x := args[1]
+	else
+	    exprrow$addh(strs, x)
+	    x := exprrow$remh(stack)
+		except when bounds:
+		    break
+		end
+	end
+    end
+    return(exprlist$a2s(strs))
+end get_cated_str
+
+
+% Returns true iff X is an invocation of STRING$CONCAT.
+
+is_string_concat = proc(x: expr) returns(bool)
+    tagcase x.abs
+    tag invoke(inv: invoke):
+	tagcase inv.apply.abs
+	tag op(cluop: clusterop):
+	    if cluop.name = "concat" then
+		tagcase cluop.type_.abs
+		tag cluster_(clut: clutype):
+		    if clut.gen.unique = "string" then
+			return(true)
+		    end
+		others:
+		end
+	    end
+	others:
+	end
+    others:
+    end
+    return(false)
+end is_string_concat

@@ -1,0 +1,604 @@
+% main.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: main.clu,v 2.1 1996/10/07 03:08:56 ushijima Exp $
+
+
+% CONTENTS
+%	start_up
+%	process_comment
+%	print_args
+%	instantiate_apply
+%	instantiate_cluop
+%	instantiate_selop
+%	check_formal
+%	routine_gen
+%	subst
+%	emit
+%	set_builtin_invokes
+%	sel_id
+%	type_id
+%	out_stream
+
+% This file contais top level procedures.
+
+
+start_up = proc()
+    ee: e_env := e_env$get()
+    fnames: fnamelist, opt: option := arguments()
+	except when bad_arg(mesg: str):
+	    e_env$err1(ee, mesg)
+	    e_env$err1(ee, usage())
+	    return
+	end
+    set_builtin_invokes()
+    if opt.extract then
+	extract(fnames, opt.outfile)
+	return
+    end
+    for comment: str in read_comments(fnames) do
+	process_comment(comment)
+    end
+    errs: int := ee.comerrs
+    if errs > 0 then
+	e_env$err(
+	    ee,
+	    ss$[
+		int$unparse(errs),
+		" errors in comments --- stopped with no output"
+	    ]
+	)
+	return
+    end
+    fix_invokes()
+    enter_typeid()
+    emit(opt.outfile)
+end start_up
+
+
+% Extracts comments that make sense for plink from files specified in
+% _fnames_ and puts them to _outfile_.
+
+extract = proc(fnames: fnamelist, outfile: str)
+    outst: stream := out_stream(outfile)
+	except when open_failed:
+	    return
+	end
+    for comment: str in read_comments(fnames) do
+	stat: comment_status := process_comment(comment)
+	if stat = related then
+	    stream$puts(outst, "/* ")
+	    stream$puts(outst, comment)
+	    stream$putl(outst, " */")
+	end
+    end
+    stream$close(outst)
+	except when not_possible(*):
+	    stream$abort(outst)
+	end
+end extract
+
+
+% Processes one comment _comm_ and returns the status (kind?) of the
+% comment.  The result is _unrelated_ if plink has nothing to do with
+% the comment; _related_ if the comment makes sense for plink and
+% there is no error; _invalid_ if the comment seems to make sense for
+% plink but there is some errors.  It is assumed _comm_ is not empty.
+
+process_comment = proc(comm: str) returns(comment_status)
+    stat: comment_status := unrelated
+    ee: e_env := e_env$get()
+    comment: as := split(comm)
+    first: str := comment[1]
+    if first = "built-in param" then
+	stat := related
+	tgenname, opgenname: str := split_opname(comment[2])
+	    except when bad_format:
+		e_env$comerr(
+		    ee,
+		    ss$["`", comment[2], "\' is not an operation"]
+		)
+		return(invalid)
+	    end
+	i: op_instantiation := op_instantiation${
+	    tgen: tgenname,
+	    opgen: opgenname,
+	    tparms: comment[5],
+	    opparms: "",
+	    entryp: comment[3],
+	    caller: comment[4],
+	    has_formal: comment[3] = "formal"
+	}
+	if builtin_selector(tgenname) then
+	    instantiate_selop(i)
+	else
+	    instantiate_cluop(i)
+	end
+    elseif first = "param_mod_call" then
+	stat := related
+	kind: str := comment[2]
+	if kind = "apply" then
+	    instantiate_apply(
+		apply_instantiation${
+		    gen:        comment[4],
+		    parms:      comment[6],
+		    entryp:     comment[3],
+		    caller:     comment[5],
+		    has_formal: comment[3] = "formal"
+		}
+	    )
+	elseif kind = "clop" then
+	    i: int := str$indexc('[', comment[5])
+	    tgen, tparms: str
+	    if i = 0 then
+		tgen := comment[5]
+		tparms := ""
+	    else
+		tgen := str$substr(comment[5], 1, i - 1)
+		j: int := str$size(comment[5])
+		tparms := str$substr(comment[5], i + 1, j - i - 1)
+	    end
+	    opparms: str
+	    if comment[7] = "no_param" then
+		opparms := ""
+	    else
+		opparms := comment[7]
+	    end
+	    instantiate_cluop(
+		op_instantiation${
+		    tgen:       tgen,
+		    opgen:      comment[6],
+		    tparms:     tparms,
+		    opparms:    opparms,
+		    entryp:     comment[3],
+		    caller:     comment[4],
+		    has_formal: comment[3] = "formal"
+		}
+	    )
+	elseif kind = "force" then
+	    instantiate_apply(
+		apply_instantiation${
+		    gen:        "force",
+		    parms:      comment[5],
+		    entryp:     comment[3],
+		    caller:     comment[4],
+		    has_formal: comment[3] = "formal"
+		}
+	    )
+	    gen: appgen := appgen$create("force")
+	    gen.nr_args := 1
+	else
+	    % bad format comment
+	    e_env$comerr(ee, ss$["second field `", kind, "\' invalid"])
+	    stat := invalid
+	end
+    elseif first = "param_mod_decl" then
+	stat := related
+	kind: str := comment[2]
+	if kind = "cluster" then
+	    nr_parms: int := int$parse(comment[4])
+		except when bad_format:
+		    e_env$comerr(
+			ee,
+			ss$["`", comment[4], "\' is not a number"]
+		    )
+		    stat := invalid
+		end
+	    if stat ~= invalid then
+		clugen$create(comment[3])
+		    except when conflict:
+			e_env$comerr(
+			    ee,
+			    ss$["redeclaration of `", comment[3], "\'"]
+			)
+			stat := invalid
+		    end
+	    end
+	elseif kind = "apply" then
+	    appgen$create(comment[4]).nr_args := int$parse(comment[3])
+		except
+		when bad_format:
+		    e_env$comerr(
+			ee,
+			ss$["`", comment[3], "\' is not a number"]
+		    )
+		    stat := invalid
+		when conflict:
+		    e_env$comerr(
+			ee,
+			ss$["redeclaration of `", comment[3], "\'"]
+		    )
+		    stat := invalid
+		end
+	elseif kind = "clus_op" then
+	    cgen: clugen := clugen$create(comment[4])
+		except when conflict:
+		    e_env$comerr(
+			ee,
+			ss$["redeclaration of `", comment[4], "\'"]
+		    )
+		    stat := invalid
+		end
+	    if stat ~= invalid then
+		ogen: appgen := appgen$create_cluop(comment[5], cgen)
+		ogen.nr_args := int$parse(comment[3])
+		    except when bad_format:
+			e_env$comerr(
+			    ee,
+			    ss$["`", comment[3], "\' is not a number"]
+			)
+			stat := invalid
+		    end
+	    end
+	else
+	    % bad format comment
+	    e_env$comerr(ee, ss$["second field `", kind, "\' invalid"])
+	    stat := invalid
+	end
+    elseif first = "own_var" then
+	stat := related
+	mod: str := comment[2]
+	gen: generator := gentab$lookup(mod)
+	    except when not_found:
+		gen := generator$make_app(routine_gen(mod))
+	    end
+	decl: str := comment[3]
+	tagcase gen
+	tag clu(g: clugen):
+	    clugen$add_own_var(g, decl)
+	tag app(g: appgen):
+	    appgen$add_own_var(g, decl)
+	others:
+	end
+    elseif first = "tid" then
+	stat := related
+	caller: appgen := routine_gen(comment[3])
+	tp: tparm := parameter$value_tparm(parse_parmlist(comment[4])[1])
+	tidvar: str := comment[2]
+	if formal_tparm(tp) then
+	    appgen$add_type(caller, tp, tidvar)
+	else
+	    tagcase tp
+	    tag clu(inst: cluinst):
+		cluinst$add_tidvar(inst, tidvar)
+	    tag sel(inst: selinst):
+		selinst$add_tidvar(inst, tidvar)
+	    others:
+		% can't happen...
+	    end
+	end
+    end
+	except when bounds:
+	    e_env$comerr1(ee, "too few fields")
+	    stat := invalid
+	end
+    return(stat)
+end process_comment
+
+
+instantiate_apply = proc(i: apply_instantiation)
+    gen: appgen := appgen$create(i.gen)
+    caller: appgen := routine_gen(i.caller)
+    parms: parmlist := parse_parmlist(i.parms)
+    inst: appinst := appinst$create(gen, parms)
+    if i.has_formal then
+	appgen$add_invoke(caller, inst)
+    else
+	appinst$add_entry_pointer(inst, i.entryp)
+    end
+end instantiate_apply
+
+
+instantiate_cluop = proc(i: op_instantiation)
+    caller: appgen := routine_gen(i.caller)
+    check_formal(i.tgen)
+	except when formal(id: int):
+	    oinst: appinst := appinst$create_formalop(
+		id,
+		appgen$create_formalop(i.opgen, id),
+		parse_parmlist(i.opparms)
+	    )
+	    appgen$add_invoke(caller, oinst)
+	    return
+	end
+    tgen: clugen := clugen$create(i.tgen)
+    cinst: cluinst := cluinst$create(tgen, parse_parmlist(i.tparms))
+    oinst: appinst := appinst$create_cluop(
+	cinst,
+	appgen$create_cluop(i.opgen, tgen),
+	parse_parmlist(i.opparms)
+    )
+    if i.has_formal then
+	appgen$add_invoke(caller, oinst)
+    else
+	appinst$add_entry_pointer(oinst, i.entryp)
+    end
+end instantiate_cluop
+
+
+instantiate_selop = proc(i: op_instantiation)
+    tgen: selgen := selgen$create(i.tgen)
+    caller: appgen := routine_gen(i.caller)
+    oinst: appinst := appinst$create_selop(
+	selinst$create(tgen, parse_fieldspeclist(i.tparms)),
+	appgen$create_selop(i.opgen, tgen),
+	parmlist$new()
+    )
+    if i.has_formal then
+	appgen$add_invoke(caller, oinst)
+    else
+	appinst$add_entry_pointer(oinst, i.entryp)
+    end
+end instantiate_selop
+
+
+check_formal = proc(s: str) signals(formal(int))
+    i: int := str$indexs("formal", s)
+    if i ~= 1 then
+	return
+    end
+    max: int := str$size(s)
+    while max > 0 do
+	if s[max] ~= '_' then
+	    break
+	end
+	max := max - 1
+    end
+    if max = str$size(s) then
+	return
+    end
+    % s[7] .. s[max] represents id.
+    signal formal(int$parse(str$substr(s, 7, max - 6)))
+	except when bad_format: end
+end check_formal
+
+% Returns the routine generator that corresponds to _r_.
+
+routine_gen = proc(r: str) returns(appgen) signals(bad_format)
+    genname, opname: str := split_opname(r)
+	except when bad_format:
+	    % not an operation, but a procedure/iterator
+	    return(appgen$create(r))
+	end
+    % cluster/selector operation
+    if builtin_selector(genname) then
+	return(appgen$create_selop(opname, selgen$create(genname)))
+    else
+	return(appgen$create_cluop(opname, clugen$create(genname)))
+    end
+end routine_gen
+
+fix_invokes = proc()
+    for gen: generator in gentab$generators() do
+	tagcase gen
+	tag clu(g: clugen):
+	    clugen$fix_invokes(g)
+	tag sel(g: selgen):
+	    selgen$fix_invokes(g)
+	tag app(g: appgen):
+	    appgen$fix_invokes(g)
+	end
+    end
+end fix_invokes
+
+enter_typeid = proc()
+    db:db_env := db_env$get()
+
+    if ~db.debug then
+	return
+    end
+
+    for gen: generator in gentab$generators() do
+	tagcase gen
+	tag clu(g: clugen):
+	    clugen$enter_typeid(g)
+	tag sel(g:selgen):
+	    selgen$enter_typeid(g)
+	others :
+	end
+    end
+end enter_typeid
+
+emit = proc(outfile: str)
+    ee: e_env := e_env$get()
+    outst: stream := out_stream(outfile)
+	except when open_failed:
+	    return
+	end
+
+    db:db_env := db_env$get()
+    stream$putl(outst, "/* Generated by plink */")
+    if db.debug then
+	stream$putl(outst, "/* option, debug */")
+    end
+    stream$putc(outst, '\n')
+    stream$putl(outst, "#include <clu2c.h>")
+    
+    if db.debug then
+	stream$putc(outst, '\n')
+	stream$putl(outst, "/* type ID */")
+	stream$putc(outst, '\n')
+	for gen: generator in gentab$generators() do
+	    tagcase gen
+	    tag clu(g: clugen):
+		clugen$emit_typeid(g, outst)
+	    tag sel(g: selgen):
+		selgen$emit_typeid(g, outst)
+	    others :
+	    end
+	end
+    end
+
+    stream$putc(outst, '\n')
+    stream$putl(outst, "/* Declarations of entry functions */")
+    stream$putc(outst, '\n')
+    for gen: generator in gentab$generators() do
+	tagcase gen
+	tag clu(g: clugen):
+	    clugen$emit_fundecl(g, outst)
+	tag sel(g: selgen):
+	    selgen$emit_fundecl(g, outst)
+	tag app(g: appgen):
+	    appgen$emit_fundecl(g, outst)
+	end
+    end
+    stream$putc(outst, '\n')
+    stream$putl(outst, "/* Definitions of entry pointers */")
+    stream$putc(outst, '\n')
+    for gen: generator in gentab$generators() do
+	tagcase gen
+	tag clu(g: clugen):
+	    clugen$emit_ptrdefn(g, outst)
+	tag sel(g: selgen):
+	    selgen$emit_ptrdefn(g, outst)
+	tag app(g: appgen):
+	    appgen$emit_ptrdefn(g, outst)
+	end
+    end
+    stream$putc(outst, '\n')
+    stream$putl(outst, "/* Definitions of type ID's */")
+    for gen: generator in gentab$generators() do
+	tagcase gen
+	tag clu(g: clugen):
+	    clugen$emit_types(g, outst)
+	tag sel(g: selgen):
+	    selgen$emit_types(g, outst)
+	tag app(g: appgen):
+	    appgen$emit_types(g, outst)
+	end
+    end
+    stream$putc(outst, '\n')
+    stream$putl(outst, "/* Definitions of entry functions */")
+    for gen: generator in gentab$generators() do
+	tagcase gen
+	tag clu(g: clugen):
+	    clugen$emit_fundefn(g, outst)
+	tag sel(g: selgen):
+	    selgen$emit_fundefn(g, outst)
+	tag app(g: appgen):
+	    appgen$emit_fundefn(g, outst)
+	end
+    end
+    stream$close(outst)
+	except when not_possible(*):
+	    stream$abort(outst)
+	end
+end emit
+
+
+% Puts, to _outst_, the definions of C array variables corresponding
+% to own vairlables specified in _owns_ with size specified in _size_.
+% If _owner_ is nonempty, _owner_ is used for comment.
+
+emit_owns = proc(owner: str, owns: as, size: int, outst: stream)
+    if as$empty(owns) then
+	return
+    end
+    stream$putc(outst, '\n')
+    stream$puts(outst, "/* own variables")
+    if ~str$empty(owner) then
+	stream$puts(outst, " of ")
+	stream$puts(outst, owner)
+    end
+    stream$putl(outst, " */")
+    stream$putc(outst, '\n')
+    sz: str := int$unparse(size)
+    for decl: str in as$elements(owns) do
+	stream$puts(outst, decl)
+	if size > 0 then
+	    stream$puts(outst, "[")
+	    stream$puts(outst, sz)
+	    stream$puts(outst, "]")
+	end  
+	stream$putl(outst, ";")
+    end
+end emit_owns
+
+
+set_builtin_invokes = proc()
+    emptyparms: parmlist := parmlist$new()
+    for entry: b_entry in b_entrylist$elements(builtin_cluop_invokes) do
+	cgen: clugen := clugen$create(entry.gen)
+	for invoke: b_invoke in b_invokelist$elements(entry.ops) do
+	    ogen: appgen := appgen$create_cluop(invoke.caller, cgen)
+	    appgen$add_invoke(
+		ogen,
+		appinst$create_formalop(
+		    1,
+		    appgen$create_formalop(invoke.callee, 1),
+		    emptyparms
+		)
+	    )
+	    ogen.nr_args := invoke.nr_args
+	end
+    end
+    for entry: b_entry in b_entrylist$elements(builtin_selop_invokes) do
+	sgen: selgen := selgen$create(entry.gen)
+	for invoke: b_invoke in b_invokelist$elements(entry.ops) do
+	    ogen: appgen := appgen$create_selop(invoke.caller, sgen)
+	    callee: str := invoke.callee
+	    if ~str$empty(callee) then
+		appgen$add_invoke(
+		    ogen,
+		    appinst$create_formalop(
+			0,
+			appgen$create_formalop(callee, 0),
+			emptyparms
+		    )
+		)
+	    end
+	    ogen.nr_args := invoke.nr_args
+	end
+    end
+end set_builtin_invokes
+
+sel_id = proc(parms: fieldspeclist, op: str) returns(int)
+					     signals(not_found)
+    sel: str := str$rest(op, str$indexc('_', op) + 1)
+    for i: int in fieldspeclist$indexes(parms) do
+	fspec: fieldspec := parms[i]
+	if fspec.sel = sel then
+	    return(i)
+	end
+    end
+    signal not_found
+end sel_id
+
+type_id = proc(tp: tparm) returns(int)
+    own types: tparmlist := tparmlist$new()
+    for id: int in tparmlist$indexes(types) do
+	if tparm$similar(types[id], tp) then
+	    return(id)
+	end
+    end
+    tparmlist$addh(types, tp)
+    return(tparmlist$high(types))
+end type_id
+
+
+% Tries to open an output stream corresponding to the filename _fn_,
+% where "-" is interpreted as the standard output.  Puts error
+% messages to _e_env_ and signals _open_failed_ If _fn_ is in bad
+% format as a filename or the attempt to open the stream failed;
+% otherwise returns the acquired stream.
+
+
+out_stream = proc(fn: str) returns(stream) signals(open_failed)
+    ee: e_env := e_env$get()
+    if fn = "-" then
+	return(stream$primary_output())
+    else
+	return(stream$open(file_name$parse(fn), "write"))
+	    except
+	    when bad_fomat:
+		e_env$err(ee, ss$[fn, ": bad format filename"])
+		signal open_failed
+	    when not_possible(why: str):
+		e_env$err(ee, ss$[fn, ": ", why])
+		signal open_failed
+	    end
+    end
+end out_stream

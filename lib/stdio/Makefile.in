@@ -1,0 +1,23 @@
+dnl $Id: Makefile.in,v 2.1 1997/02/05 11:15:08 ushijima Exp $
+include(`mk.m4')
+MK_REQUIRE(`archive')
+MK_REQUIRE(`clusrc')
+MK_REQUIRE(`csrc')
+MK_CURRENT_DIRECTORY(`lib', `stdio')
+MK_ARCHIVE_NAME(`../libclu2c.a')
+MK_APPEND_VARIABLE(`DEFAULT_CFLAGS', `-I$(topdir)')
+MK_SPC_DIRECTORY(`$(clu2c_libdir)')
+MK_CLU_SOURCES(`date.clu del_file.clu e_form.clu f_form.clu fname.clu')
+MK_CLU_SOURCES(`g_form.clu now.clu ren_file.clu set_wdir.clu username.clu')
+MK_CLU_SOURCES(`wdir.clu')
+MK_C_SOURCES(`istream.c stream.c')
+MK_MISC_SOURCES(`LIB.xld')
+MK_APPEND_PREREQ(`all', `$(POUT).c')
+MK_APPEND_PREREQ(`install', `all')
+MK_DEFINE_RULE(`stream_o',
+	`stream.o',
+	`$(srcdir)/stream.c',
+	`$(CC) $(ALL_CFLAGS) -I$(top_srcdir)/lib/jaio -c $(srcdir)/stream.c')
+MK_SPECIFIC_RULES
+MK_RULE_DEFINITION(`stream_o', `Creates stream.o')
+MK_END

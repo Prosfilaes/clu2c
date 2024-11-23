@@ -1,0 +1,175 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Wed Feb  5 11:14:25 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (all): Added `$(POUT).c' to the list of
+        prerequisites.
+
+	* terminat.clu, system.clu, intxunpa.clu, intxpars.clu,
+	intounpa.clu, intopars.clu, getenv.clu, clurt.c: Doc fix.
+
+Tue Feb  4 12:50:04 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* pstream.clu: New file moved from the `lib/compat/libclu'
+        directory.
+	* Makefile.in: Changed accordingly.
+
+	* pstream.spc: New file moved from the `lib/compat' directory.
+	* Makefile.in: Changed accordingly.
+
+	* f_date.clu, f_exists.clu: New files moved from the
+        `lib/compat/libasm' directory.
+	* Makefile.in: Changed accordingly.
+
+Fri Jan 31 12:51:16 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* machword.clu: Removed.
+	* Makefile.in: Changed accordingly.
+
+Sun Jan 26 07:38:15 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* intopars.clu, intounpa.clu, intxpars.clu, intxunpa.clu: New
+        files.
+	* Makefile.in: Changed accordingly.
+
+Fri Jan 24 09:57:41 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clurt.c: Doc fix.
+
+Thu Jan 23 13:24:44 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* getenv.clu, system.clu, terminat.clu: New files.
+	* Makefile.in: Changed accordingly.
+
+	* clurt.c: Use `object' instead of `elt'.
+
+Mon Oct  7 05:06:52 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* acos.c: Include <clu2c.h> instead of <clu2c/clu2c.h>,
+	<clu2c/type.h>, and <clu2c/glo.h>.
+	* asin.c: Ditto.
+	* atan.c: Ditto.
+	* atan2.c: Ditto.
+	* clurt.c: Ditto.
+	* cos.c: Ditto.
+	* cosh.c: Ditto.
+	* dfltroot.c: Ditto.
+	* exp.c: Ditto.
+	* log.c: Ditto.
+	* log10.c: Ditto.
+	* sin.c: Ditto.
+	* sinh.c: Ditto.
+	* sqrt.c: Ditto.
+	* tan.c: Ditto.
+	* tanh.c: Ditto.
+
+Sat Oct  5 13:57:37 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* getopt.clu (short_options): Fixed a bug that the `optind'
+	component is over-incremented if a required argument to an option
+	is missing.  The impact is that a subsequent invocation of
+	`get_non_options' raises the `failure' exception.
+
+Sun Jun 30 12:56:25 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* machword.clu: New file.
+	* Makefile.in: Change accordingly.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sun Jun  9 10:32:05 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* fn_f_dir.clu (file_name_fill_directory): Apply
+	`file_name_expand_home_directory' after applying the working
+	directory, which may start with a tilde.
+
+Sat Jun  8 08:36:07 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* version.equ: Removed.  Now this file is generated automatically.
+	* Makefile.in: Changed accordingly.
+
+Wed May 22 08:55:18 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* fn_f_dir.clu (file_name_fill_directory): Always return an
+        absolute file name.
+
+	* fn_isabs.clu (file_name_is_absolute): Return `true' if the
+        directory component starts with `~'.
+
+	* fn_tostr.clu (file_name_to_string): Use
+        `file_name_apply_directory' instead of `file_name_fill_directory'
+        and expand tilde-notation by itself.
+
+Wed May 15 14:24:58 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (mkdfltrt.exe): Invoke coff2exe only if DJGPP is
+        defined to 1.
+
+Sun May 12 06:40:50 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* _fs_dos.clu, _fs_unix.clu, acos.c, asin.c, atan.c, atan2.c,
+        clurt.c, cos.c, cosh.c, cur_dir.clu, de_names.clu, dfltroot.c,
+        dir_fn.clu, exp.c, fn_abs.clu, fn_apply.clu, fn_asdir.clu,
+        fn_drive.clu, fn_f_dir.clu, fn_f_suf.clu, fn_isabs.clu,
+        fn_nodir.clu, fn_pdir.clu, fn_simpl.clu, fn_tostr.clu,
+        fn_xhome.clu, home_dir.clu, log.c, log10.c, mkdfltrt.c, rtenv.clu,
+        sin.c, sinh.c, split_de.clu, sqrt.c, tan.c, tanh.c, version.equ:
+        Doc fix.
+
+Sat Apr 27 13:35:06 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* home_dir.clu (home_directory): Use `rt_env' instead of
+	`_system_root' when the argument is "CLU".
+
+	* _fs_dos.clu, _fs_unix.clu, cur_dir.clu, de_names.clu,
+        dir_fn.clu, fn_abs.clu, fn_apply.clu, fn_asdir.clu, fn_drive.clu,
+        fn_f_dir.clu, fn_f_suf.clu, fn_isabs.clu, fn_nodir.clu,
+        fn_pdir.clu, fn_simpl.clu, fn_tostr.clu, fn_xhome.clu,
+        home_dir.clu, split_de.clu: New files.  These files has been moved
+        from the `lib/stdio' directory.
+	* Makefile.in: Changed accordingly.
+	
+	* math.spc, acos.c, asin.c, atan.c, atan2.c, cos.c, cosh.c, exp.c,
+	log.c, log10.c, sin.c, sinh.c, sqrt.c, tan.c, tanh.c: New files.
+	These files has been moved from the `lib/math' directory.
+	* Makefile.in: Changed accordingly.
+
+	* SPC.xld: Removed.
+	* LIB.xld: New file.
+	* Makefile.in: Changed accordingly.
+
+	* clurt.c, dfltroot.c, mkdfltrt.c, rtenv.clu, version.equ: New
+        files.  These files has been moved from the `lib/runtime'
+        direcotry.
+	* dfltroot.spc: New file.
+	* Makefile.in: Changed accordingly.
+
+	* Makefile.in: Removed `remove.bat' from the list of non-source
+        files.
+
+Wed Apr 24 18:41:44 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* getopt.clu (get_opterr, set_opterr, set_output): New operations.
+	(rep, create_long, short_options, parse_long_option, error,
+        error_long): Changed accordingly.
+
+	* getopt.clu (get_optname): New operation.
+	(rep, create_long, options, short_options, parse_long_option):
+        Changed accordingly.
+
+	* getopt.equ: Doc fix.
+
+	* Makefile.in (install): Install `getopt.equ'.
+
+Tue Apr 23 14:13:52 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld, README, Makefile.in: New files.
+
+Mon Apr 22 13:54:35 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* filetype.clu, getopt.clu, getopt.equ, input_st.clu,
+	progargs.clu, progname.clu: New files.

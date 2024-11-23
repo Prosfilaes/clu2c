@@ -1,0 +1,704 @@
+% top1.clu - top-level routines (part 1)
+%
+% This file was derived from PCLU distribution (as of 11/18/93), and
+% has been modified by Department of Mathematical and Computing
+% Sciences, Tokyo Institute of Technology.
+%
+% Conditions for using, copying, modifying, and distributing this
+% file are the same as those of PCLU.
+%
+% $Id: top1.clu,v 2.17 1997/01/25 12:04:42 ushijima Exp $
+
+
+%  Copyright	Massachusetts Institute of Technology     1989
+%	TOP1 CLU
+%
+%	CLU compiler: top level
+
+start_up = proc ()
+	initialize_compiler()
+	% first try argument vector
+	begin
+	    tyo: stream := stream$primary_output()
+	    cline: command_line := command_line$argument_vector(tyo)
+		except when bad_format:
+		    stream$flush(tyo)
+			except when not_possible(*): end
+		    signal failure("")
+		end
+	    tyo := fake_stream()
+	    stream$reset(tyo)
+	    process_commands(cline, tyo, from_argv_)
+		except when unsuccessful: signal failure("") end
+	    return
+	end
+	    except when empty: end	
+	% argument vector is empty: read commands from primary input
+	tyo: stream := stream$primary_output()
+	begin
+	stream$puts(tyo, "clu2c ")
+	stream$putl(tyo, cmpvar$version())
+	end except when not_possible(*): end
+	tyi: stream := stream$primary_input()
+	ok: bool := true
+	while true do
+		tyi.prompt := "(clu2c) "
+		line: str := stream$getl(tyi)
+		tyi.prompt := ""
+		process_commands(command_line$create(line), tyo, from_stdin_)
+		   except when unsuccessful: ok := false end
+		end except when end_of_file: end
+	if ~ok
+	   then signal failure("") end
+	end start_up
+
+process_commands = proc (cline: command_line, tyo: stream, from: int)
+		   signals(unsuccessful)
+	rtyo: stream := tyo
+	if command_line$has_ofile(cline)
+	   then rtyo := get_outstream(cline.ofile, tyo)
+		if from = from_argv_
+		   then errs: str := tyo.contents
+			if ~str$empty(errs)
+			   then stream$reset(tyo)
+				stream$putl(rtyo, errs)
+				   except when not_possible (*): end
+			   end
+		   end
+	elseif from = from_argv_
+	   then rtyo := stream$primary_output() end
+	isterm: bool := stream$is_terminal(rtyo)
+	ok: bool := true
+	for comm: command in command_line$commands(cline) do
+		command$execute(comm, rtyo)
+		    except when unsuccessful:
+			ok := false
+		    end
+		end
+	if rtyo ~= tyo
+	   then stream$flush(rtyo)
+		    except when not_possible (*): end
+		stream$close(rtyo)
+		    except when not_possible (*): stream$abort(rtyo) end
+		if ~isterm  cand  stream$is_terminal(tyo)
+		   then dump_file(rtyo.name, tyo) end
+	   end
+	if ~ok
+	   then signal unsuccessful end
+	end process_commands
+
+fake_stream = proc () returns (stream)
+	own fake: stream := stream$create_output()
+	return(fake)
+	end fake_stream
+
+get_outstream = proc (fs: str, tyo: stream) returns (stream)
+	if ~str$empty(fs)
+	   then fn: fname, subst: bool := make_file_name(fs, "", tyo)
+		return(open_stream(fn, "write", tyo))
+	   end except when bad_format, open_failed: end
+	return(open_stream(junk_name(), "write", tyo))
+	   except when open_failed: end
+	if tyo = fake_stream()
+	   then tyo := stream$primary_output() end
+	return(tyo)
+	end get_outstream	
+
+make_file_name = proc (fs: str, suffix: str, tyo: stream) returns (fname, bool)
+							  signals (bad_format)
+	fn: fname := fname$parse(fs)
+	   except when bad_format:
+			begin
+			stream$puts(tyo, "bad format file name - ")
+			stream$putl(tyo, fs)
+			end except when not_possible (*): end
+			signal bad_format
+		       end
+	return(file_name_fill_suffix(fn, suffix), str$empty(fn.suffix))
+	end make_file_name
+
+check_file_name = proc (fn: fname) returns (fname)
+	if ~file_exists(fn)  cand
+	   ~str$empty(fn.suffix)  cand  str$empty(fn.other)
+	   then fn1: fname := fn
+		if fn1.suffix = "spc"
+		   then fn1 := fname$create(fn1.dir, fn1.name, "clu", "")
+			if file_exists(fn1)
+			   then return(fn1) end
+		   end
+		fn1 := fname$create(fn.dir, fn.name, "", "")
+		if file_exists(fn1)
+		   then return(fn1) end
+	   end except when not_possible (*): end
+	return(fn)
+	end check_file_name
+
+open_stream = proc (fn: fname, mode: str, tyo: stream) returns (stream)
+						       signals (open_failed)
+	if mode ~= "write"
+	   then fn := check_file_name(fn) end
+	return(stream$open(fn, mode))
+	   except when not_possible (why: str):
+			begin
+			if mode = "read"
+			   then stream$puts(tyo, "reading ")
+			   else stream$puts(tyo, "writing ")
+			   end
+			stream$puts(tyo, fname$unparse(fn))
+			stream$puts(tyo, ": ")
+			stream$putl(tyo, why)
+			end except when not_possible (*): end
+			signal open_failed
+		  end
+	end open_stream
+
+binsuf_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	assure_few_args(name, args, tyo, 1)
+	   resignal unsuccessful
+	suffix: str := fname$create("", "", args[1], "").suffix
+	   except when bounds:
+			suffix := ""
+		  when bad_format:
+			command_error(tyo, name,
+				      args[1] || ": bad format suffix")
+			signal unsuccessful
+		  end
+	cmpvar$set_suffix(suffix)
+	end binsuf_execute
+
+ce_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	ok: bool := compile(ce_, args, tyo)
+	if ~ok
+	   then signal unsuccessful end
+	end ce_execute
+
+char_version_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	version: int := integer_argument(name, args, tyo)
+	   resignal unsuccessful
+	maybe_g_env$value_one(cmpvar$stuffs().genv).char_version := version
+	   except when wrong_version:
+			command_error(tyo, name, args[1] || ": wrong version")
+			signal unsuccessful
+		  end	
+	end char_version_execute
+
+check_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	assure_nonempty_args(name, args, tyo)
+	   resignal unsuccessful
+	ok: bool := compile(check_, args, tyo)
+	if ~ok
+	   then signal unsuccessful end
+	end check_execute
+
+compile_execute = proc (name: str, args: as, tyo: stream)
+		  signals (unsuccessful)
+	assure_nonempty_args(name, args, tyo)
+	   resignal unsuccessful
+	ok: bool := compile(binary_, args, tyo)
+	if ~ok
+	   then signal unsuccessful end
+	end compile_execute
+
+debug_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	cmpvar$set_debug(boolean_argument(name, args, tyo))
+	   resignal unsuccessful
+	end debug_execute
+
+dump_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	if as$size(args) ~= 1
+	   then command_error(tyo, name, "exactly 1 argument is required")
+		signal unsuccessful
+	   end
+	fn: fname := file_name_fill_suffix(fname$parse(args[1]), "lib")
+	   except when bad_format:
+			command_error(tyo, name,
+				      args[1] || ": bad format file name")
+			signal unsuccessful
+		  end
+	fn := XLIB$dump(fn)
+	   except when not_possible (why: str):
+			command_error(tyo, name, why)
+			signal unsuccessful
+		  end
+	begin
+	stream$puts(tyo, "Dumped to ")
+	stream$putl(tyo, fname$unparse(fn))
+	end except when not_possible (*): end
+	end dump_execute
+
+expunge_execute = proc (name: str, args: as, tyo: stream)
+		  signals (unsuccessful)
+	cmpvar$set_expunge(boolean_argument(name, args, tyo))
+	   resignal unsuccessful
+	end expunge_execute
+
+externals_execute = proc (name: str, args: as, tyo: stream)
+		    signals (unsuccessful)
+	cmpvar$set_externals(boolean_argument(name, args, tyo))
+	   resignal unsuccessful
+	end externals_execute
+
+forget_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	assure_nonempty_args(name, args, tyo)
+	   resignal unsuccessful
+	successful: bool := true
+	for module: str in as$elements(args) do
+		DU$forget_specs(XLIB$lookup(module))
+		    except when not_found:
+				successful := false
+				command_error(tyo, name,
+					      module || ": not found")
+			   end
+		end
+	if ~successful
+	   then signal unsuccessful end
+	end forget_execute
+
+help_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	assure_few_args(name, args, tyo, 0)
+	   resignal unsuccessful
+	dump_file(help_name(), tyo)
+	end help_execute
+
+locals_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	cmpvar$set_locals(boolean_argument(name, args, tyo))
+	   resignal unsuccessful
+	command_error(tyo, name, "warning: this command has no effect")
+	end locals_execute
+
+make_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	assure_few_args(name, args, tyo, 0)
+	   resignal unsuccessful
+	ok: bool := compile(make_, args, tyo)
+	if ~ok
+	   then signal unsuccessful end
+	end make_execute
+
+merge_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	own suffixes: qs := qs$["lib"]
+	assure_nonempty_args(name, args, tyo)
+	   resignal unsuccessful
+	successful: bool := true
+	for fn: fname in all_input_file_names(args, suffixes, tyo) do
+		begin
+		stream$puts(tyo, "Merging ")
+		stream$puts(tyo, file_name_to_string(fn))
+		stream$flush(tyo)
+		end except when not_possible (*): end
+		XLIB$merge(fn)
+		   except when not_possible (why: str):
+				successful := false
+				stream$puts(tyo, ": ")
+				stream$puts(tyo, why)
+			  end except when not_possible (*): end
+		stream$putc(tyo, '\n')
+		   except when not_possible (*): end
+		end
+	if ~successful
+	   then signal unsuccessful end
+	end merge_execute
+
+newlib_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	assure_few_args(name, args, tyo, 0)
+	   resignal unsuccessful
+	DU$reset()
+	end newlib_execute
+
+optimize_execute = proc (name: str, args: as, tyo: stream)
+		   signals (unsuccessful)
+	assure_few_args(name, args, tyo, 1)
+	   resignal unsuccessful
+	arg: str := args[1]
+	   except when bounds: arg := "" end
+	if str$empty(arg)  cor  (~str$empty(arg)  cand  prefix(arg, "time"))
+	   then cmpvar$set_optimize_time()
+	elseif prefix(arg, "space")
+	   then cmpvar$set_optimize_space()
+	elseif prefix(arg, "false")
+	   then cmpvar$set_not_optimize()
+	else
+		command_error(tyo, name, arg || ": bad argument")
+		signal unsuccessful
+	end
+	end optimize_execute
+
+parse_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	assure_nonempty_args(name, args, tyo)
+	   resignal unsuccessful
+	ok: bool := compile(parse_, args, tyo)
+	if ~ok
+	   then signal unsuccessful end
+	end parse_execute
+
+quit_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	assure_few_args(name, args, tyo, 0)
+	   resignal unsuccessful
+	terminate(0)
+	end quit_execute
+
+safe_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	safe: bool := boolean_argument(name, args, tyo)
+	   resignal unsuccessful
+	if safe  cand  str$empty(cmpvar$modules())
+	   then begin
+		st: stream := stream$open(safety_name(), "read")
+		cmpvar$set_modules(stream$gets(st, ""))
+		stream$close(st)
+		end except when not_possible (why: str):
+				command_error(tyo, name,
+				   fname$unparse(safety_name()) || ": " || why)
+				signal unsuccessful
+			   end
+	elseif ~safe
+	   then cmpvar$set_modules("")
+	end
+	end safe_execute
+
+scompile_execute = proc (name: str, args: as, tyo: stream)
+		   signals (unsuccessful)
+	assure_nonempty_args(name, args, tyo)
+	   resignal unsuccessful
+	ok: bool := compile(specs_, args, tyo)
+		    cand  compile(binary_, args, tyo)
+	if ~ok
+	   then signal unsuccessful end
+	end scompile_execute
+
+specs_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	assure_nonempty_args(name, args, tyo)
+	   resignal unsuccessful
+	ok: bool := compile(specs_, args, tyo)
+	if ~ok
+	   then signal unsuccessful end
+	end specs_execute
+
+string_version_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	version: int := integer_argument(name, args, tyo)
+	   resignal unsuccessful
+	maybe_g_env$value_one(cmpvar$stuffs().genv).string_version := version
+	   except when wrong_version:
+			command_error(tyo, name, args[1] || ": wrong version")
+			signal unsuccessful
+		  end	
+	end string_version_execute
+
+unmerge_execute = proc (name: str, args: as, tyo: stream)
+		  signals (unsuccessful)
+	own suffixes: qs := qs$["lib"]
+	assure_nonempty_args(name, args, tyo)
+	   resignal unsuccessful
+	successful: bool := true
+	for fn: fname in all_input_file_names(args, suffixes, tyo) do
+		begin
+		stream$puts(tyo, "Unmerging ")
+		stream$puts(tyo, file_name_to_string(fn))
+		stream$flush(tyo)
+		end except when not_possible (*): end
+		XLIB$unmerge(fn)
+		   except when not_possible (why: str):
+				successful := false
+				stream$puts(tyo, ": ")
+				stream$puts(tyo, why)
+			  end except when not_possible (*): end
+		stream$putc(tyo, '\n')
+		   except when not_possible (*): end
+		end
+	if ~successful
+	   then signal unsuccessful end
+	end unmerge_execute
+
+xce_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	assure_nonempty_args(name, args, tyo)
+	   resignal unsuccessful
+	ok: bool := compile(xce_, args, tyo)
+	if ~ok
+	   then signal unsuccessful end
+	end xce_execute
+
+xfile_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	own suffixes: qs := qs$["xfile", "xf"]
+	assure_nonempty_args(name, args, tyo)
+	   resignal unsuccessful
+	ok: bool := true
+	for fn: fname in all_input_file_names(args, suffixes, tyo) do
+		st: stream := open_stream(fn, "read", tyo)
+		    except when open_failed: continue end
+		while true do
+			inl: str := stream$getl(st)
+			stream$putl(tyo, inl)
+			    except when not_possible (*): end
+			process_commands(command_line$create(inl),
+					 tyo,
+					 from_xfile_)
+			   except when unsuccessful: ok := false end
+			end
+		    except when end_of_file: end
+		stream$close(st)
+		end
+	if ~ok
+	   then signal unsuccessful end
+	end xfile_execute
+
+allow_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	cmpvar$set_allow(boolean_argument(name, args, tyo))
+	   resignal unsuccessful
+	end allow_execute
+
+force_execute = proc (name: str, args: as, tyo: stream) signals (unsuccessful)
+	cmpvar$set_force_(boolean_argument(name, args, tyo))
+	   resignal unsuccessful
+	command_error(tyo, name, "warning: this command has no effect")
+	end force_execute
+
+boolean_argument = proc (cmd: str, args: as, tyo: stream) returns (bool)
+		   signals (unsuccessful)
+	assure_few_args(cmd, args, tyo, 1)
+	   resignal unsuccessful
+	arg: str := args[1]
+	   except when bounds: return(true) end
+	if ~str$empty(arg)  cand  prefix(arg, "true")
+	   then return(true)
+	elseif ~str$empty(arg)  cand  prefix(arg, "false")
+	   then return(false)
+	else
+		command_error(tyo, cmd, arg || ": bad argument")
+		signal unsuccessful
+	end
+	end boolean_argument
+
+integer_argument = proc (cmd: str, args: as, tyo: stream) returns (int)
+		   signals (unsuccessful)
+	if as$size(args) ~= 1
+	   then command_error(tyo, cmd, "exactly 1 argument is required")
+		signal unsuccessful
+	   end
+	i: int := int$parse(args[1])
+	   except when bad_format:
+			command_error(tyo, cmd, args[1] || ": bad format")
+			signal unsuccessful
+		  end
+	return(i)
+	end integer_argument
+
+assure_nonempty_args = proc (cmd: str, args: as, tyo: stream)
+		       signals (unsuccessful)
+	if as$size(args) < 1
+	   then command_error(tyo, cmd, "at least 1 arguments are required")
+		signal unsuccessful
+	   end
+	end assure_nonempty_args
+
+assure_few_args = proc (cmd: str, args: as, tyo: stream, limit: int)
+		  signals (unsuccessful)
+	if as$size(args) > limit
+	   then command_error(tyo, cmd, "too many arguments")
+		signal unsuccessful
+	   end
+	end assure_few_args
+
+command_error = proc(tyo: stream, name, mesg: str)
+	cname: str := command$create(name, as$new()).canonical_name
+	begin
+	stream$puts(tyo, cname)
+	if name ~= cname then
+	    stream$puts(tyo, " (expanded from `")
+	    stream$puts(tyo, name)
+	    stream$puts(tyo, "\')")
+	end
+	stream$puts(tyo, ": ")
+	stream$putl(tyo, mesg)
+	end except when not_possible (*): end
+	end command_error
+
+prefix = proc(s, template: str) returns(bool)
+	for i: int in int$from_to(1, str$size(s)) do
+		c: char := s[i]
+		tc: char := template[i]
+		if c ~= tc
+		   cand  (char$c2i(tc) - char$c2i(c))
+			 ~= (char$c2i('a') - char$c2i('A'))
+		   then return(false) end
+		end except when bounds: return(false) end
+	return(true)
+	end prefix
+
+dump_file = proc (fn: fname, tyo: stream)
+	st: stream := open_stream(fn, "read", tyo)
+	   except when open_failed: return end
+	while true do
+		stream$putl(tyo, stream$getl(st))
+		end
+	    except when end_of_file, not_possible (*): end
+	stream$close(st)
+	stream$putc(tyo, '\n')
+	    except when not_possible (*): end
+	end dump_file
+
+
+all_input_file_names = iter (specs: as, suffixes: qs, output: stream)
+		       yields (fname)
+	for spec: str in as$elements(specs) do
+		for fn: fname in input_file_names(spec, suffixes, output) do
+			yield(fn)
+			end
+		end
+	end all_input_file_names
+
+input_file_names = iter (spec: str, suffixes: qs, output: stream)
+		   yields (fname)
+	for fn: fname in direct_input_specs(spec, output) do
+		for probe: fname in input_probes(fn, suffixes) do
+			for name: fname in matching_file_names(probe) do
+				yield(name)
+				end except when no_match: continue end
+    			exit done
+			end except when done: continue end
+		s: str := fname$unparse(fn)
+		if str$indexc('*', s) > 0
+		   then stream$puts(output, s)
+			stream$putl(output, ": no match")
+		   else yield(fn)
+		   end except when not_possible (*): end
+		end
+	end input_file_names
+
+input_probes = iter (fn: fname, suffixes: qs) yields (fname)
+	if str$empty(fn.suffix)
+	   then for suffix: str in qs$elements(suffixes) do
+			yield(fname$create(fn.dir, fn.name, suffix, fn.other))
+			end
+	   end
+	yield(fn)
+	end input_probes
+
+direct_input_specs = iter (input: str, output: stream) yields (fname)
+	own suffixes: qs := qs$["xload", "xld"]
+	direct: bool := true
+	if input[1] = '@'
+	   then direct := false
+		input := str$rest(input, 2)
+	   end except when bounds: end
+	spec: fname := fname$parse(input)
+	   except when bad_format:
+	    		begin
+			stream$puts(output, program_name())
+			stream$puts(output, ": ")
+			stream$puts(output, input)
+			stream$putl(output, ": bad format file name")
+			end except when not_possible(*): end
+			return
+		  end
+	if direct
+	   then yield(spec)
+		return
+	   end
+	for name: fname in input_file_names(input, suffixes, output) do
+		inst: stream := stream$open(name, "read")
+		   except when not_possible(reason: str):
+				begin
+				stream$puts(output, program_name())
+				stream$puts(output, ": ")
+				stream$puts(output, file_name_to_string(name))
+				stream$puts(output, ": ")
+				stream$putl(output, reason)
+				end except when not_possible(*): end
+				continue
+			  end
+		lines: as := as$new()
+		while true do
+			as$addh(lines, stream$getl(inst))
+			end except when end_of_file: end
+		stream$close(inst)
+		    except when not_possible(*): end
+		for line: str in as$elements(lines) do
+			for fn: fname in direct_input_specs(line, output) do
+				yield(fn)
+				end
+			end
+		end
+	end direct_input_specs
+
+matching_file_names = iter (spec: fname) yields (fname) signals (no_match)
+	dir: str := spec.dir
+	if str$indexc('*', dir) > 0
+	   then matched: bool := false
+		for dir_name: fname in matching_file_names(fname$parse(dir)) do
+			dir := fname$unparse(dir_name)
+			spec := fname$create(dir,
+					     spec.name,
+					     spec.suffix,
+					     spec.other)
+			for fn: fname in matching_file_names(spec) do
+				matched := true
+				yield(fn)
+				end except when no_match: end
+			end resignal no_match
+		if matched
+		   then return
+		   else signal no_match
+		   end
+	   end
+	nondir: str := file_name_nondirectory(spec)
+	if str$indexc('*', nondir) > 0
+	   then names: as := as$new()
+		for name: str in directory_entry_names(fname$parse(dir)) do
+			% By convention, an initial period does not match an
+			% initial asterisk.
+			if nondir[1] = '*' cand name[1] = '.'
+			   then continue end except when bounds: end
+			if ~match(nondir, name)
+			   then continue end
+			as$addh(names, name)
+			% Keeps NAMES in ascending order
+			for i: int in int$from_to_by(as$high(names), 2, -1) do
+				if names[i] >= names[i - 1]
+				   then break end
+				tmp: str := names[i - 1]
+				names[i - 1] := names[i]
+				names[i] := tmp
+				end
+			end except when not_possible(*): end
+		if as$empty(names)
+		   then signal no_match end
+		for name: str in as$elements(names) do
+			fn: fname := fname$parse(name)
+			yield(fname$create(dir, fn.name, fn.suffix, fn.other))
+			end
+		as$trim(names, 1, 0)
+		return
+	   end
+	if file_exists(spec)
+	   then yield(spec)
+		return
+	   end except when not_possible(*): end
+	signal no_match
+	end matching_file_names
+
+match = proc (pat, s: str) returns (bool)
+	marked: ab := ab$fill(1, str$size(pat) + 1, false)
+	high: int := ab$high(marked)
+	low: int := ab$low(marked)
+	start: int := 1
+	while pat[start] = '*' do
+		start := start + 1
+		end except when bounds: end
+	marked[start] := true
+	for c: char in str$chars(s) do
+		for i: int in int$from_to_by(high, low, -1) do
+			if ~marked[i]
+			   then continue end
+			if i = 1  cor  pat[i - 1] ~= '*'
+			   then marked[i] := false end
+			p: char := pat[i]
+			    except when bounds: continue end
+			if p = c
+			   then i := i + 1
+				while pat[i] = '*' do
+					i := i + 1
+					end except when bounds: end
+				marked[i] := true
+			   end
+			end
+		end
+	return(ab$top(marked))
+	end match

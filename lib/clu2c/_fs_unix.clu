@@ -1,0 +1,90 @@
+% _fs_unix.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: _fs_unix.clu,v 2.0 1996/06/10 09:02:22 ushijima Exp $
+
+
+% Maximum length for the name in directory entries.  Should be equal
+% to MAXNAMLEN in the <dirent.h> header.
+
+max_dirent_length = 255
+
+
+% Signals BAD_FORMAT if at least one of NAME and SUFFIX are not
+% appropriate for a component of file_name; otherwise returns
+% `normalized' version of these two components.  Normalization
+% includes, for example, truncation of long components.
+
+_check_directory_entry = proc(name, suffix: string) returns(string, string)
+			 signals(bad_format)
+    % Truncates NAME and/or SUFFIX if long.  Note that UNIX file
+    % system does not split a directory entry into name and suffix
+    % components: it is merely that those entries that matches a
+    % particular pattern (i.e., contains a dot) can be treated as if
+    % they had such components.  Therefore, truncation is performed on
+    % the concatenated string `NAME.SUFFIX'.
+    nsize: int := string$size(name)	% size of name
+    ssize: int := string$size(suffix)	% size of suffix
+    if nsize > max_dirent_length then
+	name := string$substr(name, 1, max_dirent_length)
+	suffix := ""
+    elseif nsize = max_dirent_length - 1 cand ssize > 0 then
+	name := string$append(name, '.')
+	suffix := ""
+    elseif nsize + ssize + 1 > max_dirent_length then
+	suffix := string$substr(suffix, 1, max_dirent_length - nsize - 1)
+    end
+    return(name, suffix)
+end _check_directory_entry
+
+
+% Returns current directory of specified drive.
+
+_current_directory = proc(drive: string) returns(string)
+		     signals(bad_format, not_possible(string))
+    getcwd = _external_getcwd
+    if ~string$empty(drive) then
+	signal bad_format
+    end
+    return(getcwd())
+	resignal not_possible
+end _current_directory
+
+
+% Returns true if DIR starts with a drive specification; otherwise
+% returns false.
+
+_directory_with_drive = proc(dir: string) returns(bool)
+    return(false)
+end _directory_with_drive
+
+
+% Returns true if DIR is atomic; otherwise returns false.
+
+_is_atomic_directory = proc(dir: string) returns(bool)
+    return(string$empty(dir) cor dir = "/")
+end _is_atomic_directory
+
+
+% Returns true if C is a path delimiter; otherwise returns false.
+
+_is_path_delimiter = proc(c: char) returns(bool)
+    return(c = '/')
+end _is_path_delimiter
+
+
+% Returns the name of the null device.
+
+_null_device_name = proc() returns(file_name)
+    return(file_name$create("/dev", "null", "", ""))
+end _null_device_name
+
+
+% Returns the (canonical) path delimiter.
+
+_path_delimiter = proc() returns(char)
+    return('/')
+end _path_delimiter

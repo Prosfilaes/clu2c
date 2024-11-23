@@ -1,0 +1,141 @@
+% error.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: error.clu,v 2.0 1996/06/10 09:04:48 ushijima Exp $
+
+
+% error messages handling environment
+
+e_env = cluster is
+	get,
+	err1,
+	err,
+	comerr,
+	comerr1,
+	parmerr,
+	get_comerrs,
+	set_file_name,
+	set_line,
+	interr,
+	interr1
+
+   rep = record[
+	outst:     stream,
+	cur_file:  str,
+	cur_line:  str,
+	nr_comerr: int
+    ]
+
+    own self: rep := rep${
+	outst:     stream$error_output(),
+	cur_file:  "",
+	cur_line:  "",
+	nr_comerr: 0
+    }
+
+    get = proc() returns(cvt)
+	return(self)
+    end get
+
+    err1 = proc(e: cvt, mesg: str)
+	stream$putl(e.outst, mesg)
+	    except when not_possible(*): end
+    end err1
+
+    err = proc(e: cvt, mesgs: ss)
+	outst: stream := e.outst
+	begin
+	    for mesg: str in ss$elements(mesgs) do
+		stream$puts(outst, mesg)
+	    end
+	    stream$putc(outst, '\n')
+	end
+	    except when not_possible(*): end
+    end err
+
+    comerr1 = proc(e: cvt, mesg: str)
+	outst: stream := e.outst
+	begin
+	    stream$puts(outst, e.cur_file)
+	    stream$putc(outst, ':')
+	    stream$puts(outst, e.cur_line)
+	    stream$puts(outst, ": ")
+	    stream$putl(outst, mesg)
+	end
+	    except when not_possible(*): end
+	e.nr_comerr := e.nr_comerr + 1
+    end comerr1
+
+    comerr = proc(e: cvt, mesgs: ss)
+	outst: stream := e.outst
+	begin
+	    stream$puts(outst, e.cur_file)
+	    stream$putc(outst, ':')
+	    stream$puts(outst, e.cur_line)
+	    stream$puts(outst, ": ")
+	    for mesg: str in ss$elements(mesgs) do
+		stream$puts(outst, mesg)
+	    end
+	    stream$putc(outst, '\n')
+	end
+	    except when not_possible(*): end
+	e.nr_comerr := e.nr_comerr + 1
+    end comerr
+
+    parmerr = proc(e: cvt, mesg: str, here: str)
+	outst: stream := e.outst
+	begin
+	    stream$puts(outst, e.cur_file)
+	    stream$putc(outst, ':')
+	    stream$puts(outst, e.cur_line)
+	    stream$putl(outst, ": syntax error in string-encoded parameters")
+	    stream$putc(outst, '\t')
+	    stream$putl(outst, mesg)
+	    stream$putc(outst, '\t')
+	    stream$putl(outst, here)
+	end
+	    except when not_possible(*): end
+	e.nr_comerr := e.nr_comerr + 1
+    end parmerr
+
+    get_comerrs = proc(e: cvt) returns(int)
+	return(e.nr_comerr)
+    end get_comerrs
+
+    set_file_name = proc(e: cvt, fn: file_name)
+	e.cur_file := file_name$unparse(fn)
+    end set_file_name
+
+    set_line = proc(e: cvt, line: int)
+	e.cur_line := int$unparse(line)
+    end set_line
+
+    interr1 = proc(e: cvt, routine, mesg: str)
+	outst: stream := e.outst
+	begin
+	    stream$puts(outst, "Internal error: ")
+	    stream$puts(outst, routine)
+	    stream$puts(outst, ": ")
+	    stream$putl(outst, mesg)
+	end
+	    except when not_possible(*): end
+    end interr1
+
+    interr = proc(e: cvt, routine: str, mesgs: ss)
+	outst: stream := e.outst
+	begin
+	    stream$puts(outst, "Internal error: ")
+	    stream$puts(outst, routine)
+	    stream$puts(outst, ": ")
+	    for mesg: str in ss$elements(mesgs) do
+		stream$puts(outst, mesg)
+	    end
+	    stream$putc(outst, '\n')
+	end
+	    except when not_possible(*): end
+    end interr
+
+end e_env

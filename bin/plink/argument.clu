@@ -1,0 +1,83 @@
+% argument.clu
+%
+% Copyright (c) 1996, 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: argument.clu,v 2.3 1997/02/05 09:55:40 ushijima Exp $
+
+
+% CONTENTS
+%	arguments
+%	usage
+
+% This file contains procedures that concern command line arguments
+% ("argument vector", in other words).
+
+
+% Signals _bad_arg_ if there is any erroneous item, with respect to
+% the format described below, in the command line; otherwise returns
+% the file names and options specified in the command line.  Command
+% line format is:
+%	plink [ -o outfile ] [ -x ] filenames...
+% where the ordering of options and filenames is arbitrary.  A file
+% name with suffix "o" is replaced with one with base name unchanged
+% and suffix being "c".  It is assumed that a file name does not begin
+% with a minus sign ('-').
+
+arguments = proc() returns(fnamelist, option) signals(bad_arg(str))
+    fnames: fnamelist := fnamelist$new()
+    opt: option := option${
+	outfile: default_table_out,
+	extract: false
+    }	
+    args: ss := program_arguments()	% command line arguments
+    max: int := ss$size(args)		% max index of argument vector
+    out_specified: bool := false	% Is output file is specified?
+    index: int := 1
+    while index <= max do
+	arg: str := args[index]
+	if str$empty(arg) then
+	    continue
+	end
+	if arg[1] = '-' then
+	    if arg = "-o" then
+		opt.outfile := args[index + 1]
+		    except when bounds:
+			signal bad_arg(arg || ": no filename specified")
+		    end
+		out_specified := true
+		index := index + 1
+	    elseif arg = "-x" then
+		opt.extract := true
+	    elseif arg = "-g" then
+		db: db_env := db_env$get()
+		db.debug := true
+	    else
+		signal bad_arg(arg || ": unknown option")
+	    end
+	else
+	    % "arg" is considered to be a filename
+	    fn: file_name := file_name$parse(arg)
+		except when bad_format:
+		    signal bad_arg(arg || ": bad format filename")
+		end
+	    if fn.suffix = "o" then
+		fn := file_name$create(fn.dir, fn.name, "c", fn.other)
+	    end
+	    fnamelist$addh(fnames, fn)
+	end
+	index := index + 1
+    end
+    if opt.extract cand ~out_specified then
+	opt.outfile := default_extract_out
+    end
+    return(fnames, opt)
+end arguments
+
+
+% Returns the usage string.
+
+usage = proc() returns(str)
+    return("usage: plink [ -o outfile ] [ -g ] [ -x ] filenames...")
+end usage

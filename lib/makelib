@@ -1,0 +1,69 @@
+newlib
+specs clu2c/de_names.clu
+dump dirent.lib
+
+newlib
+specs external/external.spc
+dump external.lib
+
+newlib
+specs clu2c/f_date.clu
+specs clu2c/f_exists.clu
+specs clu2c/filetype.clu
+dump file.lib
+
+newlib
+specs clu2c/_fs_unix.clu
+specs clu2c/cur_dir.clu
+specs clu2c/dir_fn.clu
+specs clu2c/fn_abs.clu
+specs clu2c/fn_apply.clu
+specs clu2c/fn_asdir.clu
+specs clu2c/fn_drive.clu
+specs clu2c/fn_f_dir.clu
+specs clu2c/fn_f_suf.clu
+specs clu2c/fn_isabs.clu
+specs clu2c/fn_nodir.clu
+specs clu2c/fn_pdir.clu
+specs clu2c/fn_simpl.clu
+specs clu2c/fn_tostr.clu
+specs clu2c/fn_xhome.clu
+specs clu2c/home_dir.clu
+specs clu2c/split_de.clu
+dump filename.lib
+
+newlib
+specs clu2c/intopars.clu
+specs clu2c/intounpa.clu
+specs clu2c/intxpars.clu
+specs clu2c/intxunpa.clu
+dump int.lib
+
+newlib
+specs clu2c/math.spc
+dump math.lib
+
+newlib
+ce clu2c/getopt.equ
+specs clu2c/getenv.clu
+specs clu2c/getopt.clu
+specs clu2c/input_st.clu
+specs clu2c/progargs.clu
+specs clu2c/progname.clu
+specs clu2c/system.clu
+specs clu2c/terminat.clu
+dump progenv.lib
+ce
+
+newlib
+specs clu2c/pstream.spc
+dump pstream.lib
+
+newlib
+specs clu2c/dfltroot.spc
+specs clu2c/rtenv.clu
+dump runtime.lib
+
+newlib
+specs external/uint.spc
+dump uint.lib

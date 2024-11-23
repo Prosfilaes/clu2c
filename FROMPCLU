@@ -1,0 +1,53 @@
+The following table shows the files that were derived from PCLU.  The
+second column specifies names of original files in PCLU.  In the third
+column, files modified from the original are marked as `*'.
+
+========================================================================
+File name			File name in PCLU		Modified
+------------------------------------------------------------------------
+COPYRIGHT.PCLU			COPYRIGHT
+bin/clu2c/build.clu		cmpclu/build.clu		*
+bin/clu2c/cconst.clu		cmpclu/cconst.clu
+bin/clu2c/cdefn1.clu		cmpclu/cdefn1.clu		*
+bin/clu2c/cdefn2.clu		cmpclu/cdefn2.clu		*
+bin/clu2c/ce.clu		cmpclu/ce.clu
+bin/clu2c/cenv.clu		cmpclu/cenv.clu			*
+bin/clu2c/cexpr1.clu		cmpclu/cexpr1.clu		*
+bin/clu2c/cexpr2.clu		cmpclu/cexpr2.clu		*
+bin/clu2c/cmpvar.clu		cmpclu/cmpvar.clu		*
+bin/clu2c/coper.clu		cmpclu/coper.clu		*
+bin/clu2c/cspecs.clu		cmpclu/cspecs.clu		*
+bin/clu2c/cstmt1.clu		cmpclu/cstmt1.clu		*
+bin/clu2c/cstmt2.clu		cmpclu/cstmt2.clu
+bin/clu2c/du.clu		cmpclu/du.clu			*
+bin/clu2c/eval1.clu		cmpclu/eval1.clu
+bin/clu2c/eval2.clu		cmpclu/eval2.clu
+bin/clu2c/idn.clu		cmpclu/idn.clu			*
+bin/clu2c/init.clu		cmpclu/init.clu			*
+bin/clu2c/passes.equ		cmpclu/passes.equ		*
+bin/clu2c/pconst.clu		cmpclu/pconst.clu
+bin/clu2c/pdefn1.clu		cmpclu/pdefn1.clu		*
+bin/clu2c/pdefn2.clu		cmpclu/pdefn2.clu
+bin/clu2c/penv.clu		cmpclu/penv.clu			*
+bin/clu2c/pexpr.clu		cmpclu/pexpr.clu		*
+bin/clu2c/plist.clu		cmpclu/plist.clu
+bin/clu2c/pstmt1.clu		cmpclu/pstmt1.clu		*
+bin/clu2c/pstmt2.clu		cmpclu/pstmt2.clu		*
+bin/clu2c/pttkn.clu		cmpclu/pttkn.clu		*
+bin/clu2c/syntax.clu		cmpclu/syntax.clu		*
+bin/clu2c/syntax.equ		cmpclu/syntax.equ		*
+bin/clu2c/table.clu		lib/clu/table.clu		*
+bin/clu2c/tkntab.clu		cmpclu/tkntab.clu
+bin/clu2c/top1.clu		cmpclu/top1.clu			*
+bin/clu2c/top2.clu		cmpclu/top2.clu			*
+bin/clu2c/vcmp.clu		cmpclu/vcmp.clu			*
+bin/clu2c/xlib.clu		cmpclu/xlib.clu			*
+bin/clu2c/xref.clu		lib/clu/xref.clu		*
+lib/built-in/built-in.spc	code/cmp/basic.types		*
+lib/clu2c/pstream.clu		lib/clu/pstream.clu
+lib/clu2c/pstream.spc		lib/pstream.spc	
+lib/stdio/date.clu		sys/clu/date			*
+lib/stdio/username.clu		sys/clu/user_name		*
+------------------------------------------------------------------------
+
+$Id: FROMPCLU,v 2.2 1997/02/05 11:42:20 ushijima Exp $

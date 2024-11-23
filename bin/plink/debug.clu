@@ -1,0 +1,95 @@
+% debug.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: debug.clu,v 2.0 1996/06/10 09:04:47 ushijima Exp $
+
+
+% db_env - debugging information manager
+
+db_env = cluster is 
+       get, 
+       get_debug, 
+       set_debug, 
+       apinst_info, 
+       opinst_info,
+       type_info,
+       tid_info, 
+       newid
+
+    rep = record[debug:bool,
+		 idtab:ai]
+
+    own self: rep := rep${debug:false,
+			  idtab:ai$new()}
+
+    get = proc() returns(cvt)
+	return(self)
+    end get
+
+    get_debug = proc(db:cvt) returns(bool)
+	return(db.debug)
+    end get_debug
+
+    set_debug = proc(db:cvt,debug:bool)
+	db.debug   := debug
+	self.debug := debug
+    end set_debug
+
+    opinst_info = proc(db:cvt, ptr:str, clus:string,apply:str) returns(str)
+	if ~db.debug then
+	    return("")
+	end
+	return("/* db_info, inst, clus, " || 
+	       ptr || ", " || clus || ", " || apply || " */")
+    end opinst_info
+
+    apinst_info = proc(db:cvt, ptr:str, apply:str) returns(str)
+	if ~db.debug then
+	    return("")
+	end
+	return("/* db_info, inst, apply, " || 
+	       ptr || ", " || apply || " */")
+    end apinst_info
+
+    tid_info = proc(db:cvt, var:str, tid:str) returns(str)
+	if ~db.debug then
+	    return("")
+	end
+	return("/* db_info, tid, " || var || ", " || tid || " */")
+    end tid_info
+
+    type_info = proc(db:cvt, outst:stream, id:int, name:string, parm:string)
+	if ~db.debug then
+	    return
+	end
+	enrolled(db.idtab,id) 
+	    except when duplicate:
+		    return
+	    end
+	info:string := "/* db_info, type, " || int$unparse(id) || ", " || name
+	if ~str$empty(parm) then
+	    info := info || "[" || parm || "]"
+	end
+	info := info || " */"
+	stream$putl(outst, info)
+    end type_info
+
+    enrolled = proc(idtab: ai, id:int) signals(duplicate)
+	for i: int in ai$elements(idtab) do
+	    if i = id then
+		signal duplicate
+	    end
+	end
+	ai$addh(idtab, id)
+    end enrolled
+
+    newid = proc() returns(int)
+	own i:int:= 0
+	i := i+1
+	return(i)
+    end newid
+
+end db_env

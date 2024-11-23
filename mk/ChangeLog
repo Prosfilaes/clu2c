@@ -1,0 +1,302 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Fri Jan 24 08:29:12 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clusrc.m4: Now `make clean' and `make cfiles-clean' do not
+	remove the files `Depend' and `Location'.
+
+Mon Jun 24 11:45:22 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* dos.m4, unix.m4 (MK_NULL_DEVICE): New macro.
+
+	* x68.m4: Include `dos.m4'.  Now this file describes the
+        differences from `dos.m4'.
+
+Thu Jun 20 12:32:09 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* hdrsrc.m4, spcsrc.m4 (install): Show each command line of
+        install.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sat Jun  8 14:06:41 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mk.m4: Removed `Makefile.x68' from the list of non-source files.
+	(m4): Do not create `Makefile.x68'.
+
+Thu Jun  6 14:24:15 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mk.m4, clusrc.m4 (dist, dosdist): Use the `makedist' script.
+
+Mon Jun  3 12:32:16 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mk.m4 (MK_INSTALL_DATA): Accept an optional third argument.
+
+Thu May 16 09:50:56 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* exe.m4: Invoke coff2exe only if DJGPP is defined to 1.
+
+Sun May 12 06:48:18 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* dos.m4, template.m4, x68.m4: Doc fix.
+
+	* exe.m4 (install-links): Removed.
+
+Sat May 11 12:53:34 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mk.m4 (MK_INSTALL_PROGRAM): Accept an optional third argument.
+
+Sat May  4 12:45:26 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* exe.m4: Moved `objects' from $(MISC_SRC) to $(NON_SRC).
+	* wclusrc.m4: Moved `fakeclu.bat' from $(MISC_SRC) to $(NON_SRC).
+
+	* mk.m4 (source-list): New target.
+
+	* unix.m4 (MK_MAKE_IN_SUBDIRS): Make on the target name rather
+        than the rule name.
+
+Tue Apr 30 08:30:03 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mk.m4 (dosdist): Do not apply the `dosfile' script to *.lib
+        files.
+
+Sat Apr 27 07:37:41 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* spcsrc.m4: Do not handle `SPC_OBJ'.
+
+	* mk.m4: Do not generate rules for preparing links to batch files.
+
+	* Makefile.in: Removed `remove.bat' from the list of non-source
+        files.
+
+	* mk.m4 (MK_PARENT_DIR_DOS): New macro.
+	(MK_CURRENT_DIRECTORY): Define `_MK_DOS_TOPDIR'.
+	* dos.m4, x68.m4 (MK_REMOVE, MK_MAKE_IN_SUBDIRS): Specify the
+        directory where batch files reside using `_MK_DOS_TOPDIR'.
+
+Tue Apr 23 13:59:09 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* spcsrc.m4 (install): Copy *.spc and *.lib separately.
+
+Sat Feb 17 12:26:50 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* c2o.m4: Apppend suffixes to the suffix list if it is already
+        defined.
+
+	* spcsrc.m4: Support for *.lib files.
+
+	* mk.m4 (MK_DOLLAR): New macro.
+
+Tue Sep 26 13:02:18 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clusrc.m4, mk.m4 (dist, dosdist): Ensure all the files in the
+	distribution are world-readable but not writable to anyone.
+
+Sun Jun 25 11:32:43 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mk.m4: Doc fix.
+
+	* Makefile.in: Added remove.bat to the list of non-source files.
+
+Sun Jun 25 11:05:32 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* exe.m4 (link): Added $(LIBDIR)/libclu2c.a to the list of
+        prerequisites.
+
+Sat Jun  3 09:29:05 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* exe.m4 (install-links): Remove $(bindir)/$(EXE) before creating
+        a (symblic) link.
+
+Thu May 25 10:38:49 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clusrc.m4 (cfiles-clean): New target.
+	* wclusrc.m4: Changed accordingly.
+
+Sat May 20 13:16:01 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clusrc.m4 (clu2c.time): Removed directory options, for
+	compilation in a separate directory does not work properly.
+
+	* mk.m4 (MK_SUBDIRECTORIES): Append delegating action to standard
+        targets.
+	(makefiles): Removed.
+
+	* Makefile.in: Make use of MK_MISC_SOURCES.
+
+	* mk.m4 (MK_MISC_SOURCES, MK_NON_SOURCES): New macros.
+
+	* mk.m4: Do not define MK_SRC.
+
+	* mk.m4: Give default value for MISC_SRC and NON_SRC.
+
+	* mk.m4: Define DIST.
+	(dist, dosdist): Use $(DIST) instead of $(ALL_SRC).
+
+	* mk.m4 (makefiles): Simply depend on mkfiles.
+
+	* clusrc.m4: Use $(PRE) to specify pre-translated C files.
+	* wclusrc.m4: Support for PRE.
+
+	* clusrc.m4 (MK_EQU_SOURCES): New macro.
+	* wclusrc.m4: Suport for EQU_SRC.
+
+Wed May 17 09:32:33 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* hdrsrc.m4, spcsrc.m4 (install): Show each file to be installed.
+
+	* dos.m4, x68.m4 (MK_INSTALL_DIRECTORY): Do not (actually can not)
+	check if the directory already exist.
+
+	* hdrsrc.m4, spcsrc.m4: New files.
+	* Makefile.in: Changed accordingly.
+
+	* exe.m4 (install-links): Prepare $(bindir) before making a
+        symbolic link.
+	(installdirs): Do not prepare $(bindir).
+
+	* clusrc.m4, mk.m4 (dist): Use $(distname).
+	(dosdist): Use $(dos_distname).
+
+Sat May 13 09:36:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* exe.m4: Renamed AOUT2EXE as COFF2EXE.
+
+Tue May  9 06:42:11 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* dos.m4, x68.m4 (MK_FAKE_CLU2C): Use command to invoke batch
+        file.
+
+Sat May  6 13:14:04 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* dos.m4, x68.m4 (MK_REMOVE): Use remove.bat.
+	* mk.m4 (remove.bat): New target.
+
+	* dos.m4, x68.m4 (MK_MAKE_IN_SUBDIRS): Do not use `for' command.
+	(MK_MAKE_IN_SUBDIRS_AUX): New macro.
+
+Thu May  4 04:01:44 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mk.m4 (makefiles, mkfiles): Use $(config_mk) on non-UNIX
+        systems.
+
+Wed May  3 08:20:00 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* exe.m4 (installdirs): New target.
+
+Tue May  2 03:18:08 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* dos.m4, x68.m4 (MK_MAKE_IN_SUBDIRS): Use insubdir.bat in each
+        directory.
+	* mk.m4 (insubdir.bat): New target.
+
+Sun Apr 30 12:39:12 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clusrc.m4 (.clu.c): Do not path CLU2C and CLU2CFLAGS, for some
+	bogus make programs such as Borland make do not understand this
+	argument.
+
+	* exe.m4: Removed the rules that create installation directories.
+
+	* wclusrc.m4: Added fakeclu.bat to the list of miscellaneous
+        source files.
+
+	* mk.m4 (mkfiles, dosdist): New targets.
+
+	* exe.m4 (install): Create installation directory by itself.
+	Added objects to the list of miscellaneous source files.
+
+	* clusrc.m4 (dosdist): New target.
+
+	* clusrc.m4, wclusrc.m4 (cfiles): Renamed from c.
+	(clu2c.time): Renamed from cfiles.
+
+	* c2o.m4: Restricted the use of MK_PATH_NAME.
+
+	* dos.m4, unix.m4, x68 (MK_REMOVE): Receive a list of file names.
+        All callers changed.
+
+	* dos.m4, unix.m4, x68.m4 (MK_INSTALL_DIRECTORY): New macro.
+
+Wed Apr 19 12:40:56 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* exe.m4 (install): Added $(EXE) to the prerequisite list.
+
+Wed Apr 12 13:00:54 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* exe.m4 (install): Install to $(clu2c_bindir).
+	(install-links): New target.
+
+Fri Mar 31 12:05:59 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* exe.m4 (DEFAULT_LIBS): Use $(LIBDIR) as a library directory.
+	Specify -lclu2c only.
+
+	* dos.m4, x68.m4 (MK_MAKE_IN_SUBDIRS): Changed the directory where
+        a batch file resides.
+
+	* wclusrc.m4: Append $(CLU_SRC) to ALL_SRC.
+
+	* mk.m4 (MK_MAKFILE_STYLE, MK_SOURCE_LANGUAGE): Removed.
+	(MK_SRC): New variable.
+	(dist): Added default rule definition.
+	Expand definitions for MISC_SRC and ALL_SRC.
+
+	* csrc.m4: Append $(C_SRC) to ALL_SRC.
+
+	* clusrc.m4: Added additional actions to dist.
+
+	* Makefile.in: New file.
+
+Thu Mar 30 20:42:03 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clib.m4, clubin.m4, clulib.m4: Removed.
+
+Wed Mar 29 12:54:38 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clusrc.m4: Define POUT.
+	* wclusrc.m4: Put definition of POUT.
+
+	* exe.m4: Changed DEFAULT_LIBS and EXEBASE.  Removed c from
+	prerequisite list for executable.  Put rule for preparing binary
+	directory.
+
+	* mk.m4 (MK_INSTALL_PROGRAM, MK_INSTALL_DATA,
+	MK_INSTALL_SOURCE_DATA): New macros.
+
+Tue Mar 28 13:36:27 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* wclusrc.m4: Expand definition of FAKE_CLU2C, REAL_PLINK, and
+        FAKE_PLINK.
+
+	* x68.m4, unix.m4, dos.m4 (MK_FAKE_CLU2C): New macro.
+
+	* clusrc.m4: Define DEFAULT_PLINKFLAGS only if not yet defined.
+	Define FAKE_CLU2C, REAL_PLINK, and FAKE_PLINK.  Use PLINK_METHOD
+	for executing plink.
+
+	* archive.m4: Define DEFAULT_PLINKFLAGS.
+
+Tue Mar 28 04:22:52 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* dos.m4, x68.m4: Doc fix.
+
+	* mk.m4: Changed convention for make file names.  Added contents
+	of wmk.m4.
+
+	* template.m4: Doc fix.
+
+	* wmk.m4: Removed.
+
+Tue Mar 21 14:24:57 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mk.m4: Master makefile is Master.mk.
+
+	* archive.m4, c2o.m4, clib.m4, clubin.m4, clulib.m4, clusrc.m4,
+        csrc.m4, dos.m4, exe.m4, mk.m4, template.m4, unix.m4, wclusrc.m4,
+        x68.m4: New files.

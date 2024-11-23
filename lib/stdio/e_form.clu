@@ -1,0 +1,93 @@
+% e_form.clu - implementation of e_form
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: e_form.clu,v 2.0 1996/06/10 09:01:35 ushijima Exp $
+
+
+e_form = proc (x: real, int_width, frac_width: int)
+	 returns (string)
+	 signals (illegal_field_width)
+    ac = array[char]
+    own exp_width: int := real$_exp_width ()
+    mant_width: int := int_width + frac_width
+    if int_width < 0 cor frac_width < 0 cor mant_width < 1 then
+	signal illegal_field_width
+    end
+    result: ac := ac$new ()
+    if x < 0.0 then
+	ac$addh (result, '-')
+	x := -x
+    end
+    digits: string, exponent: int := real$_unparse (x)
+    digits, exponent := _real_round (digits, exponent, mant_width)
+    for i: int in int$from_to_by (int_width - 1, -frac_width, -1) do
+	% Generates a digit at the 10 ** I position in a mantissa part.
+	if i = -1 then
+	    ac$addh (result, '.')
+	end
+	digit: char := digits[int_width - i]
+	    except when bounds:
+		digit := '0'
+	    end
+	ac$addh (result, digit)
+    end
+    ac$addh (result, 'e')
+    if x ~= 0.0 then
+	exponent := exponent - int_width + 1
+    end
+    if exponent < 0 then
+	ac$addh (result, '-')
+	exponent := -exponent
+    else
+	ac$addh (result, '+')
+    end
+    exp: string := int$unparse (exponent)
+    for i: int in int$from_to (1, exp_width - string$size (exp)) do
+	ac$addh (result, '0')
+    end
+    for digit: char in string$chars (exp) do
+	ac$addh (result, digit)
+    end
+    return (string$ac2s (result))
+end e_form
+
+
+% Auxiliary routine for `e_form' and `f_form'.  Requires that DIGITS
+% consists of decimal digits.  Signals `negative_field_width' if WIDTH
+% is less than zero; otherwise returns the rounded digits of DIGITS up
+% to at most WIDTH digits, and the exponent after rounding.
+
+_real_round = proc (digits: string, exponent, width: int)
+	      returns (string, int)
+	      signals (negative_field_width)
+    if width < 0 then
+	signal negative_field_width
+    elseif width < string$size (digits) then
+	digit: char := digits[width + 1]
+	digits := string$substr (digits, 1, width)
+	if digit >= '5' then
+	    zeros: string := ""
+	    begin
+		i: int := width
+		while digits[i] = '9' do
+		    i := i - 1
+		    zeros := string$append (zeros, '0')
+		end
+		digits := string$substr (digits, 1, i - 1)
+			  || string$c2s (char$i2c (char$c2i (digits[i]) + 1))
+			  || zeros
+	    end
+		except when bounds:
+		    digits := "1"
+		    if width > 1 then
+			digits := digits || string$substr (zeros, 1, width - 1)
+		    end
+		    exponent := exponent + 1
+		end
+	end
+    end
+    return (digits, exponent)
+end _real_round

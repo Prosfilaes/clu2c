@@ -1,0 +1,709 @@
+% gexpr.clu - expression generator
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: gexpr.clu,v 2.14 1996/06/21 12:43:38 ushijima Exp $
+
+
+% Returns the C expression correspoinding to the "ex" CLU expression.
+% In the case of proctype/itertype expressions, the result represents a
+% pointer to the corresponding function.  Other representations (e.g.,
+% function name, macro name, etc.) are returned using the
+% "proctype_expr" exception.
+
+g_expr = proc(e: g_env, ex: expr) returns(str)
+				  signals(proctype_expr(proc_expr))
+    tagcase ex.abs
+    tag null_:
+	return(null_expr())
+    tag bool_(b: bool):
+	return(bool_expr(b))
+    tag int_(i: int):
+	return(int_expr(i))
+    tag real_(r: real):
+	return(real_expr(r))
+    tag char_(c: char):
+	return(char_expr(e, c))
+    tag str(s: str):
+	return(string_expr(e, s))
+    tag type_:
+	g_env$err(e, "type expression is not implemented")
+    tag any_(x: expr):
+	return(g_anyize_expr(e, x))
+    tag idn(i: idn):
+	return(idn_expr(e, i))
+    tag cand_(op: condop):
+	return(cand_expr(e, op))
+    tag cor_(op: condop):
+	return(cor_expr(e, op))
+    tag invoke(ivk: invoke):
+	return(invoke_expr(e, ivk))
+    tag a_cons(acons: arraycons):
+	return(g_arraycons(e, acons))
+    tag s_cons(scons: selectcons):
+	return(g_selectcons(e, scons))
+    tag apply:
+	% the expression is proctype ( procedure )
+	return(g_apply_expr(e, ex))
+	    resignal proctype_expr
+    tag op:
+	% the expression is proctype ( cluster operation )
+	return(g_op_expr(e, ex))
+	    resignal proctype_expr
+    tag force_(t: typespec):
+	return(g_force_expr(e, t))
+	    resignal proctype_expr
+    tag type_of_:
+	g_env$err(e, "type_of operator is not implemented")
+    tag up_(x: expr):
+	return(g_expr(e, x))
+    tag down_(x: expr):
+	return(g_expr(e, x))
+    tag asis(x: str):
+	return(x)
+    others:
+	g_env$err(e, "internal error: unknown expression")
+  end
+end g_expr
+
+
+% Returns the array of C expressins that corresponds to "explist".
+% Temporary variables are used to avoid results conflicts and
+% re-evaluation of macro.  If "eval_once" is true, the expression list
+% is assumed to be evaluated only once and otherwise it is assumed to be
+% evaluated more than once.  For example, macro application with side
+% effect is assigned to a temporary variable if "eval_once" is false.
+% This procedure is useful particularly for genarating arguments of
+% invocations.
+
+g_exprlist = proc(e: g_env, exprs: exprlist, eval_once: bool) returns(as)
+
+  size:int := exprlist$size(exprs)
+  res: as := as$predict(1, size)
+  co: code_man := e.co
+  rtype: str := e.rtype
+  %
+  % find last procedure invocation
+  %
+  last_ivk:int := size + 1
+  for i:int in int$from_to_by(exprlist$size(exprs), 1, -1) do
+    if has_invoke(exprs[i]) then
+      last_ivk := i
+      break
+    end
+  end
+  %
+  % generate code from fast expression to (last_ivk -1)th expression
+  %
+  for i:int in int$from_to(1, last_ivk - 1) do
+    s:string := g_expr(e, exprs[i])
+      except when proctype_expr(p: proc_expr):
+	s := p.code
+      end
+    if has_invoke(exprs[i]) then
+      tmp_var: str := lv$new_temp(rtype)	 % s is perhaps retaval_area[0]
+      code_man$put_assign(co, tmp_var, s)
+      as$addh(res, tmp_var)
+    else
+      as$addh(res, s)
+    end
+  end
+  %
+  if last_ivk > size then
+    % no expression left
+    return(res)
+  end
+  %
+  % generate code for last_ivk-th expression
+  %
+  s: str := g_expr(e, exprs[last_ivk]) 
+    except when proctype_expr(p: proc_expr):
+      s := p.code
+    end
+  if ~eval_once cand s ~= g_name_result(1) then
+    tmp: str := lv$new_temp(rtype)
+    code_man$put_assign(co, tmp, s)
+    s := tmp
+  end
+  as$addh(res, s)
+  %
+  % generate code from (last_ivk +1)th expression to last expression
+  %
+  for i:int in int$from_to(last_ivk + 1, exprlist$size(exprs)) do
+    as$addh(res, g_expr(e, exprs[i]))
+      except when proctype_expr(p: proc_expr):
+	as$addh(res, p.code)
+      end
+  end
+
+  return(res)
+
+end g_exprlist
+
+
+% returns the varable name
+
+idn_expr = proc(e: g_env, i: idn) returns(str)
+
+  % At first, check if i represents vparm (i.e., parameter except
+  % type parameter).
+  return(param$vparm(i.str))
+    except when not_found: end
+
+  % General case.
+  return(vname(e, i.str))
+
+end idn_expr
+
+
+% Generates code for cand 
+
+cand_expr = proc(e: g_env, op: condop) returns(str)
+    tmp: str := lv$new_temp(e.rtype)
+    co: code_man := e.co
+    code_man$put_assign(co, tmp, "FALSE")
+    code_man$put_if(co, g_expr(e, op.left))
+    code_man$begin_block(co)
+    code_man$put_if(co, g_expr(e, op.right))
+    code_man$begin_block(co)
+    code_man$put_assign(co, tmp, "TRUE")
+    code_man$end_block(co)
+    code_man$end_block(co)
+    return(tmp)
+end cand_expr
+
+
+% Generates code for cor.
+
+cor_expr = proc(e: g_env, op: condop) returns(str)
+  co: code_man := e.co
+  tmp: str := lv$new_temp(e.rtype)
+  code_man$put_if(co, g_expr(e, op.left))
+  code_man$begin_block(co)
+  code_man$put_assign(co, tmp, "TRUE")
+  code_man$end_block(co)
+  code_man$putl(co, "else")
+  code_man$begin_block(co)
+  code_man$put_assign(co, tmp, g_expr(e, op.right))
+  code_man$end_block(co)
+  return(tmp)
+end cor_expr
+
+
+% Generates code for proctype/itertype expression.  Note that this type
+% of expression is used for both invocation and expression.
+% exprabs$is_apply(x.abs) is required to be true.
+
+g_apply_expr = proc(e: g_env, x: expr) returns(str)
+				       signals(proctype_expr(proc_expr))
+    co: code_man := e.co
+    apply: clutype := exprabs$value_apply(x.abs)
+    g_name: str := apply.gen.unique
+    f_name: str := g_name_routine(g_name)
+    if exprlist$empty(apply.parms) then
+	if ~e.applied then
+	  code_man$extern(co, "int", "", f_name, "()")
+	end
+	signal proctype_expr(proc_expr${kind:  proc_kind$make_name(nil),
+					code:  f_name,
+					parg:  mparg$make_none(nil),
+					expt:  expt$make_none(nil),
+					check: true})
+    end
+    if g_name = "_cvt" then
+	signal proctype_expr(proc_expr${kind:  proc_kind$make_name(nil),
+					code:  f_name,
+					parg:  mparg$make_none(nil),
+					expt:  expt$make_none(nil),
+					check: true})
+
+    end
+    return(param$entryp_apply(e, apply, x.typespec))
+end g_apply_expr
+
+
+% Generates code for expression that evalutes to operation.  Note that
+% this type of expression is used for both invocation and expression.
+% exprabs$is_op(x.abs) is required to be true.
+
+g_op_expr = proc(e: g_env, x: expr) returns(str)
+				    signals(proctype_expr(proc_expr))
+    % There are three kinds of operations: cluster operations,
+    % selector operations, and operations of a formal type parameter.
+    cop: clusterop := exprabs$value_op(x.abs)
+    op: str := cop.name
+    tagcase cop.type_.abs
+    tag cluster_:
+	return(g_cluop_expr(e, cop, x.typespec))
+	    resignal proctype_expr
+    tag select:
+	return(g_selop_expr(e, cop, x.typespec))
+	    resignal proctype_expr
+    tag apply(appt: applytype):
+	gen: str := appt.gen.unique
+	if ~e.applied then
+	    return(conv_opfun(gen, op))
+	else
+	    px: proc_expr := g_try_inline(e, gen, op)
+		except when inline_unable:
+		    px := proc_expr${kind:  proc_kind$make_name(nil),
+				     code:  conv_opfun(gen, op),
+				     parg:  mparg$make_none(nil),
+				     expt:  expt$make_none(nil),
+				     check: ~no_exception_op(gen, op)}
+		end
+	    signal proctype_expr(px)
+	end
+    tag idn:
+	% Operation of a formal parameter.
+	return(param$entryp_op(e, cop, x.typespec))
+    others:
+    end
+end g_op_expr
+
+g_cluop_expr = proc(e: g_env, cop: clusterop, t: typespec) returns(str)
+					signals(proctype_expr(proc_expr))
+    clut: clutype := typeabs$value_cluster_(cop.type_.abs)
+    gen: str := clut.gen.unique
+    op: str := cop.name
+    if gen = "array" cor gen = "sequence" then
+	return(g_array_op_expr(e, cop, t))
+	    resignal proctype_expr
+    end
+    if exprlist$empty(clut.parms) cand exprlist$empty(cop.parms) then
+	% There is no parameter.
+	op_func: str := conv_opfun(gen, op)
+	if ~e.applied then
+	    code_man$extern(e.co, "int", "", op_func, "()")
+	    return(op_func)
+	else
+	    px: proc_expr := g_try_inline(e, gen, op)
+		except when inline_unable:
+		    px := proc_expr${kind:  proc_kind$make_name(nil),
+				     code:  op_func,
+				     parg:  mparg$make_none(nil),
+				     expt:  expt$make_none(nil),
+				     check: ~no_exception_op(gen, op)}
+
+		end
+	    signal proctype_expr(px)
+	end	
+    else
+	% Operation of a user-defined parameterized cluster.
+	return(param$entryp_op(e, cop, t))
+    end
+end g_cluop_expr
+
+g_array_op_expr = proc(e: g_env, cop: clusterop, t: typespec) returns(str)
+					signals(proctype_expr(proc_expr))
+    gen: DU := typeabs$value_cluster_(cop.type_.abs).gen
+    op: str := cop.name
+    func: str := conv_opfun(gen.unique, op)
+    if ~g_has_where(gen, op) then
+	if ~e.applied then
+	    code_man$extern(e.co, "int", "", func, "()")
+	    return(func)
+	else
+	    px: proc_expr := g_try_inline(e, gen.unique, op)
+		except when inline_unable:
+		    px := proc_expr${kind:  proc_kind$make_name(nil),
+				     code:  func,
+				     parg:  mparg$make_none(nil),
+				     expt:  expt$make_none(nil),
+				     check: ~no_exception_op(gen.unique, op)}
+		end
+	    signal proctype_expr(px)
+	end
+    end
+    % This operation requires parameter's operation.
+    return(param$entryp_op(e, cop, t))
+end g_array_op_expr
+
+g_selop_expr = proc(e: g_env, cop: clusterop, t: typespec) returns(str)
+					signals(proctype_expr(proc_expr))
+    selt: seltype
+    tagcase cop.type_.abs
+    tag select(st: seltype):
+	selt := st
+    others:
+    end
+    gen: DU := selt.gen
+    op: str := cop.name
+    func: str := conv_opfun(gen.unique, op)
+    i: int := str$indexc('_', op)
+    if i > 1 cand str$substr(op, 2, str$size(op) - 2) ~= "_gets_" then	% Mmm..
+	% The operation  op  contains a selector/tag in its name.
+	sel: int := g_sel_id(selt.parms, str$rest(op, i + 1))
+	op := str$substr(op, 1, i - 1)
+	if e.applied then
+	    px: proc_expr := g_try_inline_selop(e, gen.unique, op, sel)
+		except when inline_unable:
+		    px := proc_expr${kind:  proc_kind$make_name(nil),
+				     code:  func,
+				     parg:  mparg$make_one(int$unparse(sel)),
+				     expt:  expt$make_none(nil),
+				     check: ~no_exception_op(gen.unique, op)}
+		end
+	    signal proctype_expr(px)
+	else
+	    % needs entry function
+	    return(param$entryp_selop(e, gen.unique, cop.name, selt.parms))
+	end
+    end
+    % Checks if the operation  op  requires parameter's operation.
+    if g_has_where(gen, op) then
+	% The operation  op  requires parameter's operation.
+	return(param$entryp_op(e, cop, t))
+    else
+	% The operation  op  does not contain selector/tag in its name,
+	% and does not require any operation of parameters.
+	if ~e.applied then
+	  code_man$extern(e.co, "int", "", func, "()")
+	end
+	signal proctype_expr(proc_expr${kind:  proc_kind$make_name(nil),
+					code:  func,
+					parg:  mparg$make_none(nil),
+					expt:  expt$make_none(nil),
+					check: ~no_exception_op(gen.unique, op)})
+    end
+end g_selop_expr
+
+
+% Returns true iff the "op" operation of the type generated by "gen" has
+% any WHERE clause in its definition.  Note that if the type generator
+% definition header contains a WHERE clause, all operaions of the type
+% are also considered to have this clause.
+
+g_has_where = proc(gen: DU, op: str) returns(bool)
+    has_where: bool := false
+    tagcase gen.mspecs
+    tag specs(specs: DUspecs):
+	tagcase specs
+	tag cluster_, select(inf: typeinfo):
+	    for oper: opinfo in opinfolist$elements(inf.opers) do
+		if oper.name = op cand ~typesetlist$empty(oper.where_) then
+		    % The operation  op  has WHERE clause.
+		    has_where := true
+		    break
+		end
+	    end
+	others:
+	end
+    others:
+    end
+    return(has_where)
+end g_has_where
+
+
+% Returns true iff the "gen"$"op" operation can be inline-expanded using
+% one macro.
+
+inline_expandable = proc(gen, op: str) returns(bool)
+    optab = table[str, str]
+    own ops: optab := optab$create(64, hash, str$equal)
+    own first: bool := true
+    if first then
+	first := false
+	for o: oper in oplist$elements(inline_without_exception) do
+	   optab$bind(ops, o.gen, o.ops)
+	end
+    end
+    opers: str := optab$lookup(ops, gen)
+	except when not_found:
+	    return(false)
+	end
+    i: int := str$indexs(op, opers)
+    if i ~= 0 cand opers[i - 1] = '/' cand opers[i + str$size(op)] = '/' then
+	return(true)
+    else
+	return(false)
+    end
+        except when bounds:
+	    return(false)
+	end
+end inline_expandable
+
+
+% Returns true iff the "gen"$"op" operation can be inline-expanded using
+% two macros (one for exception check and the other for doing the thing).
+
+inline_expandable_and_signal = proc(gen, op: str) returns(bool)
+	tmp: expt := raising_exception(gen, op)
+	    except when not_exist: return(false) end
+	return(true)
+end inline_expandable_and_signal
+
+
+% Returns the information required to do inline expansion with two
+% macros.
+
+raising_exception = proc(gen, op: str) returns(expt) signals(not_exist)
+    key = struct[gen, op: str]
+    optab = table[key, expt]
+    own ops: optab := optab$create(16, hash_key, key$similar)
+    own first: bool := true
+    if optab$empty(ops) then
+	info: expt
+
+	% ARRAY$FETCH and ARRAY$STORE signal BOUNDS if
+	% ARRAY$BOUNDS(ARG1, ARG2) is true.
+	info := expt$make_one(
+	    except_info${
+	    ntmp:
+		0,
+	    info:
+		sequence[rexp]$[
+		    rexp${
+			signame:   "bounds",
+			macroname: conv_opmac("array", "bounds"),
+			macroarg:  sequence[int]$[1,2]
+		    }
+		]
+	    }
+	)
+	optab$bind(ops, key${gen: "array", op: "fetch"}, info)
+	optab$bind(ops, key${gen: "array", op: "store"}, info)
+
+	% ARRAY$REMH, ARRAY$REML, ARRAY$BOTTOM, and ARRAY$TOP signal
+	% BOUNDS if ARRAY$EMPTY(ARG1) is true.
+	info := expt$make_one(
+	    except_info${
+	    ntmp:
+		0,
+	    info:
+		sequence[rexp]$[
+		    rexp${
+			signame:   "bounds",
+			macroname: conv_opmac("array", "empty"),
+			macroarg:  sequence[int]$[1]
+		    }
+		]
+	    }
+	)
+	optab$bind(ops, key${gen: "array", op: "remh"}, info)
+	optab$bind(ops, key${gen: "array", op: "reml"}, info)
+	optab$bind(ops, key${gen: "array", op: "bottom"}, info)
+	optab$bind(ops, key${gen: "array", op: "top"}, info)
+
+	% SEQUENCE$FETCH signals BOUNDS if SEQUENCE$BOUNDS(ARG1, ARG2)
+	% is true.
+	info := expt$make_one(
+	    except_info${
+	    ntmp:
+		0,
+	    info:
+		sequence[rexp]$[
+		    rexp${
+			signame:   "bounds",
+			macroname: conv_opmac("sequence", "bounds"),
+			macroarg:  sequence[int]$[1, 2]
+		    }
+		]
+	    }
+	)
+	optab$bind(ops, key${gen: "sequence", op: "fetch"}, info)
+
+	% SEQUENCE$BOTTOM and SEQUENCE$TOP signal BOUNDS if
+	% SEQUENCE$EMPTY(ARG1) is true.
+	info := expt$make_one(
+	    except_info${
+	    ntmp:
+		0,
+	    info:
+		sequence[rexp]$[
+		    rexp${
+			signame:   "bounds",
+			macroname: conv_opmac("sequence", "empty"),
+			macroarg:  sequence[int]$[1]
+		    }
+		]
+	    }
+	)
+	optab$bind(ops, key${gen: "sequence", op: "bottom"}, info)
+	optab$bind(ops, key${gen: "sequence", op: "top"}, info)
+
+	% INT$DIV and INT$MOD signal ZERO_DIVIDE if
+	% INT$ZERO_DIVIDE(ARG2) is true.
+	info := expt$make_one(
+	    except_info${
+	    ntmp:
+		0,
+	    info:
+		sequence[rexp]$[
+		    rexp${
+			signame:   "zero_divide",
+			macroname: conv_opmac("int", "zero_divide"),
+			macroarg:  sequence[int]$[2]
+		    }
+		]
+	    }
+	)
+	optab$bind(ops, key${gen: "int", op: "div"}, info)
+	optab$bind(ops, key${gen: "int", op: "mod"}, info)
+
+	% STRING$FETCH signals BOUNDS if STRING$BOUNDS(ARG1, ARG2) is
+	% true.
+	info := expt$make_one(
+	    except_info${
+	    ntmp:
+		0,
+	    info:
+		sequence[rexp]$[
+		    rexp${
+			signame:   "bounds",
+			macroname: conv_opmac("string", "bounds"),
+			macroarg:  sequence[int]$[1,2]
+		    }
+		]
+	    }
+	)
+	optab$bind(ops, key${gen: "string", op: "fetch"}, info)
+
+	% CHAR$I2C signals ILLEGAL_CHAR if INT$ILLEGAL_CHAR(ARG1) is
+	% true.
+	info := expt$make_one(
+	    except_info${
+	    ntmp:
+		0,
+	    info:
+		sequence[rexp]$[
+		    rexp${
+			signame:   "illegal_char",
+			macroname: conv_opmac("char", "illegal_char"),
+			macroarg:  sequence[int]$[1]
+		    }
+		]
+	    }
+	)
+	optab$bind(ops, key${gen: "char", op: "i2c"}, info)
+    end
+    return(optab$lookup(ops, key${gen: gen, op: op}))
+	except when not_found:
+	    signal not_exist
+	end
+end raising_exception
+
+hash_key = proc(k: key, size: int) returns(int)
+    key = struct[gen, op: str]
+    return(hash(k.gen || k.op, size))
+end hash_key 
+
+
+%
+
+g_anyize_expr = proc(e: g_env, x: expr) returns(str)
+    x1: str := g_expr(e, x)
+	except when proctype_expr(p: proc_expr):
+	    % The kind of  proc_expr  is assumed to be a name.
+	    x1 := p.code
+	end
+    return("anyize(" || param$tid(e, x.typespec) || ", " || x1 || ")")
+end g_anyize_expr
+
+
+%
+
+g_force_expr = proc(e: g_env, t: typespec) returns(str)
+					   signals(proctype_expr(proc_expr))
+    if e.applied then
+	signal proctype_expr(proc_expr${kind: proc_kind$make_name(nil),
+					code: conv_appfun("force"),
+					parg: mparg$make_one(param$tid(e, t)),
+					expt: expt$make_none(nil),
+					check: true})
+    else
+	return(param$entryp_force(e, t))
+    end
+end g_force_expr
+
+
+% Checks whether the "gen"$"op" operation can be inline-expanded, and
+% returns the information about the inline expansion of the operation if
+% it is possible.  Signals "inline_unable" otherwise.
+
+g_try_inline = proc(e: g_env, gen, op: str) returns(proc_expr)
+					    signals(inline_unable)
+    return(g_try_inline1(e, gen, op, mparg$make_none(nil)))
+	resignal inline_unable
+end g_try_inline
+
+g_try_inline_selop = proc(e: g_env, gen, op: str, sel: int)
+		     returns(proc_expr)
+		     signals(inline_unable)
+    return(g_try_inline1(e, gen, op, mparg$make_one(int$unparse(sel))))
+	resignal inline_unable
+end g_try_inline_selop
+
+
+g_try_inline1 = proc(e: g_env, gen, op: str, parg: mparg)
+		returns(proc_expr)
+		signals(inline_unable)
+    check_except: bool := ~no_exception_op(gen, op)
+    if cmpvar$optimize() cand inline_expandable(gen, op) then
+	return(proc_expr${kind:  proc_kind$make_macro(nil),
+			  code:  conv_opmac(gen, op),
+			  parg:  parg,
+			  expt:  expt$make_none(nil),
+			  check: check_except})
+    elseif cmpvar$optimize_time()
+	   cand inline_expandable_and_signal(gen, op)
+    then
+	exception_information:expt := raising_exception(gen, op)
+	return(proc_expr${kind:  proc_kind$make_macro(nil),
+			  code:  conv_opmac(gen, op),
+			  parg:  parg,
+			  expt:  exception_information,
+			  check: check_except})
+    elseif cmpvar$optimize() then
+	return(proc_expr${kind:  proc_kind$make_inline_iter(
+				    inline_iter(gen, op)),
+			  code:  "",
+			  parg:  parg,
+			  expt:  expt$make_none(nil),
+			  check: check_except})
+    end
+	resignal inline_unable
+    signal inline_unable
+end g_try_inline1
+
+
+% Returns the number assigned to the "sel" selector/tag in "fieldspecs".
+
+g_sel_id = proc(fieldspecs: fieldspeclist, sel: str) returns(int)
+						     signals(bad_selector)
+    n: int := 1
+    for fspec: fieldspec in fieldspeclist$elements(fieldspecs) do
+	if fspec.sel = sel then
+	    return(n)
+	end
+	n := n + 1
+    end
+    signal bad_selector
+end g_sel_id
+
+
+% Returns the procedure for the "gen"$"op" iterator that compiled
+% inline.  Signals "inline_unable" if "gen"$"op" is not compiled inline.
+
+inline_iter = proc(gen, op: str) returns(opt_iter_proc) signals(inline_unable)
+    key = struct[gen, op: str]
+    optab = table[key, opt_iter_proc]
+    own ops: optab := optab$create(8, hash_key, key$similar)
+    own first: bool := true
+    if first then
+	first := false
+	optab$bind(ops, key${gen: "int", op: "from_to"}, opt_int_from_to)
+	optab$bind(ops, key${gen: "int", op: "from_to_by"}, opt_int_from_to_by)
+	optab$bind(ops, key${gen: "string", op: "chars"}, opt_string_chars)
+	optab$bind(ops, key${gen: "array", op: "indexes"}, opt_array_indexes)
+	optab$bind(ops, key${gen: "array", op: "elements"}, opt_array_elements)
+	optab$bind(ops, key${gen: "sequence", op: "indexes"}, opt_sequence_indexes)
+	optab$bind(ops, key${gen: "sequence", op: "elements"}, opt_sequence_elements)
+    end
+    return(optab$lookup(ops, key${gen: gen, op: op}))
+	except when not_found:
+	    signal inline_unable
+	end
+end inline_iter

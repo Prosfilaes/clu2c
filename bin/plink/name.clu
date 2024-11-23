@@ -1,0 +1,60 @@
+% name.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: name.clu,v 2.0 1996/06/10 09:04:51 ushijima Exp $
+
+
+% Splits CLU operation name into type generator name and operatoin name.
+% Signals "bad_format" if "op" does not name a operation.
+
+split_opname = proc(op: str) returns(str, str) signals(bad_format)
+    i: int := str$indexc('$', op)
+    if i = 0 then
+	signal bad_format
+    end
+    gen: str := str$substr(op, 1, i - 1)
+    return(gen, str$rest(op, i + 1))
+end split_opname
+
+
+% Returns true if _gen_ is the name of a built-in cluster generator;
+% otherwise returns false.
+
+builtin_cluster = proc(gen: str) returns(bool)
+    return(gen = "array" cor gen = "sequence")
+end builtin_cluster
+
+
+% Returns true if "gen" names a built-in selector generator.
+
+builtin_selector = proc(gen: str) returns(bool)
+    if gen = "record"
+       cor gen = "struct"
+       cor gen = "oneof"
+       cor gen = "variant"
+    then
+	return(true)
+    else
+	return(false)
+    end
+end builtin_selector
+
+
+% Returns the CLU level operaiotn _op_ that _gen_ provides.
+
+op_cluname = proc(gen, op: str) returns(str)
+    return(gen || "$" || op)
+end op_cluname
+
+
+% Returns true if the operation _op_ contains selector/tag in its
+% name.
+
+need_sel_id = proc(op: str) returns(bool)
+    % This discriminant may be doubtful...
+    i: int := str$indexc('_', op)
+    return(i > 1 cand str$substr(op, 2, str$size(op) - 2) ~= "_gets_")
+end need_sel_id

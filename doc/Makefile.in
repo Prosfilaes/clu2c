@@ -1,0 +1,58 @@
+dnl $Id: Makefile.in,v 2.0 1996/06/10 09:05:55 ushijima Exp $
+include(`mk.m4')
+MK_CURRENT_DIRECTORY(`doc')
+MK_DEFINE_VARIABLE(`TEXI_SRC',
+	`MK_PATH_NAME(`$(srcdir)', `advanced.texi')\
+	   MK_PATH_NAME(`$(srcdir)', `basic.texi')\
+	   MK_PATH_NAME(`$(srcdir)', `changes.texi')\
+	   MK_PATH_NAME(`$(srcdir)', `clu2c.texi')\
+	   MK_PATH_NAME(`$(srcdir)', `copying.texi')\
+	   MK_PATH_NAME(`$(srcdir)', `index.texi')\
+	   MK_PATH_NAME(`$(srcdir)', `install.texi')\
+	   MK_PATH_NAME(`$(srcdir)', `intro.texi')\
+	   MK_PATH_NAME(`$(srcdir)', `library.texi')')
+MK_MISC_SOURCES(`$(TEXI_SRC)')
+MK_NON_SOURCES(`clu2c.info clu2c.info-1 clu2c.info-2 clu2c.info-3 clu2c.info-4')
+MK_APPEND_PREREQ(`all', `info')
+MK_APPEND_PREREQ(`install', `installdirs install-info')
+MK_APPEND_PREREQ(`info', `clu2c.info')
+MK_MOSTLYCLEAN_FILES(`clu2c.aux clu2c.dvi clu2c.ky clu2c.log clu2c.pg clu2c.toc')
+MK_MOSTLYCLEAN_FILES(`clu2c.cp clu2c.cps')
+MK_MOSTLYCLEAN_FILES(`clu2c.fn clu2c.fns')
+MK_MOSTLYCLEAN_FILES(`clu2c.tp clu2c.tps')
+MK_MOSTLYCLEAN_FILES(`clu2c.vr clu2c.vrs')
+MK_DEFINE_RULE(`dvi', `dvi', `clu2c.dvi')
+MK_DEFINE_RULE(`clu2c_info',
+	`clu2c.info', `$(TEXI_SRC)',
+	`$(MAKEINFO) $(MAKEINFOFLAGS) MK_PATH_NAME(`$(srcdir)', `clu2c.texi')')
+MK_DEFINE_RULE(`clu2c_dvi',
+	`clu2c.dvi', `$(TEXI_SRC)',
+	`$(TEXI2DVI) $(TEXI2DVIFLAGS) MK_PATH_NAME(`$(srcdir)', `clu2c.texi')')
+MK_DEFINE_RULE(`install_info',
+	`install-info', `info',
+	ifelse(OSTYPE, `unix',
+	`@if test -f clu2c.info; then\
+	    for i in clu2c.info clu2c.info-1 clu2c.info-2 clu2c.info-3 clu2c.info-4; do\
+		echo MK_INSTALL_DATA(`$$i', `$(infodir)');\
+		MK_INSTALL_DATA(`$$i', `$(infodir)');\
+	    done;\
+	else\
+	    for i in clu2c.info clu2c.info-1 clu2c.info-2 clu2c.info-3 clu2c.info-4; do\
+		echo MK_INSTALL_SOURCE_DATA(`$$i', `$(infodir)');\
+		MK_INSTALL_SOURCE_DATA(`$$i', `$(infodir)');\
+	    done;\
+	fi',
+	`copy clu2c.i* $(infodir)'))
+MK_DEFINE_RULE(`installdirs',
+	`installdirs', `',
+	`MK_INSTALL_DIRECTORY(`$(infodir)')')
+MK_SOURCE_FILES
+MK_VARIABLE_DEFINITION(`TEXI_SRC', `Texinfo source files')
+MK_END
+MK_SPECIFIC_RULES
+MK_RULE_DEFINITION(`dvi', `Creates a DVI file')
+MK_RULE_DEFINITION(`clu2c_info', `Creates clu2c.info')
+MK_RULE_DEFINITION(`clu2c_dvi', `Creates clu2c.dvi')
+MK_RULE_DEFINITION(`install_info', `Installs Info files')
+MK_RULE_DEFINITION(`installdirs', `Prepares installation directories')
+MK_END

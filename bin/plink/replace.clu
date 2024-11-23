@@ -1,0 +1,123 @@
+% replace.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: replace.clu,v 2.0 1996/06/10 09:04:53 ushijima Exp $
+
+
+% This file contains routines that creates new parameters derived from
+% replacing formal parameters in them with actual parameters.
+
+
+% Returns a new parameter list that is derived from _formals_ by
+% replaceing formal parameters in _formals_ with actual parameters in
+% _actuals_.
+
+replace_parmlist = proc(formals, actuals: parmlist) returns(parmlist)
+    res: parmlist := parmlist$new()
+    for parm: parameter in parmlist$elements(formals) do
+	newparm: parameter := parm
+	tagcase parm
+	tag tparm(tp: tparm):
+	    newparm := parameter$make_tparm(replace_tparm(tp, actuals))
+	tag vparm(vp: vparm):
+	    tagcase vp
+	    tag fparm(id: int):
+		tagcase actuals[id]
+		tag vparm(v: vparm):
+		    tagcase v
+		    tag lit:
+			newparm := parameter$make_vparm(v)
+		    others:
+			% unexpected formal parameter
+			ee: e_env := e_env$get()
+			e_env$interr1(
+			    ee,
+			    "replace_parmlist",
+			    "unexpected formal parameter"
+			)
+		    end
+		others:
+		    % unexpected type parameter
+		    ee: e_env := e_env$get()
+		    e_env$interr1(
+			ee,
+			"replace_parmlist",
+			"unexpected type parameter"
+		    )
+		end
+	    others:
+		% nothing to do
+	    end
+	end
+	parmlist$addh(res, newparm)
+    end
+    return(res)
+end replace_parmlist
+
+
+% Returns a new field specification list that is derived from
+% _formals_ by replaceing formal parameters in _formals_ with actual
+% parameters in _actuals_.
+
+replace_fieldspeclist = proc(formals: fieldspeclist, actuals: parmlist)
+			returns(fieldspeclist)
+    res: fieldspeclist := fieldspeclist$new()
+    for fspec: fieldspec in fieldspeclist$elements(formals) do
+	fieldspeclist$addh(
+	    res,
+	    fieldspec${
+		sel:  fspec.sel,
+		parm: replace_tparm(fspec.parm, actuals)
+	    }
+	)
+    end
+    return(res)	
+end replace_fieldspeclist
+
+
+% Returns a new type parameter that is derived from _formals_ by
+% replaceing formal parameters in _formals_ with actual parameters in
+% _actuals_.
+
+replace_tparm = proc(tp: tparm, actuals: parmlist) returns(tparm)
+    tagcase tp
+    tag clu(inst: cluinst):
+	return(
+	    tparm$make_clu(
+		cluinst$create(inst.gen, replace_parmlist(inst.parms, actuals))
+	    )
+	)
+    tag sel(inst: selinst):
+	return(
+	    tparm$make_sel(
+		selinst$create(
+		    inst.gen,
+		    replace_fieldspeclist(inst.parms, actuals)
+		)
+	    )
+	)
+    tag fparm(id: int):
+	tagcase actuals[id]
+	tag tparm(t: tparm):
+	    tagcase t
+	    tag clu, sel:
+		return(t)
+	    others:
+		% unexpected formal parameter
+		ee: e_env := e_env$get()
+		e_env$interr1(
+		    ee,
+		    "replace_tparm",
+		    "unexpected formal parameter"
+		)
+	    end
+	others:
+	    % unexpected value (i.e., non-type) parameter
+	    ee: e_env := e_env$get()
+	    e_env$interr1(ee, "replace_tparm", "unexpected non-type parameter")
+	end
+    end
+end replace_tparm

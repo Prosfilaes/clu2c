@@ -1,0 +1,15 @@
+% start_up.clu - start-up routine
+%
+% Copyright (c) 1996, 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: start_up.clu,v 2.2 1997/02/05 09:55:39 ushijima Exp $
+
+
+start_up = proc()
+    clulink(program_arguments())
+	except when error:
+	    signal failure("")
+	end
+end start_up

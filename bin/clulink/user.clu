@@ -1,0 +1,537 @@
+% user.clu - user of this program
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: user.clu,v 2.2 1996/08/07 14:15:58 ushijima Exp $
+
+
+% USER is a program's view of the user.
+
+user = cluster is create, get_cc, get_cc_flags, get_coff2exe,
+       get_debug, get_forced, get_help, get_lib_dirs, lib_dirs,
+       get_libs, libs, objects, get_output, get_plink, sources,
+       get_verbose, get_version, put_usage
+
+
+    % Representation.
+
+    rep = record[
+	cc:       string,		% C compiler
+	cc_flags: string,		% flags to C compiler
+	coff2exe: string,		% coff-to-exe converter
+	debug:    bool,			% generate debugging information?
+	default:  system_default,	% default configrations
+	forced:   bool,			% is compilation to be forced?
+	help:     bool,			% put usage?
+	lib_dirs: sf,			% library directories
+	libs:     ss,			% library specifications
+	objects:  file_name_list,	% list of object files
+	output:   file_name,		% output file name
+	plink:    string,		% pre-linker
+	sources:  file_name_list,	% list of source files
+	verbose:  bool,			% act verbosely?
+	version:  bool			% put version?
+    ]
+
+    sf = sequence[file_name]
+    ss = sequence[string]
+    file_name_list = array[file_name]
+
+
+    % Support for parsing argument vector.
+
+    stuff = record[
+	argv:  as,
+	error: bool,
+	errst: stream
+    ]
+
+    as = array[string]
+
+
+    % Operations.
+
+
+    % Signals USAGE_ONLY if the user wants the usage to be displayed;
+    % signals VERSION_ONLY if the user wants the version of this
+    % program to be displayed; signals NOT_POSSIBLE if ARGV is in a
+    % bad format; otherwise returns a new user derived form ARGV.
+
+    create = proc(argv: ss) returns(cvt)
+	     signals(usage_only, version_only, not_possible(string))
+	sd: system_default := system_default$create()
+	    resignal not_possible
+	u: rep := default_user(sd)
+	s: stuff := stuff${
+	    argv:  ss$s2a(argv),
+	    error: false,
+	    errst: stream$create_output()
+	}
+	parse_argv(s, u)
+	if u.help then
+	    signal usage_only
+	elseif u.version then
+	    signal version_only
+	elseif s.error then
+	    signal not_possible(s.errst.contents)
+	end
+	return(u)
+    end create
+
+
+    % Returns the name of the C compiler that the user U prefers.
+
+    get_cc = proc(u: cvt) returns(string)
+	return(u.cc)
+    end get_cc
+
+
+    % Returns flags (or options) that the user U prefers for the C
+    % compiler.
+
+    get_cc_flags = proc(u: cvt) returns(string)
+	cc_flags: string := u.cc_flags
+	if u.debug then
+	    cc_flags := string$append(cc_flags, ' ') || "-g"
+	end
+	return(cc_flags)
+    end get_cc_flags
+
+
+    % Returns the name of the COFF-to-EXE converter that the user U
+    % prefers, which can be empty.
+
+    get_coff2exe = proc(u: cvt) returns(string)
+	return(u.coff2exe)
+    end get_coff2exe
+
+
+    % Returns true if the user U wants debugging information to be
+    % generated; otherwise returns false.
+
+    get_debug = proc(u: cvt) returns(bool)
+	return(u.debug)
+    end get_debug
+
+
+    % Returns true if the user U wants compilation to be forced;
+    % otherwise returns false.
+
+    get_forced = proc(u: cvt) returns(bool)
+	return(u.forced)
+    end get_forced
+
+
+    % Returns true if the user U wants the usage of this program to be
+    % displayed; otherwise returns false.
+
+    get_help = proc(u: cvt) returns(bool)
+	return(u.help)
+    end get_help
+
+
+    % Returns the library directories that should be used when linking
+    % object files.
+
+    get_lib_dirs = proc(u: cvt) returns(string)
+	dirs: string := ""
+	for dir: file_name in all_lib_dirs(u) do
+	    s: string := "-L" || file_name_to_string(dir) 
+	    if string$empty(dirs) then
+		dirs := s
+	    else
+		dirs := string$append(dirs, ' ') || s
+	    end
+	end
+	return(dirs)
+    end get_lib_dirs
+
+
+    % Yields the names of library directories.
+
+    lib_dirs = iter(u: cvt) yields(file_name)
+	for dir: file_name in all_lib_dirs(u) do
+	    yield(dir)
+	end
+    end lib_dirs
+
+
+    % Returns the library specifications that should be used when
+    % linking object files.
+
+    get_libs = proc(u: cvt) returns(string)
+	libraries: string := ""
+	for lib: string in all_libs(u) do
+	    if string$empty(libraries) then
+		libraries := "-l" || lib
+	    else
+		libraries := string$append(libraries, ' ') || "-l" || lib
+	    end
+	end
+	return(libraries)
+    end get_libs
+
+
+    % Yields the names of library directories.
+
+    libs = iter(u: cvt) yields(string)
+	for lib: string in all_libs(u) do
+	    yield(lib)
+	end
+    end libs
+
+
+    % Yields the names of object files.
+
+    objects = iter(u: cvt) yields(file_name)
+	for fn: file_name in file_name_list$elements(u.objects) do
+	    yield(fn)
+	end
+    end objects
+
+
+    % Returns the name of the output file.
+
+    get_output = proc(u: cvt) returns(file_name)
+	return(u.output)
+    end get_output
+
+
+    % Returns the name of pre-linker.
+
+    get_plink = proc(u: cvt) returns(string)
+	plink: string := u.plink
+	if u.debug then
+	    plink := string$append(plink, ' ') || "-g"
+	end
+	return(plink)
+    end get_plink
+
+
+    % Yields the names of C source files.
+
+    sources = iter(u: cvt) yields(file_name)
+	for fn: file_name in file_name_list$elements(u.sources) do
+	    yield(fn)
+	end
+    end sources
+
+
+    % Returns true if the user U wants verbose messages; otherwise
+    % returns false.
+
+    get_verbose = proc(u: cvt) returns(bool)
+	return(u.verbose)
+    end get_verbose
+
+
+    % Returns true if the user U wants the version of this program to
+    % be displayed; otherwise returns false.
+
+    get_version = proc(u: cvt) returns(bool)
+	return(u.version)
+    end get_version
+
+
+    % Modifies OUTPUT.  Puts the usage of this program to OUTPUT.
+
+    put_usage = proc(output: stream)
+	usage = ss$[
+	    "Usage: clulink [ OPTION... ] FILE...",
+	    "",
+	    "Options:",
+	    "",
+	    "  -V           --version\tprint the version of clulink",
+	    "  -g           --debug\t\tgenerate debugging information",
+	    "  -h           --help\t\tprint this message",
+	    "  -v           --verbose\tprint additional messages",
+	    "  -o FILE      --output=FILE\tspecify output file name",
+	    "  -LDIR        --libdir=DIR\tadd DIR to the list of library directories",
+	    "  -lNAME       --lib=NAME\tlink an archive associated with NAME",
+	    "  -c COMPILER  --cc=COMPILER\tuse COMPILER as a C compiler",
+	    "  -F FLAG      --cc-flag=FLAG\tspecify a flag passed to C compiler",
+	    "  -P PLINK     --plink=PLINK\tuse PLINK as a pre-linker",
+	    "  -f           --force\t\tforce compilation",
+	    "",
+	    "  Other options are passed to the C compiler"
+	]
+	for s: string in ss$elements(usage) do
+	    stream$putl(output, s)
+	end
+	    except when not_possible(*): end
+    end put_usage
+
+
+
+    % Internal routines.
+
+
+    % Returns the default user derived from SD.
+
+    default_user = proc(sd: system_default) returns(rep)
+	plink_name: file_name := file_name$create("~CLU/bin", "plink", "", "")
+	plink_name := file_name_expand_home_directory(plink_name)
+	plink: string := file_name$unparse(plink_name)
+	u: rep := rep${
+	    cc:       sd.cc,
+	    cc_flags: sd.cc_flags,
+	    coff2exe: sd.coff2exe,
+	    debug:    false,
+	    default:  sd,
+	    forced:   false,
+	    help:     false,
+	    lib_dirs: sf$new(),
+	    libs:     ss$new(),
+	    objects:  file_name_list$new(),
+	    output:   sd.output,
+	    plink:    plink,
+	    sources:  file_name_list$new(),
+	    verbose:  false,
+	    version:  false
+	}
+	return(u)
+    end default_user
+
+
+    % Modifies S and U.  Parses argument vector in S and changes U so
+    % that it reflects the preference of the user of this program.
+
+    parse_argv = proc(s: stuff, u: rep)
+	empty = file_name_list$empty
+	argv: as := s.argv
+	while true do
+	    arg: string := as$reml(argv)
+	    if string$empty(arg) then
+		continue
+	    elseif arg[1] = '-' then
+		parse_option(arg, s, u)
+	    else
+		begin
+		    fn: file_name := file_name$parse(arg)
+		    suffix: string := fn.suffix
+		    if suffix = "c" then
+			file_name_list$addh(u.sources, fn)
+			continue
+		    elseif suffix = "o" then
+			file_name_list$addh(u.objects, fn)
+			continue
+		    end
+		end
+		    except when bad_format: end
+		u.cc_flags := string$append(u.cc_flags, ' ') || arg
+	    end
+	end
+	    except when bounds: end
+	if empty(u.sources) cand empty(u.objects) then
+	    error(s, "", "no input files")
+	end
+    end parse_argv
+
+
+    % Requires that the first character of ARG is a minus sign (`-').
+    % Modifies S and U.  If ARG specifies a valid option, changes U
+    % accordingly; otherwise sets the error flags and puts error
+    % message in S.
+
+    parse_option = proc(arg: string, s: stuff, u: rep)
+	if arg = "-" then
+	    % ...
+	elseif arg[2] = '-' then
+	    parse_long_option(arg, s, u)
+	else
+	    parse_short_option(arg, s, u)
+	end
+    end parse_option
+
+
+    % Requires that the first two characters of ARG is both minus
+    % signs.  Modifies S and U.  Changes U according to ARG if ARG is
+    % a valid long-name option; otherwise sets the error flag and puts
+    % error message in S.
+
+    parse_long_option = proc(arg: string, s: stuff, u: rep)
+	name, value: string
+	with_value: bool
+	i: int := string$indexc('=', arg)
+	if i > 0 then
+	    name := string$substr(arg, 3, i - 3)
+	    value := string$rest(arg, i + 1)
+	    with_value := true
+	else
+	    name := string$rest(arg, 3)
+	    with_value := false
+	end
+	if name = "cc" then
+	    if with_value then
+		u.cc := value
+	    else
+		error(s, arg, "missing value")
+	    end
+	elseif name = "cc-flag" then
+	    if with_value then
+		u.cc_flags := string$append(u.cc_flags, ' ') || value
+	    else
+		error(s, arg, "missing value")
+	    end
+	elseif name = "debug" then
+	    if with_value then
+		error(s, arg, "no value expected")
+	    else
+		u.debug := true
+	    end
+	elseif name = "force" then
+	    if with_value then
+		error(s, arg, "no value expected")
+	    else
+		u.forced := true
+	    end
+	elseif name = "help" then
+	    if with_value then
+		error(s, arg, "no value expected")
+	    else
+		u.help := true
+	    end
+	elseif name = "lib" then
+	    if with_value then
+		u.libs := ss$addh(u.libs, value)
+	    else
+		error(s, arg, "missing value")
+	    end
+	elseif name = "libdir" then
+	    if with_value then
+		u.lib_dirs := sf$addh(u.lib_dirs, file_name$parse(value))
+		    except when bad_format:
+			error(s, arg, "bad format directory")
+		    end
+	    else
+		error(s, arg, "missing value")
+	    end
+	elseif name = "output" then
+	    if with_value then
+		u.output := file_name$parse(value)
+		    except when bad_format:
+			error(s, arg, value || ": bad format file name")
+		    end
+	    else
+		error(s, arg, "missing file name")
+	    end
+	elseif name = "plink" then
+	    if with_value then
+		u.plink := value
+	    else
+		error(s, arg, "missing value")
+	    end
+	elseif name = "verbose" then
+	    if with_value then
+		error(s, arg, "no value expected")
+	    else
+		u.verbose := true
+	    end
+	elseif name = "version" then
+	    if with_value then
+		error(s, arg, "no value expected")
+	    else
+		u.version := true
+	    end
+	end
+    end parse_long_option
+
+
+    % Requires that the first character of ARG is a minus sign.
+    % Modifies S and U.  Changes U according to ARG if ARG is a valid
+    % short-name option; otherwise sets the error flag and puts error
+    % message in S.
+
+    parse_short_option = proc(arg: string, s: stuff, u: rep)
+	size: int := string$size(arg)
+	c: char := arg[2]
+	if c = 'l' then
+	    if size > 2 then
+		u.libs := ss$addh(u.libs, string$rest(arg, 3))
+	    else
+		error(s, arg, "missing value")
+	    end
+	elseif c = 'L' then
+	    if size > 2 then
+		u.lib_dirs := sf$addh(u.lib_dirs,
+				      file_name$parse(string$rest(arg, 3)))
+		    except when bad_format:
+			error(s, arg, "bad format directory")
+		    end
+	    else
+		error(s, arg, "missing value")
+	    end
+	elseif size > 2 then
+	    u.cc_flags := string$append(u.cc_flags, ' ') || arg
+	elseif c = 'c' then
+	    u.cc := as$reml(s.argv)
+	elseif c = 'f' then
+	    u.forced := true
+	elseif c = 'F' then
+	    u.cc_flags := string$append(u.cc_flags, ' ') || as$reml(s.argv)
+	elseif c = 'g' then
+	    u.debug := true
+	elseif c = 'h' then
+	    u.help := true
+	elseif c = 'o' then
+	    output: string := as$reml(s.argv)
+	    u.output := file_name$parse(output)
+		except when bad_format:
+		    error(s, arg, output || ": bad format file name")
+		end
+	elseif c = 'P' then
+	    u.plink := as$reml(s.argv)
+	elseif c = 'v' then
+	    u.verbose := true
+	elseif c = 'V' then
+	    u.version := true
+	else
+	    u.cc_flags := string$append(u.cc_flags, ' ') || arg
+	end
+	    except when bounds:
+		error(s, arg, "missing value")
+	    end
+    end parse_short_option
+
+
+    % Modifies S so that S indicates an error has been detected and
+    % stores DESCRIPTION about TARGET in S.
+
+    error = proc(s: stuff, target, description: string)
+	if string$empty(target) then
+	    stream$putl(s.errst, description)
+	else
+	    stream$putl(s.errst, target || ": " || description)
+	end
+	    except when not_possible(*): end
+	s.error := true
+    end error
+
+
+    % Yields all libary directories.
+
+    all_lib_dirs = iter(u: rep) yields(file_name)
+	for dir: file_name in sf$elements(u.lib_dirs) do
+	    yield(dir)
+	end
+	for dir: file_name in sf$elements(u.default.lib_dirs) do
+	    yield(dir)
+	end
+    end all_lib_dirs
+
+
+    % Yields all library names.
+
+    all_libs = iter(u: rep) yields(string)
+	for lib: string in ss$elements(u.libs) do
+	    yield(lib)
+	end
+	for lib: string in ss$elements(u.default.libs) do
+	    yield(lib)
+	end
+    end all_libs
+
+
+end user

@@ -1,0 +1,66 @@
+% formal.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: formal.clu,v 2.0 1996/06/10 09:04:48 ushijima Exp $
+
+
+% This file contains routines to check whether parameters contain any
+% formal parameter.
+
+
+% Returns true if _parms_ contains any formal parameter; otherwise
+% returns false.
+
+formal_parmlist = proc(parms: parmlist) returns(bool)
+    for parm: parameter in parmlist$elements(parms) do
+	tagcase parm
+	tag tparm(tp: tparm):
+	    if formal_tparm(tp) then
+		return(true)
+	    end
+	tag vparm(vp: vparm):
+	    tagcase vp
+	    tag fparm:
+		return(true)
+	    others:
+	    end
+	end
+    end
+    return(false)
+end formal_parmlist
+
+
+% Returns true if _fspecs_ contains any formal parameter; otherwise
+% returns false.
+
+formal_fieldspeclist = proc(fspecs: fieldspeclist) returns(bool)
+    for fspec: fieldspec in fieldspeclist$elements(fspecs) do
+	if formal_tparm(fspec.parm) then
+	    return(true)
+	end
+    end
+    return(false)
+end formal_fieldspeclist
+
+
+% Returns true if _tp_ contains any formal parameter; otherwise
+% returns false.
+
+formal_tparm = proc(tp: tparm) returns(bool)
+    tagcase tp
+    tag clu(inst: cluinst):
+	if formal_parmlist(inst.parms) then
+	    return(true)
+	end
+    tag sel(inst: selinst):
+	if formal_fieldspeclist(inst.parms) then
+	    return(true)
+	end
+    tag fparm:
+	return(true)
+    end
+    return(false)
+end formal_tparm

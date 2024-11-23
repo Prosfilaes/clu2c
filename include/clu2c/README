@@ -1,0 +1,4 @@
+$Id: README,v 2.0 1996/06/10 09:05:38 ushijima Exp $
+
+This directory contains header files for compiling C files generated
+by the clu2c compiler.

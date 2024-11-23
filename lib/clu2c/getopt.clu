@@ -1,0 +1,439 @@
+% getopt.clu - command line parser
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: getopt.clu,v 2.1 1996/10/05 13:57:37 ushijima Exp $
+
+
+% Overview
+%
+% The `getopt' type provides the means to analyze the argument vector
+% (sometimes called an "argv") supplied to a program when it was
+% invoked.
+%
+% From the point of view of `getopt', an argument vector consists of
+% zero or more option arguments followed by zero or more non-option
+% arguments.  Option arguments specify a set of options.  An option
+% can take an argument for itself.
+%
+% The argument that starts with a minus sign (`-') followed by one or
+% more characters is an option argument unless otherwise specified.
+% It specifies one or more options.  If an option specified by an
+% option argument takes an argument and an argument to the option is
+% not specified in the option argument, the next argument in the
+% argument vector is taken as an argument to the option.
+%
+% At the minimum, an option argument consists of a minus sign followed
+% by a single character (e.g., `-a'), which specifies a single option.
+% If an option takes an argument, the argument to the option can be
+% specified in the same option argument.  For example, suppose that
+% the `-o' option takes an argument.  The argument to this option, say
+% `foo', can be spcified as `-ofoo', as well as `-o foo', as mentioned
+% above.
+%
+% Options specified by a single character can be grouped into a single
+% option argument.  For example, the three options `-a', `-b', and
+% `-c' can be specified as `-abc'.  Note that an argument-taking
+% option eats up an option argument.  For example, if the `-o' option
+% takes an argument as before, the option argument `-aobc' is
+% equivalent to the tree option arguments `-a -o bc'.
+%
+% An `getopt' object can be made tailored to recognize long-form
+% options (in contrast to short-form options described so far).  The
+% form of an long-form option is
+%	`--'NAME[`='ARGUMENT]
+% where NAME can be spcified with an unambiguous prefix.
+%
+% A special option argument that consists of two minus signs (i.e.,
+% `--'), unless taken as an argument for the preceding option, does
+% not modify the program behavior but modifies the way the argument
+% vector is analyzed: it specifies the end of option arguments.  That
+% is, all the arguments that follows this argument are taken as
+% non-option arguments, even if they start with a minus sign.
+%
+% An `getopt' object is mutable.  The state of an `getopt' object
+% changes during the execution of the `options' operation.  No other
+% operations change the state.  Each time the `options' operation
+% yields, it sets the current option to the yielded one.
+
+
+getopt = cluster is create, create_long, options, get_optname,
+	 get_optarg, optarg_is_empty, optarg_is_full, get_optind,
+	 get_opterr, set_opterr, set_output, get_non_options,
+	 non_options
+
+
+    % Representation.  Note that `long_option_list' is defined in
+    % `getopt.equ'.
+
+    rep = record[
+	argv:    ss,			% argument vector
+	optname: string,		% name of the current option
+	optarg:  maybe_string,		% argument to the current option
+	optind:  int,			% index for the next option
+	opterr:  bool,			% whether error messages are printed
+	output:  stream,		% stream for error messages
+	short:   string,		% specification for short-form options
+	long:    long_option_list	% specification for long-form options
+    ]
+
+    ss = sequence[string]
+
+    maybe_string = oneof[empty: null, full: string]
+
+
+    % Operations
+
+
+    % Returns a new `getopt' object that analyzes short-form options
+    % in ARGV.  The legitimate characters for the options are listed
+    % in OPTSTRING.  If a character is followed by a colon (`:'), the
+    % option specified by the character takes an argument.  The other
+    % options does not take an argument.  Signals `bad_format' if
+    % OPTSTRING is empty or it starts with a colon.
+
+    create = proc(argv: ss, optstring: string) returns(getopt)
+	     signals(bad_format)
+	own empty_longopts: long_option_list := long_option_list$new()
+	if string$empty(optstring) then
+	    signal bad_format
+	end
+	return(create_long(argv, optstring, empty_longopts))
+	    resignal bad_format
+    end create
+
+
+    % Returns a new `getopt' object that analyzes short-form options
+    % as well as long-form options in ARGV.  The SHORTOPTS argument is
+    % the same as OPTSTRING for `create' except that it can be empty,
+    % in this case only long-form options are analyzed.  The LONGOPTS
+    % argument specifies a set of legitimate long-form options.  Each
+    % element specifies a single long-form option.  The `name'
+    % component is the name of the option.  The `arg' component
+    % specifies whether the option takes an argument: `no_argument'
+    % means that the option does not take an argument;
+    % `required_argument' means that the option takes an argument;
+    % `optional_argument' means that the option takes an argument but
+    % the argument can be omitted.  The `val' component specifies the
+    % character yielded by the `options' operation when the option is
+    % encountered.  Signals `bad_format' if SHORTOPS starts with a
+    % colon or LONGOPTS is not in the form mentioned above.
+
+    create_long = proc(argv: ss, shortopts: string, longopts: long_option_list)
+		  returns(cvt) signals(bad_format)
+	if shortopts[1] = ':' then
+	    signal bad_format
+	end
+	    except when bounds: end
+	for option: long_option in long_option_list$elements(longopts) do
+	    arg: int := option.arg
+	    if arg ~= no_argument
+	       cand arg ~= required_argument
+	       cand arg ~= optional_argument
+	    then
+		signal bad_format
+	    end
+	end
+	return(rep${argv:    argv,
+		    optname: "",
+		    optarg:  maybe_string$make_empty(nil),
+		    optind:  1,
+		    opterr:  true,
+		    output:  stream$error_output(),
+		    short:   shortopts,
+		    long:    longopts})
+    end create_long
+
+
+    % Requires that the `options' operation has not been invoked on GO.
+    % Analyzes the argument vector and yields a character that
+    % corresponds to the option encountered.  If the option is in
+    % short form, yields the character that specifies the option.  If
+    % the option is in long form, yields the `val' component that
+    % corresponds to the option.  If the specified option is not
+    % legitimate, is ambiguous, or lacks a required argument, yields a
+    % question mark (`?').  In the last case an error message is
+    % printed to the standard error.
+
+    options = iter(go: cvt) yields(char)
+	while go.optind <= ss$size(go.argv) do
+	    arg: string := go.argv[go.optind]
+	    if string$empty(arg) cor arg[1] ~= '-' cor arg = "-" then
+		break
+	    elseif arg = "--" then
+		go.optind := go.optind + 1
+		break
+	    elseif arg[2] = '-' cand ~long_option_list$empty(go.long) then
+		go.optind := go.optind + 1
+		yield(parse_long_option(go, arg))
+	    else
+		for c: char in short_options(go, arg) do
+		    yield(c)
+		end
+	    end
+	end
+	go.optname := ""
+	go.optarg := maybe_string$make_empty(nil)
+    end options
+
+
+    % Returns the name of the current option such as "-a" or
+    % "--verbose".
+
+    get_optname = proc(go: cvt) returns(string)
+	return(go.optname)
+    end get_optname
+
+
+    % If the current option has an argument, returns the argument.
+    % Otherwise signals `no_argument'.
+
+    get_optarg = proc(go: cvt) returns(string) signals(no_argument)
+	tagcase go.optarg
+	tag empty:
+	    signal no_argument
+	tag full(arg: string):
+	    return(arg)
+	end
+    end get_optarg
+
+
+    % Returns `true' if and only if the current option does not have
+    % an argument.
+
+    optarg_is_empty = proc(go: cvt) returns(bool)
+	return(maybe_string$is_empty(go.optarg))
+    end optarg_is_empty
+
+
+    % Returns `true' if and only if the current option has an
+    % argument.
+
+    optarg_is_full = proc(go: cvt) returns(bool)
+	return(maybe_string$is_full(go.optarg))
+    end optarg_is_full
+
+
+    % Returns the index of the next argument to be processed in the
+    % argument vector.
+
+    get_optind = proc(go: cvt) returns(int)
+	return(go.optind)
+    end get_optind
+
+
+    % Returns whether an error message is printed when an option is
+    % unknown or without a required argument.
+
+    get_opterr = proc(go: cvt) returns(bool)
+	return(go.opterr)
+    end get_opterr
+
+
+    % If OPTERR is `true', changes GO so that an error message is
+    % printed when an option is unknown or without a required argument
+    % (this is the default behavior).  Otherwise changes GO so that no
+    % error messages are printed.
+
+    set_opterr = proc(go: cvt, opterr: bool)
+	go.opterr := opterr
+    end set_opterr
+
+
+    % Changes GO so that error messages are printed to OUTPUT.
+
+    set_output = proc(go: cvt, output: stream)
+	go.output := output
+    end set_output
+
+
+    % Requires that the `options' operation has been invoked on GO and
+    % it terminated normally.  Returns the sequence of the non-option
+    % arguments.
+
+    get_non_options = proc(go: cvt) returns(ss)
+	return(ss$subseq(go.argv, go.optind, ss$size(go.argv) - go.optind + 1))
+    end get_non_options
+
+
+    % Requires that the `options' operation has been invoked on GO and
+    % it terminated normally.  Yields each non-option argument in the
+    % same order as in the argument vector that is used for creating
+    % GO.
+
+    non_options = iter(go: cvt) yields(string)
+	for i: int in int$from_to(go.optind, ss$size(go.argv)) do
+	    yield(go.argv[i])
+	end
+    end non_options
+
+
+    % Internal routines
+
+
+    % Requires that ARG is a short-form option argument.  Yields the
+    % character for each option in ARG.
+
+    short_options = iter(go: rep, arg: string) yields(char)
+	index: int := 2
+	while index <= string$size(arg) do
+	    go.optarg := maybe_string$make_empty(nil)
+	    optchar: char := arg[index]
+	    index := index + 1
+	    if index > string$size(arg) then
+		go.optind := go.optind + 1
+	    end
+	    go.optname := string$append("-", optchar)
+	    legal, requires_arg: bool := lookup_short(go, optchar)
+	    if ~legal then
+		error(go, "illegal option", optchar)
+		optchar := '?'
+	    elseif requires_arg then
+		begin
+		    s: string
+		    if index <= string$size(arg) then
+			s := string$rest(arg, index)
+		    else
+			s := go.argv[go.optind]
+		    end
+		    go.optarg := maybe_string$make_full(s)
+		    go.optind := go.optind + 1
+		end
+		    except when bounds:
+			error(go, "option requires an argument", optchar)
+			optchar := '?'
+		    end
+		index := string$size(arg) + 1
+	    end
+	    yield(optchar)
+	end
+    end short_options
+
+
+    % The first result is `true' if and only if OPTCHAR is a
+    % legitimate option character.  The second result is `true' if and
+    % only if the option specified by OPTCHAR takes an argument.
+
+    lookup_short = proc(go: rep, optchar: char) returns(bool, bool)
+	legal: bool := false
+	requires_arg: bool := false
+	i: int := string$indexc(optchar, go.short)
+	if i > 0 then
+	    legal := true
+	    requires_arg := go.short[i + 1] = ':'
+		except when bounds: end
+	end
+	return(legal, requires_arg)
+    end lookup_short
+
+
+    % Requires that ARG is a long-form option argument.  Returns the
+    % character that corresponds to the option specified by ARG.
+
+    parse_long_option = proc(go: rep, arg: string) returns(char)
+	with_arg: bool
+	i: int := string$indexc('=', arg)
+	if i > 0 then
+	    go.optname := string$substr(arg, 1, i - 1)
+	    go.optarg := maybe_string$make_full(string$rest(arg, i + 1))
+	    with_arg := true
+	else
+	    go.optname := arg
+	    go.optarg := maybe_string$make_empty(nil)
+	    with_arg := false
+	end
+	name: string := string$rest(go.optname, 3)
+	option: long_option := lookup_long(go, name)
+	    except
+	    when not_found:
+		error_long(go, "unrecognized", name, "")
+		return('?')
+	    when ambiguous:
+		error_long(go, "", name, "is ambiguous")
+		return('?')
+	    end
+	if option.arg = no_argument cand with_arg then
+	    error_long(go, "", option.name, "doesn't allow an argument")
+	    return('?')
+	elseif option.arg = required_argument cand ~with_arg then
+	    error_long(go, "", option.name, "requires an argument")
+	    return('?')
+	end
+	return(option.val)
+    end parse_long_option
+
+
+    % Signals `not_found' if NAME is not a legitimate name for
+    % long-form options; signals `ambiguous' if NAME is a prefix of
+    % more than one legitimate long-form option names; otherwise
+    % returns the `long_option' object that corresponds to NAME.
+
+    lookup_long = proc(go: rep, name: string) returns(long_option)
+		  signals(not_found, ambiguous)
+	found: bool := false
+	result: long_option
+	for option: long_option in long_option_list$elements(go.long) do
+	    if name = option.name then
+		found := true
+		result := option
+		break
+	    elseif string$indexs(name, option.name) = 1 then
+		if found then
+		    signal ambiguous
+		end
+		found := true
+		result := option
+	    end
+	end
+	if ~found then
+	    signal not_found
+	end
+	return(result)
+    end lookup_long
+
+
+    % Puts an error message derived from MESSAGE and OPTCHAR to the
+    % standard error.
+
+    error = proc(go: rep, message: string, optchar: char)
+	if go.opterr then
+	    output: stream := go.output
+	    stream$puts(output, program_name())
+	    stream$puts(output, ": ")
+	    stream$puts(output, message)
+	    stream$puts(output, " -- ")
+	    stream$putc(output, optchar)
+	    stream$putc(output, '\n')
+	end
+	    except when not_possible(*): end
+    end error
+
+
+    % Puts an error message derived from WHAT, NAME, and DESC to the
+    % standard error.
+
+    error_long = proc(go: rep, what, name, desc: string)
+	if go.opterr then
+	    output: stream := go.output
+	    stream$puts(output, program_name())
+	    stream$putc(output, ':')
+	    if ~string$empty(what) then
+		stream$putspace(output, 1)
+		stream$puts(output, what)
+	    end
+	    stream$puts(output, " option `--")
+	    stream$puts(output, name)
+	    stream$putc(output, '\'')
+	    if ~string$empty(desc) then
+		stream$putspace(output, 1)
+		stream$puts(output, desc)
+	    end
+	    stream$putc(output, '\n')
+	end
+	    except when not_possible(*): end
+    end error_long
+
+
+end getopt

@@ -1,0 +1,227 @@
+% clugen.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: clugen.clu,v 2.0 1996/06/10 09:04:45 ushijima Exp $
+
+
+% A "clugen" is a cluster generator.  Although the term "cluster
+% generator" usually refers to parameterized clusters, here
+% nonparameterized clusters are also clugen's, in which case the
+% corresponding type is considered to be derived from the instantiation
+% that gives empty parameter list to the clugen.
+
+% clugen maintains the table of (1) its own variables, (2) its
+% instances, and (3) its operations generators.
+
+clugen = cluster is create, get_name, lookup_op, enter_op,
+		lookup_inst, enter_inst, get_nr_insts, nonparmed,
+		add_own_var, fix_invokes, emit_fundecl, emit_ptrdefn,
+		emit_fundefn, emit_types, similar, enter_typeid,
+		emit_typeid
+
+    rep = record[
+	name:     str,		% name of the generator
+	owns:     as,		% own variables
+	insts:    cluinstlist,	% instances
+	ops:      appgenlist,	% operations
+	printing: bool		% now printing?
+    ]
+    appgenlist = assoc_array[appgen]
+    cluinstlist = array[cluinst]
+
+
+    % Signals _conflict_ if _name_ is already used for another kind of
+    % generator (i.e., selector generator or apply generator);
+    % otherwise returns a cluster generator named _name_.  It is
+    % ensured that there exists only one cluster generator named
+    % _name_.  In other words, _create_ returns the same object for
+    % the same name.
+
+    create = proc(name: str) returns(clugen) signals(conflict)
+	begin
+	    gen: generator := gentab$lookup(name)
+	    tagcase gen
+	    tag clu(g: clugen):
+		return(g)
+	    others:
+		signal conflict
+	    end
+	end
+	    except when not_found: end
+	res: rep := rep${
+	    name:     name,
+	    owns:     as$new(),
+	    ops:      appgenlist$new(),
+	    insts:    cluinstlist$create(0),
+	    printing: false
+	}
+	gentab$enter(name, generator$make_clu(up(res)))
+	return(up(res))
+    end create
+
+
+    % Signals _not_found_ if _gen_ has no entry for an operation named
+    % _name_; otherwise returns the apply generator of the operation
+    % named _name_.
+
+    lookup_op = proc(gen: cvt, name: str) returns(appgen) signals(not_found)
+	return(appgenlist$lookup(gen.ops, name))
+	    resignal not_found
+    end lookup_op
+
+
+    % Signals _exists_ if an entry for _op_ already exists;
+    % otherwise enters _op_ in the internal table for operations of
+    % _gen_.
+
+    enter_op = proc(gen: cvt, op: appgen) signals(exists)
+	appgenlist$enter(gen.ops, op.name, op)
+	    resignal exists
+    end enter_op
+
+
+    % Signals _not_found_ if _gen_ has no entry for an instance with
+    % _parms_; otherwise returns the cluster instance whose parameter
+    % list is _parms_.
+
+    lookup_inst = proc(gen: cvt, parms: parmlist) returns(cluinst)
+						  signals(not_found)
+	for i: cluinst in cluinstlist$elements(gen.insts) do
+	    if parmlist$similar(i.parms, parms) then
+		return(i)
+	    end
+	end
+	signal not_found
+    end lookup_inst
+
+
+    % Signals _exists_ if an entry for _inst_ already exists;
+    % otherwise enters _inst_ in the internal table for instances of
+    % _gen_ and returns the unique instance ID for _inst_.
+
+    enter_inst = proc(gen: cvt, inst: cluinst) returns(int)
+						  signals(exists)
+	begin
+	    clugen$lookup_inst(up(gen), inst.parms)
+	    signal exists
+	end
+	    except when not_found: end
+	insts: cluinstlist := gen.insts
+	cluinstlist$addh(insts, inst)
+	return(cluinstlist$high(insts))
+    end enter_inst
+
+
+    % Returns the name of _gen_.
+
+    get_name = proc(gen: cvt) returns(str)
+	return(gen.name)
+    end get_name
+
+
+    % Returns the number of instances entered _gen_ so far.
+
+    get_nr_insts = proc(gen: cvt) returns(int)
+	return(cluinstlist$size(gen.insts))
+    end get_nr_insts
+
+
+    % Returns true if _gen_ is nonparameterized.  `nonparmed' is an
+    % abbreviation for `nonparameterized'.
+
+    nonparmed = proc(gen: cvt) returns(bool)
+	insts: cluinstlist := gen.insts
+	return(cluinstlist$empty(insts) cor parmlist$empty(insts[0].parms))
+    end nonparmed
+
+
+    % Stores _decl_ in _gen_ as a declaration of an own variable in C.
+
+    add_own_var = proc(gen: cvt, decl: str)
+	as$addh(gen.owns, decl)
+    end add_own_var
+
+
+    % Fixes the invocations from the operations of _gen_ that depend
+    % on formal parameters.
+
+    fix_invokes = proc(gen: cvt)
+	for op: appgen in appgenlist$values(gen.ops) do
+	    appgen$fix_invokes(op)
+	end
+    end fix_invokes
+
+
+    % Puts, to _outst_, the definitions of the C functions
+    % corresponding to the operations of _gen_.
+
+    emit_fundecl = proc(gen: cvt, outst: stream)
+	for opgen: appgen in appgenlist$values(gen.ops) do
+	    appgen$emit_fundecl(opgen, outst)
+	end
+    end emit_fundecl
+
+
+    % Puts, to _outst_, the definitions of entry pointers that point
+    % to the C functions corresponding to the operations of _gen_.
+
+    emit_ptrdefn = proc(gen: cvt, outst: stream)
+	for opgen: appgen in appgenlist$values(gen.ops) do
+	    appgen$emit_ptrdefn(opgen, outst)
+	end
+    end emit_ptrdefn
+
+
+    % Puts, to _outst_, the definition of the C function corresponding
+    % to the operations of _gen_ if it is an entry function; otherwise
+    % do nothing.
+
+    emit_fundefn = proc(gen: cvt, outst: stream)
+	emit_owns(gen.name, gen.owns, cluinstlist$size(gen.insts), outst)
+	for opgen: appgen in appgenlist$values(gen.ops) do
+	    appgen$emit_fundefn(opgen, outst)
+	end
+    end emit_fundefn
+
+
+    % Puts, to _outst_, the definitions of the C variables that have
+    % the type ID's of (1) the types refered from the operations of
+    % _gen_, and (2) the instances of _gen_.
+
+    emit_types = proc(gen: cvt, outst: stream)
+	for op: appgen in appgenlist$values(gen.ops) do
+	    appgen$emit_types(op, outst)
+	end
+	for inst: cluinst in cluinstlist$elements(gen.insts) do
+	    cluinst$emit_types(inst, outst)
+	end
+    end emit_types
+
+
+    % Returns true if _gen1_ and _gen2_ refer to the same object;
+    % otherwise returns false.
+
+    similar = proc(gen1, gen2: cvt) returns(bool)
+	return(gen1 = gen2)
+    end similar
+
+
+    enter_typeid = proc(gen:cvt)
+	for inst: cluinst in cluinstlist$elements(gen.insts) do
+	    cluinst$enter_typeid(inst)
+	end
+    end enter_typeid
+
+
+    emit_typeid = proc(gen:cvt,outst:stream)
+	for inst: cluinst in cluinstlist$elements(gen.insts) do
+	    cluinst$emit_typeid(inst, outst)
+	end
+    end emit_typeid
+
+
+end clugen
+

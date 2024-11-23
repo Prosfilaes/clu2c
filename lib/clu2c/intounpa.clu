@@ -1,0 +1,39 @@
+% intounpa.clu - convert integer to octal notation
+%
+% Copyright (c) 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: intounpa.clu,v 1.2 1997/02/05 09:55:53 ushijima Exp $
+
+
+% Equivalent to int$unparse except that each digit in the result is
+% octal.
+
+int_oct_unparse = proc(i: int) returns(string)
+    ac = array[char]
+    if i = 0 then
+	return("0")
+    end
+    buffer: ac := ac$new()
+    if i > 0 then
+	while i > 0 do
+	    ac$addl(buffer, char$i2c(char$c2i('0') + i // 8))
+	    i := i / 8
+	end
+    else
+	while i < 0 do
+	    r: int := i // 8
+	    d: int := r
+	    a: int := 0
+	    if r > 0 then
+		d := 8 - r
+		a := 1
+	    end
+	    ac$addl(buffer, char$i2c(char$c2i('0') + d))
+	    i := i / 8 + a
+	end
+	ac$addl(buffer, '-')
+    end
+    return(string$ac2s(buffer))
+end int_oct_unparse

@@ -1,0 +1,57 @@
+% clulink.clu - top-level driver
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: clulink.clu,v 2.0 1996/06/10 09:05:08 ushijima Exp $
+
+
+clulink = proc(argv: ss) signals(error)
+    ss = sequence[string]
+
+    % Prepares a stream for message output.
+    output: stream := stream$primary_output()
+
+    % Creates the user.
+    u: user := user$create(argv)
+	except
+	when usage_only:
+	    user$put_usage(output)
+	    return
+	when version_only:
+	    put_clulink_version(output)
+	    return
+	when not_possible(why: string):
+	    stream$putl(output, why)
+		except when not_possible(*): end
+	    user$put_usage(output)
+	    signal error
+	end
+
+    % Creates a logger.
+    level: log_verbosity
+    if u.verbose then
+	level := log_verbose
+    else
+	level := log_normal
+    end
+    log: logger := logger$create(level, output)
+
+    % Determines the primary target.
+    primary: target := primary_target(u)
+
+    % Builds the primary target.
+    target$make(primary, log, u.forced)
+	except
+	when up_to_date:
+	    stream$putl(output, file_name$unparse(primary.name)
+				|| ": up to date")
+		except when not_possible(*): end
+	when not_possible(why: string):
+	    stream$putl(output, why)
+		except when not_possible(*): end
+	    signal error
+	end
+
+end clulink

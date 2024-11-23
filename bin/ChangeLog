@@ -1,0 +1,72 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sun May 12 05:27:53 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install-links): Removed.
+
+Sat Apr 27 05:25:05 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed `insubdir.bat' and `remove.bat' from the
+	list of non-source files.
+
+Sun Jun 25 11:12:59 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of non-source files.
+
+Thu May 25 10:31:11 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (cfiles-clean): New target.
+
+Sat May 20 12:46:28 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed MK_APPEND_DELEGATING_ACTION for standard
+        targets.
+
+	* Makefile.in: Make use of MK_NON_SOURCES instead of defining
+        MISC_SRC.
+
+Tue May 16 05:46:44 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (cfiles): Delegate to clulink, too.
+
+Wed May  3 15:58:29 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* DIST.LIST, Makefile.m4: Removed.
+
+Tue May  2 03:11:15 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added insubdir.bat to the list of miscellaneous
+        source files.
+
+Sun Apr 30 12:20:45 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (mkfiles): Delegate to the subdirectories.
+	(cfiles): Renamed from c.
+
+Sat Apr 29 10:17:06 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (dosdist): Delegate to the subdirectories.
+
+Wed Apr 12 12:25:09 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed the rule that creates $(bindir).
+	(install-links): New target.
+
+Fri Mar 31 05:34:34 1995  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* Makefile.in: Define MISC_SRC.
+	(dist): Delegate to subdirectories.
+
+Wed Mar 29 13:46:03 1995  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Thu Nov 18 07:05:08 1993  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* DIST.LIST, Makefile.m4: New files.

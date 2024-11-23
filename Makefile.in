@@ -1,0 +1,32 @@
+dnl $Id: Makefile.in,v 2.5 1997/02/05 10:28:06 ushijima Exp $
+include(`mk.m4')
+MK_CURRENT_DIRECTORY(`.')
+MK_SUBDIRECTORIES(`lib bin include doc config mk')
+MK_MISC_SOURCES(`COPYING COPYRIGHT.PCLU FROMPCLU INSTALL INSTALL.ja NEWS README.ja acconfig.h configure.in configure.bat make.info optimize.info')
+MK_NON_SOURCES(`configh.in configure')
+MK_APPEND_ACTION(`install',
+	`MK_INSTALL_DATA(`config.h', `$(clu2c_includedir)')
+	MK_PATH_NAME(`$(clu2c_bindir)', `clu2c') -f MK_NULL_DEVICE')
+ifelse(OSTYPE, `unix',
+	`MK_DISTCLEAN_FILES(`fakeclu.sh $(distname).tar.gz $(dos_distname).lzh $(dos_distname).zip')')
+MK_DISTCLEAN_FILES(`config.cache config.h config.log config.mk config.status')
+MK_APPEND_ACTION(`dist',
+	`tar cf $(distname).tar $(distname)
+	gzip $(distname).tar
+	rm -fr $(distname)')
+MK_APPEND_ACTION(`dosdist',
+	`lha c $(dos_distname).lzh $(dos_distname)
+	zip -r $(dos_distname) $(dos_distname)
+	rm -fr $(dos_distname)')
+MK_DEFINE_RULE(`cfiles', `cfiles', `', `MK_MAKE_IN_SUBDIRS(`cfiles', `lib bin')')
+MK_DEFINE_RULE(`cfiles_clean', `cfiles-clean', `', `MK_MAKE_IN_SUBDIRS(`cfiles-clean', `lib bin')')
+MK_DEFINE_RULE(`configure', `configure', `configure.in', `autoconf')
+MK_DEFINE_RULE(`configh_in', `configh.in', `always', `autoheader')
+MK_SPECIFIC_RULES
+MK_RULE_DEFINITION(`cfiles', `Creates all C files.')
+MK_END
+MK_MAINTENANCE_RULES
+MK_RULE_DEFINITION(`configure', `Creates configure script')
+MK_RULE_DEFINITION(`configh_in', `Creates input file for config.h')
+MK_RULE_DEFINITION(`cfiles_clean', `Deletes all files created by making cfiles')
+MK_END

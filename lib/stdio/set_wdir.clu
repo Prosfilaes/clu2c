@@ -1,0 +1,34 @@
+% set_wdir.clu - set working directory
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: set_wdir.clu,v 2.8 1996/05/22 09:03:01 ushijima Exp $
+
+
+set_working_dir = proc(s: string) signals(bad_format)
+
+    % Gets the run-time environment.
+    e: rt_env := rt_env$one()
+
+    % An empty argument implies that the working directory is reset.
+    if string$empty(s) then
+	rt_env$unset_working_directory(e)
+	return
+    end
+
+    % Creates a directory name that corresponds to S.
+    working_dir: file_name := file_name$create(s, "", "", "")
+	resignal bad_format
+
+    % If the speified directory is relative, it is relative to the
+    % current working directory.
+    working_dir := file_name_apply_directory(working_dir, e.working_directory)
+	except when undefined: end
+
+    % Sets the working directory in the environment.  An empty
+    % directory 
+    e.working_directory := working_dir
+
+end set_working_dir

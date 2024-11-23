@@ -1,0 +1,244 @@
+% glit.clu - Literal generating routines
+%
+% Copyright (c) 1992, 1996, 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: glit.clu,v 2.12 1997/02/05 09:55:31 ushijima Exp $
+
+
+% Returns null literal.
+
+null_expr = proc() returns(str)
+  return("NIL")
+end null_expr
+
+
+% Returns bool literal.
+
+bool_expr = proc(b: bool) returns(str)
+    if b then
+	return("TRUE")
+    else
+	return("FALSE")
+    end
+end bool_expr
+
+
+% Returns char literal.
+
+char_expr = proc(e: g_env, c: char) returns(str)
+    version: int := e.char_version
+    if version = 1 then
+	return(char_expr_1(c))
+    elseif version = 2 then
+	return(char_expr_2(c))
+    end
+    signal failure("char_expr: unexpected version ")
+end char_expr
+
+char_expr_1 = proc(c: char) returns(str)
+    own code: ac := ac$new()
+    if c > '\177' then
+	return("0x" || int_hex_unparse(char$c2i(c)))
+    end
+    ac$trim(code, 1, 0)
+    for c1: char in g_char_unparse(c) do
+	ac$addh(code, c1)
+    end
+    return("\'" || str$ac2s(code) || "\'")
+end char_expr_1
+
+char_expr_2 = proc(c: char) returns(str)
+    own code: ac := ac$new()
+    i: int := char$c2i(c)
+    if i < 256 then
+	% 1-byte character
+	if i > 127 then
+	    return("0x" || int_hex_unparse(i))
+	end
+	ac$trim(code, 1, 0)
+	for c1: char in g_char_unparse(c) do
+	    ac$addh(code, c1)
+	end
+	return("\'" || str$ac2s(code) || "\'")
+    else
+ 	% 2-byte character
+	return("0x" || int_hex_unparse(i))
+    end
+end char_expr_2
+
+
+% Returns int literal.
+
+int_expr = proc(i: int) returns(str)
+    return(int$unparse(i))
+end int_expr
+
+
+% Returns real literal.
+
+real_expr = proc(r: real) returns(str)
+    return(conv_opfun("real", "lit") || "(" || real$unparse(r) || ")")
+end real_expr
+
+
+% Returns string literal.
+
+string_expr = proc(e: g_env, s: str) returns(str)
+    return(string_expr1(e, s, true))
+end string_expr
+
+
+% Auxiliary routine for STRING_EXPR.  the variable corresponding to
+% the string literal is declared as static iff STATIC is true,
+% which is the normal case.  Non-static declaration is necessary for
+% string parameters.
+
+string_expr1 = proc(e: g_env, s: str, static: bool) returns(str)
+    littab = table[str, str]
+    own commlits: littab := littab$create(100, hash, str$equal)
+    if littab$empty(commlits) then
+	littab$bind(commlits, "", "SLNULL")
+	littab$bind(commlits, "bad_format", "SLBAD_FORMAT")
+	littab$bind(commlits, "bounds", "SLBOUNDS")
+	littab$bind(commlits, "complex_result", "SLCOMPLEX_RESULT")
+	littab$bind(commlits, "end_of_file", "SLEND_OF_FILE")
+	littab$bind(commlits, "failure", "SLFAILURE")
+	littab$bind(commlits, "illegal_char", "SLILLEGAL_CHAR")
+	littab$bind(commlits, "negative_exponent", "SLNEGATIVE_EXPONENT")
+	littab$bind(commlits, "negative_field_width", "SLNEGATIVE_FIELD_WIDTH")
+	littab$bind(commlits, "negative_size", "SLNEGATIVE_SIZE")
+	littab$bind(commlits, "no_limit", "SLNO_LIMIT")
+	littab$bind(commlits, "not_found", "SLNOT_FOUND")
+	littab$bind(commlits, "not_possible", "SLNOT_POSSIBLE")
+	littab$bind(commlits, "overflow", "SLOVERFLOW")
+	littab$bind(commlits, "undefined", "SLUNDEFINED")
+	littab$bind(commlits, "underflow", "SLUNDERFLOW")
+	littab$bind(commlits, "wrong_tag", "SLWRONG_TAG")
+	littab$bind(commlits, "wrong_type", "SLWRONG_TYPE")
+	littab$bind(commlits, "zero_divide", "SLZERO_DIVIDE")
+    end
+    return(littab$lookup(commlits, s))
+	except when not_found: end
+    return(g_env$lookup_string(e, s))
+	except when not_found: end
+    version: int := e.string_version
+    if version = 1 then
+	return(string_expr2_1(e, s, static))
+    elseif version = 2 then
+	return(string_expr2_2(e, s, static))
+    elseif version = 3 then
+	return(string_expr2_3(e, s, static))
+    end
+    signal failure("string_expr1: unexpected version")
+end string_expr1
+
+string_expr2_1 = proc(e: g_env, s: str, static: bool) returns(str)
+    own buf: ac := ac$new()
+    ac$addh(buf, '"')
+    for c: char in str$chars(s) do
+	for c1: char in g_char_unparse(c) do
+	    ac$addh(buf, c1)
+	end
+    end
+    ac$addh(buf, '"')
+    code: str := str$ac2s(buf)
+    ac$trim(buf, 1, 0)
+    g_env$enter_string(e, code, s)
+    return(code)
+end string_expr2_1
+
+string_expr2_2 = proc(e: g_env, s: str, static: bool) returns(str)
+    own buf: ac := ac$new()
+
+    % Allocates variable name for this literal.
+    var: str := "sl" || int$unparse(glb$add("strlit"))
+
+    % Declares the varialbe with initialization.
+    ac$trim(buf, 1, 0)
+    if static then
+	ac_addh_str(buf, "static ")
+    end
+    ac_addh_str(buf, "string_rep ")
+    ac_addh_str(buf, var)
+    ac_addh_str(buf, " = {")
+    ac_addh_str(buf, int$unparse(str$size(s)))
+    for c: char in str$chars(s) do
+	ac_addh_str(buf, ", ")
+	ac_addh_str(buf, char_expr(e, c))
+    end	
+    ac_addh_str(buf, "};")
+    def: str := str$ac2s(buf)
+    ac$trim(buf, 1, 0)
+    code_man$const(e.co, def)
+    g_env$enter_string(e, var, s)
+    return(var)
+end string_expr2_2
+
+string_expr2_3 = proc(e: g_env, s: str, static: bool) returns(str)
+    own buf: ac := ac$new()
+
+    % Allocates variable name for this literal.
+    number: str := int$unparse(glb$add("strlit"))
+    var: str := "str" || number
+    def: str := ""
+
+    % Declares the varialbe with initialization.
+    if static then
+	def := "static "
+    end
+    size: str := int$unparse(str$size(s))
+    def := def || "STRING_REP(" || size || ") " || var
+	       || " = {" || size || ", {"
+    first: bool := true
+    for c: char in str$chars(s) do
+	if first then
+	    first := false
+	else
+	    ac_addh_str(buf, ", ")
+	end
+	ac_addh_str(buf, char_expr(e, c))
+    end
+    def := def || str$ac2s(buf) || "}};"
+    ac$trim(buf, 1, 0)
+    code_man$const(e.co, def)
+
+    code: str := "((string) &" || var || ")"
+    g_env$enter_string(e, code, s)
+    return(code)
+end string_expr2_3
+
+ac_addh_str = proc(a: ac, s: str)
+    for c: char in str$chars(s) do
+	ac$addh(a, c)
+    end
+end ac_addh_str
+
+
+g_char_unparse = iter(c: char) yields(char)
+    clu_specials = "\'\"\\\n\t\p\b\r\v"
+    c_specials = "\'\"\\ntfbrv"
+
+    i: int := str$indexc(c, clu_specials)
+
+    % Yields C as it is if C is a normal printable ASCII character.
+    if i = 0 & ' ' <= c & c <= '~' then
+	yield(c)
+	return
+    end
+
+    % Yields the escape sequence that correponds to C.
+    yield('\\')
+    if i > 0 then
+	% Yields corresponding C special.
+	yield(c_specials[i])
+    else
+	% Yields 3-digit octal.
+	n: int := char$c2i(c)
+	yield(char$i2c(char$c2i('0') + n / 64))
+	yield(char$i2c(char$c2i('0') + (n / 8) // 8))
+	yield(char$i2c(char$c2i('0') + n // 8))
+    end
+
+end g_char_unparse

@@ -1,0 +1,739 @@
+% command.clu - command interface
+%
+% Copyright (c) 1996, 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: command.clu,v 2.5 1997/02/05 09:55:30 ushijima Exp $
+
+
+% command_line is a sequence of commands with an optional output file
+% specification
+%   command-line	::= command-list [ log-spec ]
+%   command-list	::= [ command { command-separator command } ]
+%   command-separator	::= "#" | ";"
+%   command		::= [ word [ word-list ] ]
+%   word-list		::= word { word }
+%   arg-separator	::= ","
+%   log-spec		::= "^" [ word ]
+
+command_line = cluster is
+	create,				% creates from a string
+	argument_vector,		% creates from argv
+	commands,			% yields each command
+	has_ofile,			% output file specified?
+	get_ofile			% returns output file
+
+
+    % Representation
+
+    rep = struct[
+	commands: command_list,
+	output:   maybe_output
+    ]
+    command_list = sequence[command]
+    maybe_output = oneof[
+	empty: null,
+	full:  maybe_str
+    ]
+    maybe_str = oneof[
+	empty: null,
+	full:  str
+    ]
+
+    token_stream = record[
+	index:  int,
+	tokens: token_list
+    ]
+    token_list = sequence[token]
+    token = oneof[
+	cmd_sep: null,		% command separator
+	eol:     null,		% end of line
+	output:  null,		% output prefix
+	word:    str		% everything else
+    ]
+
+    compilation_mode = oneof[
+	check:   str,
+	compile: str,
+	make:    str,
+	specs:   str,
+	parse:   str,
+	default: null
+    ]
+
+
+    % Operations
+
+
+    % Creates a command line from LINE.
+
+    create = proc(line: str) returns(cvt)
+	input: token_stream := token_stream_create(line)
+	cmds: command_list := parse_command_list(input)
+	output: maybe_output := parse_output(input)
+	return(rep${commands: cmds, output: output})
+    end create
+
+
+    % Signals EMPTY if there is no arguments in the argument vector
+    % for the current process; otherwise creates a command line from
+    % the argument vector and returns it.
+
+    argument_vector = proc(output: stream) returns(cvt)
+		      signals(empty, bad_format)
+	return(argv_to_commands(program_arguments(), output))
+	    resignal empty, bad_format
+    end argument_vector
+
+
+    % Yields commands in LINE.
+ 
+    commands = iter(line: cvt) yields(command)
+	for cmd: command in command_list$elements(line.commands) do
+	    yield(cmd)
+	end
+    end commands
+
+
+    % Returns true if LINE specifies an output file; otherwise
+    % returns false.
+
+    has_ofile = proc(line: cvt) returns(bool)
+	return(maybe_output$is_full(line.output))
+    end has_ofile
+
+
+    % Returns a empty string if there is no output file specified in
+    % LINE; otherwise returns a (possibly empty) string that
+    % represents an output file specified in CLINE.
+
+    get_ofile = proc(line: cvt) returns(str)
+	ofile: str := ""
+	tagcase line.output
+	tag full(ms: maybe_str):
+	    tagcase ms
+	    tag full(s: str):
+		ofile := s
+	    others:
+	    end
+	others:
+	end
+	return(ofile)
+    end get_ofile
+
+
+    % Internal routines
+
+
+    % Creates a command line from ARGV and returns it.
+    % Requires that ARGV is nonempty.
+
+    argv_to_commands = proc(argv: qs, output: stream) returns(rep)
+		       signals(empty, bad_format)
+	lo = long_option
+	acmd = array[command]
+	shortopts = "cd:Ff:ghMnOpSstx"
+	own longopts: long_option_list := long_option_list$[
+	    lo${name: "char-version", arg: required_argument, val: '\''},
+	    lo${name: "compile-only", arg: no_argument, val: 'c'},
+	    lo${name: "debug", arg: no_argument, val: 'g'},
+	    lo${name: "dry-run", arg: no_argument, val: 'n'},
+	    lo${name: "dump", arg: required_argument, val: 'd'},
+	    lo${name: "externals", arg: no_argument, val: 'x'},
+	    lo${name: "force-code-generation", arg: no_argument, val: 'F'},
+	    lo${name: "help", arg: no_argument, val: 'h'},
+	    lo${name: "make", arg: no_argument, val: 'M'},
+	    lo${name: "optimize", arg: optional_argument, val: 'O'},
+	    lo${name: "safe", arg: no_argument, val: 'S'},
+	    lo${name: "spec-only", arg: no_argument, val: 's'},
+	    lo${name: "string-version", arg: required_argument, val: '\"'},
+	    lo${name: "syntax-only", arg: no_argument, val: 'p'},
+	    lo${name: "type-check-only", arg: no_argument, val: 't'},
+	    lo${name: "xfile", arg: required_argument, val: 'f'}
+	]
+
+	% If ARGV is in the old style, delegate the job to
+	% `argv_to_commands_old'.
+	if old_style(argv) then
+	    return(argv_to_commands_old(argv))
+	end
+	    resignal empty
+
+	cmds: acmd := acmd$new()
+	mode: compilation_mode := compilation_mode$make_default(nil)
+	dry_run: bool := false
+	error: bool := false
+	dump: bool := false
+	dump_cmd: command
+
+	go: getopt := getopt$create_long(argv, shortopts, longopts)
+	go.output := output
+	for optchar: char in getopt$options(go) do
+	    cmd: command
+	    if optchar = 'c' then
+		% `-c' or `--compile-only'
+		name: str := go.optname
+		tagcase mode
+		tag check, make, specs, parse(prev: str):
+		    conflict(name, prev, output)
+		others:
+		end
+		mode := compilation_mode$make_compile(name)
+		continue
+	    elseif optchar = 'd' then
+		% `-d' or `--dump'
+		dump := true
+		dump_cmd := command$create("dump", as$[go.optarg])
+		continue
+	    elseif optchar = 'F' then
+		% `-F' or `--force-code-generation'
+		cmd := command$create("allow", as$new())
+	    elseif optchar = 'f' then
+		% `-f' or `--xfile'
+		cmd := command$create("xfile", as$[go.optarg])
+	    elseif optchar = 'g' then
+		% `-g' or `--debug'
+		cmd := command$create("debug", as$new())
+	    elseif optchar = 'h' then
+		% `-h' or `--help'
+		cmd := command$create("help", as$new())
+	    elseif optchar = 'M' then
+		% `-M' or `--make'
+		name: str := go.optname
+		tagcase mode
+		tag check, compile, specs, parse(prev: str):
+		    conflict(name, prev, output)
+		    error := true
+		others:
+		end
+		mode := compilation_mode$make_make(name)
+		continue
+	    elseif optchar = 'n' then
+		% `-n' or `--dry-run'
+		dry_run := true
+		continue
+	    elseif optchar = 'O' then
+		% `-O' or `--optimize'
+		what: str := go.optarg
+		    except when no_argument:
+			what := "time"
+		    end
+		cmd := command$create("optimize", as$[what])
+	    elseif optchar = 'p' then
+		% `-p' or `--syntax-only'
+		name: str := go.optname
+		tagcase mode
+		tag check, compile, make, specs(prev: str):
+		    conflict(name, prev , output)
+		    error := true
+		others:
+		end
+		mode := compilation_mode$make_parse(name)
+		continue
+	    elseif optchar = 'S' then
+		% `-S' or `--safe'
+		cmd := command$create("safe", as$new())
+	    elseif optchar = 's' then
+		% `-s' or `--spec-only'
+		name: str := go.optname
+		tagcase mode
+		tag check, compile, make, parse(prev: str):
+		    conflict(name, prev, output)
+		    error := true
+		others:
+		end
+		mode := compilation_mode$make_specs(name)
+		continue
+	    elseif optchar = 't' then
+		% `-t' or `--type-check-only'
+		name: str := go.optname
+		tagcase mode
+		tag compile, make, specs, parse(prev: str):
+		    conflict(name, prev, output)
+		    error := true
+		others:
+		end
+		mode := compilation_mode$make_check(name)
+		continue
+	    elseif optchar = 'x' then
+		% `-x' or `--externals'
+		cmd := command$create("externals", as$new())
+	    elseif optchar = '\'' then
+		% `--char-version'
+		cmd := command$create("char-version", as$[go.optarg])
+	    elseif optchar = '\"' then
+		% `--string-version'
+		cmd := command$create("string-version", as$[go.optarg])
+	    else
+		% Ignores invalid options.
+		error := true
+		continue
+	    end
+	    acmd$addh(cmds, cmd)
+	end
+	all_inputs: qs := go.non_options
+	tagcase mode
+	tag make(name: str):
+	    acmd$addh(cmds, command$create("make", as$new()))
+	    if ~qs$empty(all_inputs) then
+		error := true
+		stream$puts(output, program_name())
+		stream$puts(output, ": option `")
+		stream$puts(output, name)
+		stream$putl(output, "' does not allow input files")
+	    end
+		except when not_possible(*): end
+	others:
+	end
+	if error then
+	    signal bad_format
+	end
+	for inputs: as, suffix: str in grouped_inputs(all_inputs, output) do
+	    for name: str in suffix_command_names(suffix, mode) do
+		acmd$addh(cmds, command$create(name, inputs))
+	    end
+	end
+	if dump then
+	    acmd$addh(cmds, dump_cmd)
+	end
+	if dry_run then
+	    for cmd: command in acmd$elements(cmds) do
+		command$echo(cmd, output)
+	    end
+	    terminate(0)
+	end
+	return(rep${commands: command_list$a2s(cmds),
+		    output:   maybe_output$make_empty(nil)})
+    end argv_to_commands
+
+    old_style = proc(argv: qs) returns(bool) signals(empty)
+	index: int := 1
+	while str$empty(argv[index]) do
+	    index := index + 1
+	end
+	    except when bounds:
+		signal empty
+	    end
+	if argv[index][1] = '#' then
+	    return(true)
+	end
+	return(false)
+    end old_style
+
+    argv_to_commands_old = proc(argv: qs) returns(rep)
+	buffer: ac := ac$new()
+	for s: str in qs$elements(argv) do
+	    if str$empty(s) then
+		continue
+	    elseif ~ac$empty(buffer) then
+		ac$addh(buffer, ' ')
+	    end
+	    for c: char in str$chars(s) do
+		ac$addh(buffer, c)
+	    end
+	end
+	ac$reml(buffer)		% Removes the initial `#'.
+	return(down(create(str$ac2s(buffer))))
+    end argv_to_commands_old
+
+    conflict = proc(opt1, opt2: str, output: stream)
+	begin
+	    stream$puts(output, program_name())
+	    stream$puts(output, ": option `")
+	    stream$puts(output, opt1)
+	    stream$puts(output, "' conflicts with option `")
+	    stream$puts(output, opt2)
+	    stream$putl(output, "'")
+	end
+	    except when not_possible(*): end
+    end conflict
+
+    grouped_inputs = iter(all: qs, output: stream) yields(as, str)
+	inputs: as := as$new()
+	suffix: str := ""
+	for input: str in qs$elements(all) do
+	    for fn: fname in direct_input_specs(input, output) do
+		s: str := fn.suffix
+		if s ~= "clu"
+		   cand s ~= "equ"
+		   cand s ~= "lib"
+		   cand s ~= "spc"
+		then
+		    s := "clu"
+		end
+		if s ~= suffix cand ~str$empty(suffix) then
+		    yield(inputs, suffix)
+		    inputs := as$new()
+		end
+		as$addh(inputs, fname$unparse(fn))
+		suffix := s
+	    end
+	end
+	if ~as$empty(inputs) cand ~str$empty(suffix) then
+	    yield(inputs, suffix)
+	end
+    end grouped_inputs
+
+    suffix_command_names = iter(suffix: str, mode: compilation_mode)
+			   yields(str) signals(bad_suffix)
+	if suffix = "clu" then
+	    tagcase mode
+	    tag parse:
+		yield("parse")
+	    tag specs:
+		yield("specs")
+	    tag check:
+		yield("specs")
+		yield("check")
+	    tag compile:
+		yield("compile")
+	    others:
+		yield("specs")
+		yield("compile")
+	    end
+	elseif suffix = "equ" then
+	    tagcase mode
+	    tag parse:
+		yield("parse")
+	    others:
+		yield("ce")
+	    end
+	elseif suffix = "lib" then
+	    yield("merge")
+	elseif suffix = "spc" then
+	    tagcase mode
+	    tag parse:
+		yield("parse")
+	    others:
+		yield("specs")
+	    end
+	else
+	    signal bad_suffix
+	end
+    end suffix_command_names
+
+    parse_command_list = proc(input: token_stream) returns(command_list)
+	acmd = array[command]
+	cmds: acmd := acmd$new()
+	while true do
+	    tagcase token_stream_next(input)
+	    tag word(name: str):
+		token_stream_skip(input)
+		acmd$addh(cmds, command$create(name, parse_word_list(input)))
+	    tag cmd_sep:
+		token_stream_skip(input)
+		continue
+	    others:
+		break
+	    end
+	end
+	return(command_list$a2s(cmds))
+    end parse_command_list
+
+    parse_word_list = proc(input: token_stream) returns(as)
+	words: as := as$new()
+	while true do
+	    tagcase token_stream_next(input)
+	    tag word(w: str):
+		token_stream_skip(input)
+		as$addh(words, w)
+	    others:
+		break
+	    end
+	end
+	return(words)
+    end parse_word_list
+
+    parse_output = proc(input: token_stream) returns(maybe_output)
+	output: maybe_output
+	tagcase token_stream_next(input)
+	tag output:
+	    token_stream_skip(input)
+	    ms: maybe_str
+	    tagcase token_stream_next(input)
+	    tag word(w: str):
+		token_stream_skip(input)
+		ms := maybe_str$make_full(w)
+	    others:
+		ms := maybe_str$make_empty(nil)
+	    end
+	    output := maybe_output$make_full(ms)
+	others:
+	    output := maybe_output$make_empty(nil)
+	end
+	return(output)
+    end parse_output
+
+
+    % Token stream operations.
+
+    token_stream_create = proc(line: str) returns(token_stream)
+	at = array[token]
+	punctuation = struct[cmd_sep, eol, output: token]
+	own punct: punctuation := punctuation${
+	    cmd_sep: token$make_cmd_sep(nil),
+	    eol:     token$make_eol(nil),
+	    output:  token$make_output(nil)
+	}
+	tokens: at := at$new()
+	i: int := 1
+	while true do
+	    c: char := line[i]
+	    while str$indexc(c, " \t,") > 0 do
+		i := i + 1
+		c := line[i]
+	    end
+	    if c = '#' | c = ';' then
+		at$addh(tokens, punct.cmd_sep)
+		i := i + 1
+	    elseif c = '^' then
+		at$addh(tokens, punct.output)
+		i := i + 1
+		while str$indexc(line[i], "\t ") > 0 do
+		    i := i + 1
+		end
+		size: int := str$size(line) - i + 1
+		while str$indexc(line[i + size - 1], "\t ") > 0 do
+		    size := size - 1
+		end
+		at$addh(tokens, token$make_word(str$substr(line, i, size)))
+		break
+	    else
+		size: int := 1
+		while str$indexc(line[i + size], "\t #,;^") = 0 do
+		    size := size + 1
+		end
+		    except when bounds: end
+		at$addh(tokens, token$make_word(str$substr(line, i, size)))
+		i := i + size
+	    end
+	end
+	    except when bounds: end
+	at$addh(tokens, punct.eol)
+	return(token_stream${index: 1, tokens: token_list$a2s(tokens)})
+    end token_stream_create
+
+    token_stream_next = proc(ts: token_stream) returns(token)
+	return(ts.tokens[ts.index])
+    end token_stream_next
+
+    token_stream_skip = proc(ts: token_stream)
+	if ts.index < token_list$size(ts.tokens) then
+	    ts.index := ts.index + 1
+	end
+    end token_stream_skip
+
+end command_line
+
+
+% command is a command of clu2c.
+
+command = cluster is
+	create,
+	get_name,
+	get_canonical_name,
+	echo,
+	execute,
+	register,
+	add_alias
+
+
+    % Representation
+
+    rep = struct[
+	name: str,
+	tmpl: command_template,
+	args: as
+    ]
+
+    command_template = struct[
+	name:    str,			% command's (canonical) name
+	aliases: as,			% command name aliases
+	body:    executor		% execution procedure
+    ]
+
+    executor = proctype(str, as, stream) signals(unsuccessful)
+
+
+    % Other equates
+
+    template_list = array[command_template]
+
+
+    % Own variale
+
+    own templates: template_list := template_list$new()
+
+
+    % Operations
+
+    create = proc(name: str, args: as) returns(cvt)
+	tmpl: command_template := lookup_template(name)
+	    except
+	    when not_found:
+		tmpl := unknown_command()
+	    when ambiguous(names: as):
+		tmpl := ambiguous_command()
+		args := names
+	    end
+	return(rep${name: name, tmpl: tmpl, args: args})
+    end create
+
+    echo = proc(cmd: cvt, outst: stream)
+	begin
+	    stream$puts(outst, up(cmd).canonical_name)
+	    for arg: str in as$elements(cmd.args) do
+		stream$putspace(outst, 1)
+		stream$puts(outst, arg)
+	    end
+	    stream$putc(outst, '\n')
+	end
+	    except when not_possible(*): end
+    end echo
+
+    execute = proc(cmd: cvt, outst: stream) signals(unsuccessful)
+	cmd.tmpl.body(cmd.name, cmd.args, outst)
+	    resignal unsuccessful
+    end execute
+
+    get_name = proc(cmd: cvt) returns(str)
+	return(cmd.name)
+    end get_name
+
+    get_canonical_name = proc(cmd: cvt) returns(str)
+	return(cmd.tmpl.name)
+    end get_canonical_name
+
+    register = proc(name: str, body: executor) signals(duplicate)
+	check_duplicate(name)
+	    resignal duplicate
+	template_list$addh(
+	    templates,
+	    command_template${name: name, aliases: as$new(), body: body}
+	)
+    end register
+
+    add_alias = proc(cmd: cvt, alias: str) signals(duplicate)
+	check_duplicate(alias)
+	    resignal duplicate
+	as$addh(cmd.tmpl.aliases, alias)
+    end add_alias
+
+    % Internal routines
+
+    lookup_template = proc(name: str) returns(command_template)
+		      signals(not_found, ambiguous(as))
+	candidates: template_list := template_list$new()
+	names: as := as$new()
+	for tmpl: command_template in template_list$elements(templates) do
+	    if match(name, tmpl.name) then
+		template_list$addh(candidates, tmpl)
+		as$addh(names, tmpl.name)
+	    else
+		for alias: str in as$elements(tmpl.aliases) do
+		    if match(name, alias) then
+			template_list$addh(candidates, tmpl)
+			as$addh(names, alias)
+		    end
+		end
+	    end
+	end
+	nr_candidates: int := template_list$size(candidates)
+	if  nr_candidates <= 0 then
+	    signal not_found
+	elseif nr_candidates > 1 then
+	    signal ambiguous(names)
+	else
+	    return(template_list$bottom(candidates))
+	end
+    end lookup_template
+
+    unknown_command = proc() returns(command_template)
+	own tmpl: command_template := command_template${
+	    name:    "",
+	    aliases: as$new(),
+	    body:    unknown_execute
+	}
+	return(tmpl)
+    end unknown_command
+
+    ambiguous_command = proc() returns(command_template)
+	own tmpl: command_template := command_template${
+	    name:    "",
+	    aliases: as$new(),
+	    body:    ambiguous_execute
+	}
+	return(tmpl)
+    end ambiguous_command
+
+    check_duplicate = proc(name: str) signals(duplicate)
+	for tmpl: command_template in template_list$elements(templates) do
+	    if tmpl.name = name then
+		signal duplicate
+	    else
+		for alias: str in as$elements(tmpl.aliases) do
+		    if alias = name then
+			signal duplicate
+		    end
+		end
+	    end
+	end
+    end check_duplicate
+
+    match = proc(s, normal_form: str) returns(bool)
+	for i: int in int$from_to(1, str$size(s)) do
+	    c: char := s[i]
+	    tc: char := normal_form[i]
+	    if c ~= tc
+	       cand (char$c2i(tc) - char$c2i(c))
+		    ~= (char$c2i('a') - char$c2i('A'))
+	    then
+		return(false)
+	    end
+	end
+	    except when bounds:
+		return(false)
+	    end
+	return(true)
+    end match
+
+    unknown_execute = proc(name: str, args: as, tyo: stream)
+		      signals(unsuccessful)
+	begin
+	    stream$puts(tyo, name)
+	    stream$putl(tyo, ": unknown command")
+	end
+	    except when not_possible(*): end
+	signal unsuccessful
+    end unknown_execute
+
+    ambiguous_execute = proc(name: str, args: as, tyo: stream)
+			signals(unsuccessful)
+	begin
+	    stream$puts(tyo, name)
+	    stream$puts(tyo, ": ambiguous: ")
+	    low: int := as$low(args)
+	    high: int := as$high(args)
+	    size: int := as$size(args)
+	    for i: int in as$indexes(args) do
+		arg: str := args[i]
+		if i > low cand size > 2 then
+		    stream$puts(tyo, ", ")
+		elseif i > low cand size <= 2 then
+		    stream$puts(tyo, " ")
+		end
+		if i = high then
+		    stream$puts(tyo, "or ")
+		end	
+		stream$putc(tyo, '`')
+		stream$puts(tyo, arg)
+		stream$putc(tyo, '\'')
+	    end
+	    stream$putc(tyo, '\n')
+	end
+	    except when not_possible(*): end
+	signal unsuccessful
+    end ambiguous_execute
+
+end command

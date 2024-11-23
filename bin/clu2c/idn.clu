@@ -1,0 +1,116 @@
+% idn.clu - identifier
+%
+% This file was derived from PCLU distribution (as of 11/18/93), and
+% has been modified by Department of Mathematical and Computing
+% Sciences, Tokyo Institute of Technology.
+%
+% Conditions for using, copying, modifying, and distributing this
+% file are the same as those of PCLU.
+%
+% $Id: idn.clu,v 2.7 1997/01/16 13:18:20 ushijima Exp $
+
+
+%  Copyright	Massachusetts Institute of Technology     1989
+%	IDN	CLU
+%
+%	CLU Compiler: idns (created via the token table of the parser env)
+
+idn = cluster is	create,		% str, idnkind -> idn
+			get_str,	% idn -> str
+			set_kind,	% idn, idnkind ->
+			get_kind,	% idn -> idnkind
+			copy,		% same object
+			equal,		% same object
+			similar,	% same object
+			set_similar_mode, % set own variable similar_mode
+			encode,
+			decode
+
+    rep = record[str:  str,
+		 kind: idnkind]
+
+    idn_pair_table = table[rep, array[rep]]
+
+    own similar_mode:bool := true  % true if similar is rep$equal
+                                   % false if similar is rep$similar
+    own similar_table:idn_pair_table := 
+	idn_pair_table$create(100, idn_hasher, rep$equal)
+					% for checking duplicate similar call
+
+    create = proc (s: str, k: idnkind) returns (cvt)
+	return(rep${str:  s,
+		    kind: k})
+	end create
+
+    get_str = proc (i: cvt) returns (str)
+	return(i.str)
+	end get_str
+
+    set_kind = proc (i: cvt, k: idnkind)
+	i.kind := k
+	end set_kind
+
+    get_kind = proc (i: cvt) returns (idnkind)
+	return(i.kind)
+	end get_kind
+
+    copy = proc (i: idn) returns (idn)
+	return(i)
+	end copy
+
+    equal = proc (i1: cvt, i2: cvt) returns (bool)
+	return(i1 = i2)
+	end equal
+
+    similar = proc (i1: cvt, i2: cvt) returns (bool)
+	if i1 = i2
+	   then	return(true)
+	elseif similar_mode  cor  i1.str ~= i2.str
+	   then	return(false)
+	   else	xx: array[rep] := idn_pair_table$mbind(similar_table,
+						       i1,
+						       array[rep]$[])
+		for x: rep in array[rep]$elements(xx) do
+			if x = i2
+			   then return(true) end % dupulicate similar check
+			end
+		array[rep]$addh(xx, i2)			% records this check
+		if idnkind$similar(i1.kind, i2.kind)
+		   then	return(true)
+		   else	for i: int in array[rep]$indexes(xx) do
+				% remove i2 from xx
+				if xx[i] = i2
+				   then	xx[i] := xx[array[rep]$high(xx)]
+					array[rep]$remh(xx)
+					return(false)
+				   end
+				end
+			return(false)
+		   end
+	   end
+	end similar
+	
+    set_similar_mode = proc (flag: bool)
+	similar_mode := flag
+	if flag
+	   then idn_pair_table$flush(similar_table) end
+	end set_similar_mode
+
+    encode = proc (i: cvt, s: istream) signals (not_possible(str))
+	rep$encode(i, s)
+	    resignal not_possible
+	end encode
+
+    decode = proc (s: istream) returns (cvt)
+			       signals (end_of_file, not_possible(str))
+	return(rep$decode(s))
+	    resignal end_of_file, not_possible
+	end decode
+	
+    % Private
+
+    idn_hasher = proc (key: rep, size: int) returns (int)
+	return(int$mod(_cvt[rep, int](key), size))
+	end idn_hasher
+
+    end idn

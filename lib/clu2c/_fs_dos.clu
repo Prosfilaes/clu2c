@@ -1,0 +1,158 @@
+% _fs_dos.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: _fs_dos.clu,v 2.0 1996/06/10 09:02:21 ushijima Exp $
+
+
+% Maximum length for name and suffix components.
+
+max_name_length   = 8
+max_suffix_length = 3
+
+
+% Signals BAD_FORMAT if at least one of NAME and SUFFIX are not
+% appropriate for a component of file_name; otherwise returns
+% `normalized' version of these two components.  Normalization
+% includes, for example, truncation of long components.
+
+_check_directory_entry = proc(name, suffix: string) returns(string, string)
+			 signals(bad_format)
+    ac = array[char]
+    own buf: ac := ac$new()
+    
+    % Checks for special cases.
+    if (name = "." cor name = "..") cand string$empty(suffix) then
+	return(name, suffix)
+    end
+
+    % NAME must not contain any dot.  Colon is reserved for drive
+    % specification.
+    if string$indexc('.', name) > 0
+       cor string$indexc(':', name) > 0
+       cor string$indexc(':', suffix) > 0
+    then
+	signal bad_format
+    end
+
+    % Truncates NAME and/or SUFFIX if long.
+    if string$size(name) > max_name_length then
+	name := string$substr(name, 1, max_name_length)
+    end
+    if string$size(suffix) > max_suffix_length then
+	suffix := string$substr(suffix, 1, max_suffix_length)
+    end
+
+    % Special entry "~CLU" is never converted to lower case
+    % characters.
+    if name = "~CLU" cand string$empty(suffix) then
+	return(name, suffix)
+    end
+
+    ac$trim(buf, 1, 0)
+    changed: bool := false
+    for c: char in string$chars(name) do
+	if 'A' <= c & c <= 'Z' then
+	    c := char$i2c(char$c2i('a') - char$c2i('A') + char$c2i(c))
+	    changed := true
+	end
+	ac$addh(buf, c)
+    end
+    if changed then
+	name := string$ac2s(buf) 
+    end
+
+    ac$trim(buf, 1, 0)
+    changed := false
+    for c: char in string$chars(suffix) do
+	if 'A' <= c & c <= 'Z' then
+	    c := char$i2c(char$c2i('a') - char$c2i('A') + char$c2i(c))
+	    changed := true
+	end
+	ac$addh(buf, c)
+    end
+    if changed then
+	suffix := string$ac2s(buf)
+    end
+
+    return(name, suffix)
+end _check_directory_entry
+
+
+% Returns current directory of specified drive.
+
+_current_directory = proc(drive: string) returns(string)
+		     signals(bad_format, not_possible(string))
+    getdcwd = _external_getdcwd
+    num: int
+    if string$empty(drive) then
+	num := 0
+    elseif string$size(drive) ~= 2 cor drive[2] ~= ':' then
+	signal bad_format
+    else
+	c: char := drive[1]
+	if 'A' <= c & c <= 'Z' then
+	    num := char$c2i(c) - char$c2i('A') + 1
+	elseif 'a' <= c & c <= 'z' then
+	    num := char$c2i(c) - char$c2i('a') + 1
+	else
+	    signal bad_format
+	end
+    end
+    return(getdcwd(num))
+	resignal not_possible
+end _current_directory
+
+
+% Returns true if DIR starts with a drive specification; otherwise
+% returns false.
+
+_directory_with_drive = proc(dir: string) returns(bool)
+    res: bool			% result
+    begin
+	c: char := dir[1]
+	res := (('A' <= c & c <= 'Z') cor ('a' <= c & c <= 'z'))
+	       cand dir[2] = ':'
+    end
+	except when bounds:
+	    res := false
+	end
+    return(res)
+end _directory_with_drive
+
+
+% Returns true if DIR is atomic; otherwise returns false.
+
+_is_atomic_directory = proc(dir: string) returns(bool)
+    i: int
+    if _directory_with_drive(dir) then
+	i := 3
+    else
+	i := 1
+    end
+    size: int := string$size(dir)
+    return(i > size cor (i = size cand _is_path_delimiter(dir[i])))
+end _is_atomic_directory
+
+
+% Returns true if C is a path delimiter; otherwise returns false.
+
+_is_path_delimiter = proc(c: char) returns(bool)
+    return(c = '/' | c = '\\')
+end _is_path_delimiter
+
+
+% Returns the name of the null device.
+
+_null_device_name = proc() returns(file_name)
+    return(file_name$create("", "nul", "", ""))
+end _null_device_name
+
+
+% Returns the (canonical) path delimiter.
+
+_path_delimiter = proc() returns(char)
+    return('\\')
+end _path_delimiter

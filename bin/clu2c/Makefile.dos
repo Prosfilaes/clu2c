@@ -1,0 +1,280 @@
+
+
+######################################################################
+#
+# Makefile.dos.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = bin\clu2c
+
+# Top-level build directory
+topdir = ../..
+
+# Default flags to plink
+DEFAULT_PLINKFLAGS = 
+
+# All the flags to plink
+ALL_PLINKFLAGS = $(DEFAULT_PLINKFLAGS) $(PLINKFLAGS)
+
+# Command line to fake clu2c execution
+FAKE_CLU2C = $(COMMAND) $(COMMANDFLAGS) /c fakeclu
+
+# Command line to execute plink
+REAL_PLINK = $(PLINK) $(ALL_PLINKFLAGS) -o $(POUT).c $(CLU_INT)
+
+# Command line to fake plink execution
+FAKE_PLINK = $(LN_S) $(srcdir)\pretrans\$(POUT).c $(POUT).c
+
+# Default flags to the C compiler
+DEFAULT_CFLAGS = -I$(top_srcdir)/include -w
+
+# All the flags to the C compiler
+ALL_CFLAGS = $(DEFAULT_CFLAGS) $(CFLAGS)
+
+# Default libraries
+DEFAULT_LIBS = -L$(LIBDIR) -lclu2c
+
+# All the libraries
+ALL_LIBS = $(DEFAULT_LIBS) $(LIBS)
+
+
+#### Source files ####
+
+# CLU source files
+CLU_SRC = $(CLU_SRC_1) $(CLU_SRC_2) $(CLU_SRC_3) $(CLU_SRC_4) $(CLU_SRC_5) $(CLU_SRC_6) $(CLU_SRC_7) $(CLU_SRC_8) $(CLU_SRC_9) $(CLU_SRC_10)
+CLU_SRC_1 = build.clu cconst.clu cdefn1.clu cdefn2.clu ce.clu cenv.clu
+CLU_SRC_2 = cexpr1.clu cexpr2.clu cmpvar.clu command.clu coper.clu
+CLU_SRC_3 = cspecs.clu cstmt1.clu cstmt2.clu debug.clu du.clu eval1.clu
+CLU_SRC_4 = eval2.clu gcons.clu genv.clu gexcept.clu gexpr.clu
+CLU_SRC_5 = ginvoke.clu glit.clu gname.clu gopt.clu gown.clu gparam.clu
+CLU_SRC_6 = gstmt.clu gtop.clu idn.clu init.clu make.clu menv.clu
+CLU_SRC_7 = nameconv.clu pconst.clu pdefn1.clu pdefn2.clu penv.clu
+CLU_SRC_8 = pexpr.clu plist.clu pstmt1.clu pstmt2.clu pttkn.clu
+CLU_SRC_9 = syntax.clu table.clu tkntab.clu top1.clu top2.clu vcmp.clu
+CLU_SRC_10 = xlib.clu xref.clu
+
+# Equate files
+EQU_SRC = clu2c.equ config.equ passes.equ syntax.equ
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README EQU.xld LIB.xld clu2c.hlp clu2csh.in
+
+# All the source files
+ALL_SRC = $(CLU_SRC) $(EQU_SRC) $(MISC_SRC)
+
+
+#### Created files ####
+
+# Intermediate C files translated from CLU files
+CLU_INT = $(CLU_INT_1) $(CLU_INT_2) $(CLU_INT_3) $(CLU_INT_4) $(CLU_INT_5) $(CLU_INT_6) $(CLU_INT_7) $(CLU_INT_8) $(CLU_INT_9) $(CLU_INT_10)
+CLU_INT_1 = build.c cconst.c cdefn1.c cdefn2.c ce.c cenv.c
+CLU_INT_2 = cexpr1.c cexpr2.c cmpvar.c command.c coper.c
+CLU_INT_3 = cspecs.c cstmt1.c cstmt2.c debug.c du.c eval1.c
+CLU_INT_4 = eval2.c gcons.c genv.c gexcept.c gexpr.c
+CLU_INT_5 = ginvoke.c glit.c gname.c gopt.c gown.c gparam.c
+CLU_INT_6 = gstmt.c gtop.c idn.c init.c make.c menv.c
+CLU_INT_7 = nameconv.c pconst.c pdefn1.c pdefn2.c penv.c
+CLU_INT_8 = pexpr.c plist.c pstmt1.c pstmt2.c pttkn.c
+CLU_INT_9 = syntax.c table.c tkntab.c top1.c top2.c vcmp.c
+CLU_INT_10 = xlib.c xref.c
+
+# Object files compiled from intermediate C files
+CLU_OBJ = $(CLU_OBJ_1) $(CLU_OBJ_2) $(CLU_OBJ_3) $(CLU_OBJ_4) $(CLU_OBJ_5) $(CLU_OBJ_6) $(CLU_OBJ_7) $(CLU_OBJ_8) $(CLU_OBJ_9) $(CLU_OBJ_10)
+CLU_OBJ_1 = build.o cconst.o cdefn1.o cdefn2.o ce.o cenv.o
+CLU_OBJ_2 = cexpr1.o cexpr2.o cmpvar.o command.o coper.o
+CLU_OBJ_3 = cspecs.o cstmt1.o cstmt2.o debug.o du.o eval1.o
+CLU_OBJ_4 = eval2.o gcons.o genv.o gexcept.o gexpr.o
+CLU_OBJ_5 = ginvoke.o glit.o gname.o gopt.o gown.o gparam.o
+CLU_OBJ_6 = gstmt.o gtop.o idn.o init.o make.o menv.o
+CLU_OBJ_7 = nameconv.o pconst.o pdefn1.o pdefn2.o penv.o
+CLU_OBJ_8 = pexpr.o plist.o pstmt1.o pstmt2.o pttkn.o
+CLU_OBJ_9 = syntax.o table.o tkntab.o top1.o top2.o vcmp.o
+CLU_OBJ_10 = xlib.o xref.o
+
+# Base name of output file of plink
+POUT = op-table
+
+# Pre-translated C files
+PRE = $(CLU_INT) $(POUT).c
+
+# Base name for the executable file
+EXEBASE = clu2c
+
+# Executable file extension (can be empty)
+EXEEXT = .exe
+
+# Executable file
+EXE = $(EXEBASE)$(EXEEXT)
+
+# All the object files
+ALL_OBJ = $(POUT).o $(CLU_OBJ)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all: $(EXE)
+
+# Copies all the products
+install: $(EXE) installdirs
+	$(INSTALL_PROGRAM) $(INSTALLFLAGS) $(EXE) $(clu2c_bindir)\$(EXE)
+	$(INSTALL_DATA) $(INSTALLFLAGS) $(srcdir)\clu2c.hlp $(clu2c_libdir)\clu2c.hlp
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(EXEBASE) $(EXE) $(POUT).o
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_4)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_5)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_6)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_7)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_8)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_9)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_10)
+
+# Makes clean
+clean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(EXEBASE) $(EXE) $(POUT).o
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove SPC.lib clu2c.time $(POUT).c
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_4)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_5)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_6)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_7)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_8)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_9)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_10)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_4)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_5)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_6)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_7)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_8)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_9)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_10)
+
+# Makes clean as disributed
+distclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove Makefile Makefile.top
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(EXEBASE) $(EXE) $(POUT).o
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove SPC.lib clu2c.time $(POUT).c
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_4)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_5)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_6)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_7)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_8)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_9)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_10)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_4)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_5)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_6)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_7)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_8)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_9)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_10)
+
+# Makes really clean
+realclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove Makefile Makefile.top
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(EXEBASE) $(EXE) $(POUT).o
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove SPC.lib clu2c.time $(POUT).c
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_4)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_5)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_6)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_7)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_8)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_9)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_INT_10)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_4)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_5)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_6)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_7)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_8)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_9)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(CLU_OBJ_10)
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST) $(PRE)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+	@$(top_srcdir)/config/makedist -p $(distname) $(curdir) $(PRE)
+
+# Does some check
+check:
+
+
+#### Rules specific to this directory ####
+
+# Creates all the C files
+cfiles: clu2c.time $(POUT).c
+
+# Translates all the CLU source files to C files
+clu2c.time: $(CLU_SRC)
+	$(CLU2C) $(CLU2CFLAGS) --make
+	echo clu2c.time > clu2c.time
+
+# Pre-link
+$(POUT).c: $(CLU_INT)
+	$(PLINK_METHOD)
+
+# Links all the object files
+$(EXE): $(ALL_OBJ) $(LIBDIR)/libclu2c.a
+	$(CC) $(ALL_CFLAGS) @objects $(ALL_LIBS) $(LDFLAGS) -o $(EXEBASE)
+
+# Prepares installation directories
+installdirs:
+	-mkdir $(clu2c_rootdir)
+	-mkdir $(clu2c_bindir)
+	-mkdir $(clu2c_libdir)
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	copy Makefile.top+$(config_mk)+$(srcdir)\Makefile.dos Makefile
+
+# Forces a particular target to be made
+always:
+
+
+#### Suffix rules ####
+
+.SUFFIXES:
+.SUFFIXES: .o .c .clu
+
+# Compiles CLU files
+.clu.c:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove clu2c.time
+	$(MAKE) clu2c.time
+
+# Compiles C file to get object file
+.c.o:
+	$(CC) $(ALL_CFLAGS) -c $<

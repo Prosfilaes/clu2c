@@ -1,0 +1,84 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Mon Oct  7 02:37:34 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.h: New file.  This file is the result of integrating
+        <clu2c/clu2c.h>, <clu2c/type.h>, and <clu2c/glo.h>.
+	* Makefile.in: Changed accordingly.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sat Apr 27 05:08:29 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed `insubdir.bat' and `remove.bat' from the
+        list of non-source files.
+
+Sun Jun 25 11:15:33 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of non-source files.
+
+Fri Jun 23 04:09:22 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (distclean, realclean): Propagate to subdirectories.
+	This is needed for removing Makefiles.
+
+Thu May 25 09:39:27 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (all, mostlyclean, clean, distclean, realclean): Do
+        not propagate to subdirectories.
+
+Sat May 20 12:48:00 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed MK_APPEND_DELEGATING_ACTION for standard
+        targets.
+
+	* Makefile.in: Make use of MK_NON_SOURCES.
+
+Wed May  3 16:32:41 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* DIST.LIST, Makefile.m4: Removed.
+
+Tue May  2 03:12:17 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added insubdir.bat to the list of miscellaneous
+        source files.
+
+Sun Apr 30 11:54:57 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (mkfiles): Delegate to the subdirectories.
+	(install): Do not create installation directory.
+
+Sat Apr 29 10:18:42 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (dosdist): Delegate to the subdirectories.
+
+Wed Apr 12 10:13:53 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Changed installation directory.
+
+Fri Mar 31 05:57:59 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Define MISC_SRC.  Added config to the subdirectory
+        list.
+	(dist): Delegate to subdirectories.
+
+Wed Mar 29 13:46:06 1995  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Sun Jun 13 06:00:41 1993  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* Makefile.m4: New file.
+
+Fri Jun 11 13:38:32 1993  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* DIST.LIST: Added Makefile.
+
+Mon Apr 19 13:15:15 1993  Tetsu Ushijima  <ushijima@.is.titech.ac.jp>
+
+	* DIST.LIST: New file.
+

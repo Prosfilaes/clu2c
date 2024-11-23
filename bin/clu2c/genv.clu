@@ -1,0 +1,1576 @@
+% genv.clu - code generator environments
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: genv.clu,v 2.21 1996/10/07 03:07:51 ushijima Exp $
+
+
+% g_env - code generator environment.
+
+g_env = cluster is create, reset, end_all, reset_err, err, get_err,
+		   begin_cluster, end_cluster, get_cluster_name,
+		   get_cluster_parmed, get_cluster_parms, get_up_type,
+		   get_down_type, in_cluster, begin_apply, end_apply,
+		   get_rtype, get_rname, begin_invoke, end_invoke,
+		   get_applied,get_routine_parmed, get_co, get_db,
+		   begin_except, end_except, get_current_handler,
+		   get_char_version, set_char_version,
+		   get_string_version, set_string_version,
+		   lookup_string, enter_string
+
+
+
+    % Representation.
+
+    rep = record[
+	errst:   stream,	% stream for error messages
+	binfn:   fname,		% file for generated code
+	rname:   str,		% routine name
+	rtype:   str,		% routine type
+	err:     int,		% error level
+	cparmed:  bool,		% is current cluster parameterized?
+	rparmed:  bool,		% is current routine parameterized?
+	cluinfo: mcluinfo,	% cluster information
+	inv_lev: int,		% invocation level
+	co:      code_man,	% object code manager
+	db:      dbinfo,	% debugging information
+	hstack:  as,		% stack of exception handlers
+	hnext:   int,		% the number of the next exception handler
+	char_v:  int,		% version of char rep
+	str_v:   int,		% version of string rep
+	strings: str_entry_list	% table of string literals
+    ]
+
+    mcluinfo = oneof[
+	none: null,
+	one:  cluinfo
+    ]
+
+    cluinfo = record[
+	name:  str,
+	up_:   typespec,
+	down_: typespec,
+	parms: decllist
+    ]
+
+    str_entry_list = array[str_entry]
+
+    str_entry = struct[
+	code: str,
+	val:  str
+    ]
+
+    char_version_max = 2
+    string_version_max = 3
+
+    default_char_version = 2
+    default_string_version = 3
+
+
+    % Operations.
+
+
+    % Returns a new generator environment.
+
+    create = proc(comp: CE, errst: stream, fn: fname) returns(cvt)
+	co: code_man := code_man$create()
+	return(
+	    rep${
+		errst:   errst,
+		binfn:   fn,
+		rname:   "",
+		rtype:   "",
+		err:     none,
+		cparmed: false,
+		rparmed: false,
+		cluinfo: mcluinfo$make_none(nil),
+		inv_lev: 0,
+		co:      co,
+		db:      dbinfo$create(co),
+		hstack:  as$["except0"],
+		hnext:   1,
+		char_v:  default_char_version,
+		str_v:   default_string_version,
+		strings: str_entry_list$new()
+	    }
+	)
+    end create
+
+
+    % Resets the environment.
+
+    reset = proc(e: cvt, comp: CE, errst: stream, binfn: fname)
+	e.errst := errst
+	e.binfn := binfn
+	e.rname := ""
+	e.rtype := ""
+	e.err :=  none
+	e.cparmed := false
+	e.rparmed := false
+	tagcase e.cluinfo
+	tag one:
+	    e.cluinfo := mcluinfo$make_none(nil)
+	others:
+	end
+	e.inv_lev := 0
+	code_man$reset(e.co)
+	    except when not_possible(why: str):
+		stream$puts(errst, "Can't reset code manager for ")
+		stream$puts(errst, fname$unparse(binfn))
+		stream$puts(errst, ": ")
+		stream$putl(errst, why)
+	    end
+	dbinfo$reset(e.db, e.co)
+	as$trim(e.hstack, 1, 1)
+	e.hnext := 1
+	str_entry_list$trim(e.strings, 1, 0)
+    end reset
+
+
+    % Flushes all buffered information to an output file.
+
+    end_all = proc(e: cvt)
+	code_man$flush(e.co, e.binfn)
+    end end_all
+
+
+    % Resets error level.
+
+    reset_err = proc(e: cvt)
+	e.err := none
+    end reset_err
+
+
+    % Puts error message.
+
+    err = proc(e: cvt, mesg: str)
+	stream$putl(e.errst, mesg)
+	e.err := serious
+    end err
+
+
+    % Returns the current error level.
+
+    get_err = proc(e: cvt) returns(int)
+	return(e.err)
+    end get_err
+
+
+    % Notifies `e' of the beginning of the code generation for the
+    % cluster `def'.
+
+    begin_cluster = proc(e: cvt, def: typedefn)
+	parms: decllist := def.parms
+	e.cluinfo := mcluinfo$make_one(
+	    cluinfo${
+		name:  def.idn.str,
+		up_:   def.up_,
+		down_: def.down_,
+		parms: parms
+	    }
+	)
+	if ~decllist$empty(parms) then
+	    param$begin_cluster(def.idn, def.parms, e.co)
+	    e.cparmed := true
+	end
+    end begin_cluster
+
+
+    % Notifies the end of code generation of the current cluster.
+
+    end_cluster = proc(e: cvt)
+	e.cluinfo := mcluinfo$make_none(nil)
+	param$end_cluster()
+	e.cparmed := false
+    end end_cluster
+
+
+    % Signals `no_cluster' if the current module is not a cluster;
+    % otherwise returns the name of the current cluster.
+
+    get_cluster_name = proc(e: cvt) returns(str) signals(no_cluster)
+	tagcase e.cluinfo
+	tag one(info: cluinfo):
+	    return(info.name)
+	others:
+	    signal no_cluster
+	end
+    end get_cluster_name
+
+
+    % Returns true if the current module is a cluster and it is
+    % parameterized; otherwise returns false.  `parmed' is an
+    % abbreviation for `parameterized'.
+
+    get_cluster_parmed = proc(e: cvt) returns(bool)
+	return(e.cparmed)
+    end get_cluster_parmed
+
+
+    % Signals `no_cluster' if the current module is not a cluster;
+    % otherwise returns the (possibly empty) list of the parameter
+    % declarations of the current cluster.
+
+    get_cluster_parms = proc(e: cvt) returns(decllist) signals(no_cluster)
+	tagcase e.cluinfo
+	tag one(info: cluinfo):
+	    return(info.parms)
+	others:
+	    signal no_cluster
+	end
+    end get_cluster_parms
+
+
+    % Signals `no_cluster' if the current module is not a cluster;
+    % otherwise returns type_spec of the abstract data type the
+    % current cluster implements.
+
+    get_up_type = proc(e: cvt) returns(typespec) signals(no_cluster)
+	tagcase e.cluinfo
+	tag one(info: cluinfo):
+	    return(info.up_)
+	others:
+	    signal no_cluster
+	end
+    end get_up_type
+
+
+    % Signals `no_cluster' if the current module is not a cluster;
+    % otherwise returns type_spec of the representation of the current
+    % cluster.
+
+    get_down_type = proc(e: cvt) returns(typespec) signals(no_cluster)
+	tagcase e.cluinfo
+	tag one(info: cluinfo):
+	    return(info.down_)
+	others:
+	    signal no_cluster
+	end
+    end get_down_type
+
+
+    % Returns true if the current module is a cluster; otherwise
+    % returns false.
+
+    in_cluster = proc(e: cvt) returns(bool)
+	return(mcluinfo$is_one(e.cluinfo))
+    end in_cluster
+
+
+    % Notifies `e' of the beginning of the code generation for the
+    % routine `def'.  A routine is either a procedure, an iterator, or
+    % a cluster operation.
+
+    begin_apply = proc(e: cvt, def: applydefn)
+
+	% routine name.
+	aname: str := def.idn.str	% apply name
+	if aname[1] = '%' then
+	    aname := str$rest(aname, 2)
+	end
+	if g_env$in_cluster(up(e)) then
+	    % cluster operation
+	    e.rname := up(e).cluster_name || "$" || aname
+	else
+	    % procedure/iterator
+	    e.rname := aname
+	end
+
+	% routine type.
+	e.rtype := def.gen.unique
+
+	% parameter
+	rparmed: bool := e.cparmed cor ~decllist$empty(def.parms)
+	e.rparmed := rparmed
+	if rparmed then
+	    param$new_apply(up(e), def)
+	end
+
+	% exception handler.
+	as$trim(e.hstack, 1, 1)
+	e.hnext := 1
+
+	% reset other environments.
+	lb$reset()			% environment for labels.
+	lv$reset()			% environment for local variables.
+
+    end begin_apply
+
+
+    % Notifies the end of code generation of the current routine.
+
+    end_apply = proc(e: cvt)
+	e.rparmed := false
+	code_man$end_func(e.co)
+    end end_apply
+
+
+    % Returns the type (i.e., "proctype" or "itertype") of the current
+    % routine.  `rtype' is an abbreviation for `routine type'.
+
+    get_rtype = proc(e: cvt) returns(str)
+	return(e.rtype)
+    end get_rtype
+
+
+    % Returns the name of the current routine.  As for cluster
+    % operations, the resulting name consists of cluster name and
+    % operation name, concatenated with `$' character.  `rname' is an
+    % abbreviation for `routine name'.
+
+    get_rname = proc(e: cvt) returns(str)
+	return(e.rname)
+    end get_rname
+
+
+    % Notifies `e' of the beginning of the code generation of
+    % `primary' part of an invocation.
+
+    begin_invoke = proc(e: cvt)
+	e.inv_lev := e.inv_lev + 1
+    end begin_invoke
+
+
+    % Notifies `e' of the end of the code generation of `primary' part
+    % of an invocation.
+
+    end_invoke = proc(e: cvt)
+	e.inv_lev := e.inv_lev - 1
+    end end_invoke
+
+
+    % Returns true if the current code generation is concerned with
+    % the `primary' part of an invocation; otherwise returns false.
+
+    get_applied = proc(e: cvt) returns(bool)
+	return(e.inv_lev > 0)
+    end get_applied
+
+
+    % Returns true if the current routine is parameterized; otherwise
+    % returns false.  As for cluster operations, a routine is called
+    % parameterized if at least one of the cluster and the operation
+    % are parameterized.  `parmed' is an abbreviation for
+    % `parameterized'.
+
+    get_routine_parmed = proc(e: cvt) returns(bool)
+	return(e.rparmed)
+    end get_routine_parmed
+
+
+    % Returns the object code manager.
+
+    get_co = proc(e: cvt) returns(code_man)
+	return(e.co)
+    end get_co
+
+
+    % Returns the debugging information manager.
+
+    get_db = proc(e: cvt) returns(dbinfo)
+	return(e.db)
+    end get_db
+
+
+    % 
+
+    begin_except = proc(e: cvt)
+	next: int := e.hnext
+	as$addh(e.hstack, "except" || int$unparse(next))
+	e.hnext := next + 1
+    end begin_except
+
+
+    %
+
+    end_except = proc(e: cvt)
+	as$remh(e.hstack)
+    end end_except
+
+
+    %
+
+    get_current_handler = proc(e: cvt) returns(str)
+	return(as$top(e.hstack))
+    end get_current_handler
+
+
+    %
+
+    get_char_version = proc(e: cvt) returns(int)
+	return(e.char_v)
+    end get_char_version
+
+
+    %
+
+    set_char_version = proc(e: cvt, version: int) signals(wrong_version)
+	if version < 1 cor version > char_version_max then
+	    signal wrong_version
+	end
+	e.char_v := version
+    end set_char_version
+
+
+    %
+
+    get_string_version = proc(e: cvt) returns(int)
+	return(e.str_v)
+    end get_string_version
+
+
+    %
+
+    set_string_version = proc(e: cvt, version: int) signals(wrong_version)
+	if version < 1 cor version > string_version_max then
+	    signal wrong_version
+	end
+	e.str_v := version
+    end set_string_version
+
+
+    %
+
+    lookup_string = proc(e: cvt, val: str) returns(str) signals(not_found)
+	for entry: str_entry in str_entry_list$elements(e.strings) do
+	    if entry.val = val then
+		return(entry.code)
+	    end
+	end
+	signal not_found
+    end lookup_string
+
+
+    %
+
+    enter_string = proc(e: cvt, code, val: str)
+	str_entry_list$addh(e.strings, str_entry${code: code, val: val})
+    end enter_string
+
+end g_env
+
+
+% code_man - object code manager
+
+code_man = cluster is create, reset, rinfo, tinfo, info, 
+                      extern, static, const,
+		      begin_func, end_func, add_arg, flush_arg,
+		      begin_block, end_block, declare, iter_def,
+		      iter_top, putl, put_assign, put_if, put_else_if,
+		      put_while, put_label, flush
+
+
+    % Representation.
+
+    rep = record[
+        rinfo:  as,                     % type representation 
+        tinfo:  as,                     % type infomation
+	info:   as,			% information in comments
+	decls:  decltab,		% external name declarations
+	consts: as,			% constant definitions.
+	body:	divlist,		% function definitions
+	func:   funcinfo,		% function information
+	indent: int			% indentation
+    ]
+
+    decltab = table[str, declent]
+
+    declent = record[
+	class: str,			% storage class
+	type_: str,			% type specifier
+	pre:   str,			% declarator prefix
+	post:  str			% declarator postfix
+    ]
+
+    funcinfo = record[
+	name: str,			% function name
+	args: farglist			% argument declarations
+    ]
+
+    farglist = array[farg]
+
+    farg = record[
+	type_:   str,			% basic type
+	pre:     str,			% declarator prefix (e.g., "*")
+	idn:     str,			% argument name
+	post:    str,			% declarator postfix (e.g., "[]")
+	comment: str			% comment
+    ]
+
+    divlist = array[div]
+
+    div = array[line]
+
+    line = record[
+	indent:   int,			% indentation counts
+	contents: str			% contents of the line
+    ]
+
+
+    % Operations.
+
+
+    % Returns a new object code manager.
+
+    create = proc() returns(cvt)
+	return(
+	    rep${
+		tinfo:    as$new(),
+		rinfo:    as$new(),
+		info:     as$new(),
+		decls:    decltab$create(256, hash, str$equal),
+		consts:   as$new(),
+		body:     divlist$[div$new()],
+		func:     funcinfo${name: "", args: farglist$new()},
+		indent:   0
+	    }
+	)
+    end create
+
+
+    % Resets `co'.
+
+    reset = proc(co: cvt) signals(not_possible(str))
+	as$trim(co.rinfo, 1, 0)
+	as$trim(co.tinfo, 1, 0)
+	as$trim(co.info, 1, 0)
+	decltab$flush(co.decls)
+	as$trim(co.consts, 1, 0)
+	divlist$trim(co.body, 1, 1)
+	div$trim(co.body[1], 1, 0)
+	co.func.name := ""
+	farglist$trim(co.func.args, 1, 0)
+	co.indent := 0
+    end reset
+
+
+    % Puts `s' as type information.
+
+    tinfo = proc(co: cvt, s:str)
+	as$addh(co.tinfo, s)
+    end tinfo
+
+
+    % Puts `s' as type representation.
+
+    rinfo = proc(co: cvt, s:str)
+	as$addh(co.rinfo, s)
+    end rinfo
+
+
+    % Puts `s' as comment information.
+ 
+    info = proc(co: cvt, s: str)
+	as$addh(co.info, s)
+    end info
+
+
+    % Puts a declaration for the external variable `var'.  `t' is a
+    % basic type for `var'; `pre' is a prefix part of a declarator
+    % (e.g., "*"); `post' is a postfix part of a declarator (e.g.,
+    % "[]").
+
+    extern = proc(co: cvt, t, pre, var, post: str)
+	decltab$mbind(
+	    co.decls,
+	    var,
+	    declent${
+		class: "extern",
+		type_: t,
+		pre:   pre,
+		post:  post
+	    }
+	)
+    end extern
+
+
+    % Puts a declaration for the static variable `var'.  `t' is a
+    % basic type for `var'; `pre' is a prefix part of a declarator
+    % (e.g., "*"); `post' is a postfix part of a declarator (e.g.,
+    % "[]"), with an optional initialization.
+
+    static = proc(co: cvt, t, pre, var, post: str)
+	decltab$mbind(
+	    co.decls,
+	    var,
+	    declent${
+		class: "static",
+		type_: t,
+		pre:   pre,
+		post:  post
+	    }
+	)
+    end static
+
+
+    % Puts the declaration of a variable used as a constant.
+
+    const = proc(co: cvt, c: str)
+	as$addh(co.consts, c)
+    end const
+
+
+    % Notifies `co' of the beginning of the function named `name'.
+
+    begin_func = proc(co: cvt, name: str)
+	co.func.name := name
+	divert(co.body)
+    end begin_func
+
+
+    % Notifies `co' of the end of the current function.
+
+    end_func = proc(co: cvt)
+	undivert(co.body)
+    end end_func
+
+
+    % Adds an argument `ident' to the current function.  `t', `pre',
+    % and `post' have the same meaning as in `extern' and `static'.
+    % If `comment' is nonempty, it will be put as a comment for the
+    % argument declaration.
+
+    add_arg = proc(co: cvt, t, pre, ident, post, comment: str)
+	farglist$addh(
+	    co.func.args,
+	    farg${
+		type_:   t,
+		pre:     pre,
+		idn:     ident,
+		post:    post,
+		comment: comment
+	    }
+	)
+    end add_arg
+
+
+    % Notifies `co' of the fact that all the arguments of the current
+    % function have been added via the `add_arg' operation.  Once the
+    % `flush_arg' operation has been invoked, the `add_arg' operation
+    % must not be invoked, unless a new function is begun with the
+    % `begin_func' operation.
+
+    flush_arg = proc(co: code_man)
+	func: funcinfo := down(co).func
+
+	% put function name and list of arguments.
+	header: str := "int " || func.name || "("
+	args: farglist := func.args
+	begin
+	    header := header || args[1].idn
+	    for i: int in int$from_to(2, farglist$size(args)) do
+		header := header || ", " || args[i].idn
+	    end
+	end
+	    except when bounds: end
+	header := header || ")"
+	code_man$putl(co, header)
+
+	% put argument declarations.
+	for arg: farg in farglist$elements(args) do
+	    adecl: str := "     " || arg.type_ || " " || arg.pre || arg.idn
+				  || arg.post || ";"
+	    if ~str$empty(arg.comment) then
+		adecl := adecl || arg.comment
+	    end
+	    code_man$putl(co, adecl)
+	end
+
+	farglist$trim(args, 1, 0)
+    end flush_arg
+
+
+    % Notifies `co' of the beginning of a new block (i.e., compound
+    % statement) and puts a opening curly brace at the appropriate
+    % position.  Subsequent invocations of the `put*' operations put
+    % code at one-level deeper indentation.
+
+    begin_block = proc(co: cvt)
+	body: divlist := co.body
+	indent: int := co.indent
+	if indent = 0 then
+	    code_man$putl(up(co), "{")
+	    divert(body)			% for declarations
+	    divert(body)			% for iterator prologue
+	    indent := indent + 2
+	else
+	    code_man$putl(up(co), "  {")
+	    divert(body)			% for declarations
+	    indent := indent + 4
+	end
+	co.indent := indent
+    end begin_block
+
+
+    % Notifies `co' of the end of the current block (i.e., compound
+    % statement) and puts a closing curly brace at the appropriate
+    % position.  The indentation is reverted.
+ 
+    end_block = proc(co: cvt)
+	body: divlist := co.body
+	indent: int := co.indent
+	if indent = 2 then
+	    undivert(body)		% undivert function body
+	    undivert(body)		% undivert iterator prologue
+	    co.indent := 0
+	    code_man$putl(up(co), "}")
+	else
+	    undivert(body)		% undivert statements
+	    co.indent := indent - 4
+	    code_man$putl(up(co), "  }")
+	end
+    end end_block
+
+
+    % Puts a declaration at the declaration part of the innermost
+    % block.
+
+    declare = proc(co: cvt, decl: str)
+	body: divlist := co.body
+	div$addh(
+	    body[divlist$high(body) - 1],
+	    line${indent: co.indent, contents: decl}
+	)
+    end declare
+
+
+    % Puts a definition of a symbolic constant at the top of the
+    % current function.
+
+    iter_def = proc(co: cvt, def: str)
+	div$addh(co.body[1], line${indent: 0, contents: def})
+    end iter_def
+
+
+    % Puts an internal code for iterators at the top of the current
+    % function body.
+
+    iter_top = proc(co: cvt, s: str)
+	div$addh(co.body[3], line${indent: co.indent, contents: s})
+    end iter_top
+
+
+    % Puts a line.
+
+    putl = proc(co: cvt, s: str)
+	div$addh(divlist$top(co.body), line${indent: co.indent, contents: s})
+    end putl
+
+
+    % Puts an assignment statement.
+
+    put_assign = proc(co: code_man, left, right: str)
+	code_man$putl(co, left || " = " || right || ";")
+    end put_assign
+
+
+    % Puts an `if' and a test condition.
+
+    put_if = proc(co: code_man, cond: str)
+	code_man$putl(co, "if (" || cond || ")")
+    end put_if
+
+
+    % Puts an `else if' and a test condition.
+
+    put_else_if = proc(co: code_man, cond: str)
+	code_man$putl(co, "else if (" || cond || ")")
+    end put_else_if
+
+
+    % Puts a `while' and a test condition.
+
+    put_while = proc(co: code_man, cond: str)
+	code_man$putl(co, "while (" || cond || ")")
+    end put_while
+
+
+    % Puts a label.
+
+    put_label = proc(co: cvt, label: str)
+	div$addh(
+	    divlist$top(co.body),
+	    line${
+		indent:   co.indent - 2,
+		contents: label || ":"
+	    }
+	)
+    end put_label
+
+
+    % Puts all the code possibly buffered in `co' into the file named
+    % `fn'.
+
+    flush = proc(co: cvt, fn: fname) signals(not_possible(str))
+
+	% open output file.
+	outst: stream := stream$open(fn, "write")
+	    resignal not_possible
+
+	% put version numbeco.
+	stream$puts(outst, "/* Generated by clu2c (version ")
+	stream$puts(outst, cmpvar$version())
+	stream$putl(outst, ") */")
+
+	% put information about options.
+	if cmpvar$debug() cor cmpvar$optimize() then
+	    stream$puts(outst, "/* option")
+	    if cmpvar$debug() then
+		stream$puts(outst, ", debug")
+	    end
+	    if cmpvar$optimize() then
+		stream$puts(outst, ", optimize ")
+		if cmpvar$optimize_time() then
+		    stream$puts(outst, "time")
+		else
+		    stream$puts(outst, "space")
+		end
+	    end
+	    stream$putl(outst, " */")
+	end
+
+	% put type infomation
+	for s: str in as$elements(co.tinfo) do
+	    stream$puts(outst, "/*")
+	    stream$puts(outst, s)
+	    stream$putl(outst, "*/")
+	end
+
+	% put type representation 
+	for s: str in as$elements(co.rinfo) do
+	    stream$puts(outst, "/*")
+	    stream$puts(outst, s)
+	    stream$putl(outst, "*/")
+	end
+
+	% put comment information (ex. parameterized info.)
+	for s: str in as$elements(co.info) do
+	    stream$puts(outst, "/*")
+	    stream$puts(outst, s)
+	    stream$putl(outst, "*/")
+	end
+
+	% put header inclusion.
+	stream$putc(outst, '\n')
+	stream$putl(outst, "#include <clu2c.h>")
+
+	% put ID string (if any).
+	id: str := cmpvar$stuffs().id
+	if ~str$empty(id) then
+	    stream$putc(outst, '\n')
+	    stream$puts(outst, "static char id[] = \"")
+	    stream$puts(outst, id)
+	    stream$putl(outst, "\";")
+	end
+
+	% put declarations.
+	decls: decltab := co.decls
+	if ~decltab$empty(decls) then
+	    stream$putc(outst, '\n')
+	    for n: str, d: declent in decltab$elements(decls) do
+		stream$puts(outst, d.class)
+		stream$putc(outst, ' ')
+		stream$puts(outst, d.type_)
+		stream$putc(outst, '\t')
+		stream$puts(outst, d.pre)
+		stream$puts(outst, n)
+		stream$puts(outst, d.post)
+		stream$putl(outst, ";")
+	    end
+	end
+
+	% put constant definitions.
+	consts: as := co.consts
+	if ~as$empty(consts) then
+	    stream$putc(outst, '\n')
+	    for s: str in as$elements(co.consts) do
+		stream$putl(outst, s)
+	    end
+	end
+
+	% put rest
+	for l: line in div$elements(divlist$bottom(co.body)) do
+	    stream$puts(outst, indent_str(l.indent))
+	    stream$putl(outst, l.contents)
+	end
+
+	stream$close(outst)
+
+    end flush
+
+
+    % internal routines.
+
+
+    % Returns indentation string for `n' blanks.
+
+    indent_str = proc(n: int) returns(str)
+	tab_width = 8
+	own buf: ac := ac$new()
+	if (n - 2) // 4 = 0 then
+	    return(normal_indent((n - 2) / 4))
+	elseif n // 4 = 0 then
+	    return(label_indent(n / 4))
+	end
+	for i: int in int$from_to(1, n / tab_width) do
+	    ac$addh(buf, '\t')
+	end
+	for i: int in int$from_to(1, n // tab_width) do
+	    ac$addh(buf, ' ')
+	end
+	result: str := str$ac2s(buf)
+	ac$trim(buf, 1, 0)
+	return(result)
+    end indent_str
+
+
+    % Returns normal indentation string for `n' blanks.
+
+    normal_indent = proc(n: int) returns(str)
+	own normal_indents: as := as$[0: "  ", "      ", "\t  ", "\t      "]
+	return(normal_indents[n])
+	    except when bounds: end
+	for i: int in int$from_to(as$high(normal_indents) + 1, n) do
+	    res: str := ""
+	    for j: int in int$from_to(1, i / 2) do
+		res := res || "\t"
+	    end
+	    if i // 2 = 0 then
+		res := res || "  "
+	    else
+		res := res || "      "
+	    end
+	    as$addh(normal_indents, res)
+	end
+	return(normal_indents[n])
+    end normal_indent
+
+
+    % Returns label indentation string for `n' blanks.
+
+    label_indent = proc(n: int) returns(str)
+	own label_indents: as := as$[0: "", "    ", "\t", "\t    ", "\t\t"]
+	return(label_indents[n])
+	    except when bounds: end
+	for i: int in int$from_to(as$high(label_indents) + 1, n) do
+	    res: str := ""
+	    for j: int in int$from_to(1, i / 2) do
+		res := res || "\t"
+	    end
+	    if i // 2 > 0 then
+		res := res || "    "
+	    end
+	    as$addh(label_indents, res)
+	end
+	return(label_indents[n])
+    end label_indent
+
+
+    % Makes the subsequent output diverted to a certain buffer.
+
+    divert = proc(body: divlist)
+	divlist$addh(body, div$new())
+    end divert
+
+
+    % Undiverts currently diverted output.
+
+    undivert = proc(body: divlist)
+	src: div := divlist$remh(body)
+	dst: div := divlist$top(body)
+	for ln: line in div$elements(src) do
+	    div$addh(dst, ln)
+	end
+    end undivert
+
+
+end code_man
+
+
+% lb - label manager
+
+lb = cluster is reset, get, add
+
+  rep = record[yield_lb,
+	       excpt_lb,
+	       hand_lb,
+	       for_lb,
+	       ap_ivk_lb,	%
+	       fp_ivk_lb,	%
+	       tid_lb: int]	% type identification
+
+  own r : rep := rep${yield_lb:0,
+		      excpt_lb:0,
+		      hand_lb:0,
+		      for_lb:0,
+		      ap_ivk_lb:0,
+		      fp_ivk_lb:0,
+		      tid_lb:0}
+
+  reset = proc()
+    r := rep${yield_lb  : 0,
+	      excpt_lb  : 0,
+	      hand_lb   : 0,
+	      for_lb    : 0,
+	      ap_ivk_lb : 0,
+	      fp_ivk_lb : 0,
+	      tid_lb    : 0}
+  end reset
+
+  get = proc( name : str ) returns( int ) signals( no_label )
+
+    num : int
+    if name = "yield" then
+      num := r.yield_lb
+    elseif name = "except" then
+      num := r.excpt_lb
+    elseif name = "handler" then
+      num := r.hand_lb
+    elseif name = "for" then
+      num := r.for_lb
+    elseif name = "ap_ivk" then
+      num := r.ap_ivk_lb
+    elseif name = "fp_ivk" then
+      num := r.fp_ivk_lb
+    elseif name = "tid" then
+      num := r.tid_lb
+    else
+      signal no_label
+    end
+    return( num )
+  
+  end get
+  
+  add = proc( name : str ) returns( int ) signals( no_label )
+  
+    num : int
+    if name = "yield" then
+      r.yield_lb := r.yield_lb + 1
+      num := r.yield_lb
+    elseif name = "except" then
+      r.excpt_lb := r.excpt_lb + 1
+      num := r.excpt_lb
+    elseif name = "handler" then
+      r.hand_lb := r.hand_lb + 1
+      num := r.hand_lb
+    elseif name = "for" then
+      r.for_lb := r.for_lb + 1
+      num := r.for_lb
+    elseif name = "ap_ivk" then
+      r.ap_ivk_lb := r.ap_ivk_lb + 1
+      num := r.ap_ivk_lb
+    elseif name = "fp_ivk" then
+      r.fp_ivk_lb := r.fp_ivk_lb + 1
+      num := r.fp_ivk_lb
+    elseif name = "tid" then
+      r.tid_lb := r.tid_lb + 1
+      num := r.tid_lb
+    else
+      signal no_label
+    end
+    return( num )
+  
+  end add
+  
+end lb
+
+
+% glb - global label manager
+
+glb = cluster is reset, get, add
+
+rep = record[
+    p_ivk: int,		% for parameterized modules
+    strlit: int		% for string literals
+]
+
+own r : rep := rep${p_ivk: 0, strlit: 0}
+
+reset = proc()
+  r := rep${p_ivk: 0, strlit: 0}
+end reset
+
+get = proc(name: str) returns(int) signals(no_label)
+
+  num:int
+  if name = "p_ivk" then
+    num := r.p_ivk
+  elseif name = "strlit" then
+    num := r.strlit
+  else
+    signal no_label
+  end
+  return(num)
+
+end get
+
+add = proc(name: str) returns(int) signals( no_label )
+
+  num : int
+  if name = "p_ivk" then
+    r.p_ivk := r.p_ivk + 1
+    num := r.p_ivk
+  elseif name = "strlit" then
+    r.strlit := r.strlit + 1
+    num := r.strlit
+  else
+    signal no_label
+  end
+  return(num)
+
+end add
+
+end glb
+
+
+% lv - local variable manager
+
+lv = cluster is reset, begin_scope, end_scope, decl, begin_stmt,
+		end_stmt, new_temp, name, put_all_decls,
+		put_local_decls, iter_defs
+
+
+    rep = record[
+	args:   var_entry_list,	% arguments (iterator only)
+	owns:   var_entry_list,	% own variables in non-parameterized routine
+	locals: local_vars,	% local variables
+	temps:	temp_vars	% temporary variables
+    ]
+
+    local_vars = record[
+	vars:  var_entry_list,	% variables
+	max:   int,		% maximum of number of variables
+	scope: ai		% stack for scope
+    ]
+
+    var_entry_list = array[var_entry]
+
+    var_entry = record[
+	name:  str,		% name of a variable
+	type_: typespec,	% type of a variable
+	val:   str,  	        % value (i.e., C expression) of a variable
+        scope_start:  int,      % line where a variable is declared
+        scope_end: int          % last line of a variable's scope
+    ]
+
+    temp_vars = record[
+	current: int,		% current index
+	max:     int,		% maximum of index
+	scope:   ai		% stack for scope
+    ]
+
+
+    own r: rep := rep${
+	args:
+	    var_entry_list$new(),
+	owns:
+	    var_entry_list$new(),
+	locals:
+	    local_vars${
+		vars: var_entry_list$new(),
+		max: 0,
+		scope: ai$new()
+	    },
+	temps:
+	    temp_vars${
+		current: 0,
+		max:     0,
+		scope:   ai$new()
+	    }
+    }
+
+
+    % Operations.
+
+
+    % Resets all the information to the initial state.  This operation
+    % must be called at the beginning of each function generation.
+
+    reset = proc()
+	var_entry_list$trim(r.args, 1, 0)
+	var_entry_list$trim(r.owns, 1, 0)
+	locals: local_vars := r.locals
+	var_entry_list$trim(locals.vars, 1, 0)
+	locals.max := 0
+	ai$trim(locals.scope, 1, 0)
+	temps: temp_vars := r.temps
+	temps.current := 0
+	temps.max := 0
+	ai$trim(temps.scope, 1, 0)
+    end reset
+
+
+    % Begins a new scope for local variables.
+
+    begin_scope = proc()
+	locals: local_vars := r.locals
+	ai$addh(locals.scope, var_entry_list$high(locals.vars) + 1)
+    end begin_scope
+
+
+    % Signals `no_scope' if there is no scope begun by `begin_scope';
+    % otherwise ends the current scope for local variables.
+
+    end_scope = proc() signals(no_scope)
+	locals: local_vars := r.locals
+	var_entry_list$trim(locals.vars, 1, ai$remh(locals.scope) - 1)
+	    except when bounds:
+		signal no_scope
+	    end
+    end end_scope
+
+
+    % Enters a variable named `id', of type `t', kind of which is
+    % `kind'.  Redeclaration is ignored.  A value of the `kind' must
+    % be either AUTO, ARG, or LOCAL_OWN.
+
+    decl = proc(id: idn, t: typespec, kind: vkind, rtype: str, 
+		scope_start: int, scope_end: int)
+	   signals(wrong_kind, wrong_routine_type)
+	if kind = AUTO then
+	    decl_local(id, t, rtype, scope_start, scope_end)
+	elseif kind = ARG then
+	    decl_arg(id, t, rtype, scope_start, scope_end)
+	elseif kind = LOCAL_OWN then
+	    decl_own(id, t, scope_start, scope_end)
+	else
+	    signal wrong_kind
+	end
+	    resignal wrong_routine_type
+    end decl
+
+    decl_local = proc(i: idn, t: typespec, rtype: str, start_, end_ : int)
+		 signals(wrong_routine_type)
+	locals: local_vars := r.locals
+	vars: var_entry_list := locals.vars
+	val: str
+	if rtype = "proctype" then
+	    val := conv_localvar(i.str)
+	elseif rtype = "itertype" then
+	    offset: int := var_entry_list$high(r.args)
+			   + var_entry_list$high(vars)
+			   + 1
+	    val := "(*ivarp)[" || int$unparse(offset) || "]"
+	else
+	    signal wrong_routine_type
+	end
+	var_entry_list$addh(
+	    vars,
+	    var_entry${
+		name:        i.str,
+		type_:       t,
+		val:         val, 
+		scope_start: start_,
+		scope_end:   end_
+	    }
+	)
+	if var_entry_list$high(vars) > locals.max then
+	    locals.max := var_entry_list$high(vars)
+	end
+    end decl_local
+
+    decl_arg = proc(i: idn, t: typespec, rtype: str, start_, end_ : int)
+	       signals(wrong_routine_type)
+	args: var_entry_list := r.args
+	val: str
+	if rtype = "proctype" then
+	    val := conv_localvar(i.str)
+	elseif rtype = "itertype" then
+	    val := "(*ivarp)["
+		   || int$unparse(var_entry_list$high(args) + 1)
+		   || "]"
+	else
+	    signal wrong_routine_type
+	end
+	var_entry_list$addh(
+	    args,
+	    var_entry${
+		name:        i.str,
+		type_:       t,
+		val:         val, 
+		scope_start: start_,
+		scope_end:   end_
+	    }
+	)
+    end decl_arg
+
+    decl_own = proc(i: idn, t: typespec, start_, end_ : int)
+	var_entry_list$addh(
+	    r.owns,
+	    var_entry${
+		name:  i.str,
+		type_: t,
+		val:   conv_ownvar_app(i.str, "", false),
+		scope_start: start_,
+		scope_end: end_
+	    }
+	)
+    end decl_own
+
+
+    % Begins a new statement.  Invoke this operation at the beginning
+    % of code generation for each statement and invoke `end_stmt' at
+    % the end of the statement.  This convention promotes reusability
+    % of temporary variables.
+
+    begin_stmt = proc()
+	temps: temp_vars := r.temps
+	ai$addh(temps.scope, temps.current)
+    end begin_stmt
+
+
+    % Signals `no_stmt' if there is no statement begun by
+    % `begin_stmt'; otherwise ends the current statement and marks
+    % temporary variables used in the statement as `released'.
+
+    end_stmt = proc() signals(no_stmt)
+	temps: temp_vars := r.temps
+	temps.current := ai$remh(temps.scope)
+	    except when bounds:
+		signal no_stmt
+	    end
+    end end_stmt
+
+
+    % Returns a new temporary variable.
+
+    new_temp = proc(rtype: str) returns(str) signals(wrong_routine_type)
+
+	% Update subscript for temporary variable and record peak.
+	temps: temp_vars := r.temps
+	new: int := temps.current + 1
+	temps.current := new
+	if new > temps.max then
+	    temps.max := new
+	end
+
+	% Return the variable name (for procedures) or the reference
+	% into the heap-allocated activation record (for iterators).
+	if rtype = "proctype" then
+	    return("t" || int$unparse(new))
+	elseif rtype = "itertype" then
+	    return("(*ivarp)[INV_TOP+" || int$unparse(new - 1) || "]")
+	else
+	    signal wrong_routine_type
+	end	
+
+    end new_temp
+
+
+    % Signals `unfound' if `var' is unknown in the current context;
+    % otherwise returns a C expression corresponding to the CLU
+    % variable `var'.
+
+    name = proc(var: str) returns(str) signals(unfound)
+	return(lookup(var).val)
+	    except when not_found:
+		signal unfound
+	    end
+    end name
+
+
+    % Generates all variable declarations.
+
+    put_all_decls = proc(e: g_env)
+	put_own_decls(e)
+	put_local_decls(e)
+	put_temp_decls(e)
+    end put_all_decls
+
+
+    % Generates routine own variable declarations.
+
+    put_own_decls = proc(e: g_env)
+	db: dbinfo := e.db
+	co: code_man := e.co
+
+	for ent: var_entry in var_entry_list$elements(r.owns) do
+	    vname: str := ent.val		% variable name in C
+	    t: typespec := ent.type_
+
+	    % Debugging information.
+	    dbinfo$type_info(db, e, t)
+	    ti: str := dbinfo$own_var_info(
+		db,
+		"apply", 
+	        "noparam",
+	        ent.name, 
+	        vname, 
+	        t.id,
+	        "#apply"
+	    )
+		except when not_debug_mode:
+		    ti := ""
+		end
+
+	    % Declare variable.
+	    tname: str := g_name_type(g_cluname_type(t))
+	    code_man$declare(
+		co,
+		"static " || tname || " " || vname || "= 0;" || ti
+	    )
+
+	end
+    end put_own_decls
+
+
+    % Generates local variable declarations.
+
+    put_local_decls = proc(e: g_env)
+	db: dbinfo := e.db
+	co: code_man := e.co
+	locals: local_vars := r.locals
+	vars: var_entry_list := locals.vars
+	rtype: str := e.rtype
+	for i: int in int$from_to(ai$top(locals.scope), var_entry_list$high(vars)) do
+	    ent: var_entry := vars[i]
+	    vname: str := ent.val		% variable name in C
+	    t: typespec := ent.type_
+
+	    % Debugging information.
+	    dbinfo$type_info(db, e,t)
+	    ti: str := dbinfo$local_var_info(
+		db,
+		ent.name, 
+		vname, 
+		t.id, 
+		ent.scope_start,
+		ent.scope_end
+	    )
+		except when not_debug_mode:
+		    ti := ""
+		end
+
+	    % Declare variable.
+	    if rtype = "proctype" then
+		tname: str := g_name_type(g_cluname_type(t))
+		code_man$declare(co, tname || " " || vname || "= 0;" || ti)
+	    elseif rtype = "itertype" cand ~str$empty(ti) then
+		code_man$declare(co, ti)
+	    end
+
+	end
+    end put_local_decls
+
+
+    % Generates temporary variable declarations.
+
+    put_temp_decls = proc(e: g_env)
+	if e.rtype ~= "proctype" then
+	    return
+	end
+	co: code_man := e.co
+	max: int := r.temps.max
+	i: int := 1
+	d: str := "int "
+	while i <= max do
+	    if i // 10 ~= 1 then
+		d := d || ", "
+	    end
+	    d := d || "t" || int$unparse(i)
+	    if i // 10 = 0 then
+		code_man$declare(co, d || ";")
+		d := "int "
+	    end
+	    i := i + 1
+	end
+	if str$size(d) > str$size("int ") then
+	   code_man$declare(co, d || ";")
+	end
+    end put_temp_decls
+
+
+    % Generates C's `#define' directives for iterator's activation
+    % record.
+
+    % The layout of a heap-allocated activation record is:
+    %
+    %		 +--------------+ ---------
+    % 	       0 |(resume point)|     ^
+    %		 |--------------|     |
+    %		 |     args     |     |
+    %		 |      :       |
+    %		 |--------------| WORK_SIZE
+    %		 |    locals    |
+    %		 |      :       |     |
+    %		 |--------------|     |
+    %	 INV_TOP |    temps     |     |
+    %		 |      :       |     v
+    %		 +--------------+ ---------
+
+    iter_defs = iter() yields(str, str)
+	inv_top: int := var_entry_list$size(r.args) + r.locals.max + 1
+	yield("INV_TOP", int$unparse(inv_top))
+	yield("WORK_SIZE", int$unparse(inv_top + r.temps.max))
+    end iter_defs
+
+
+    % Internal routines.
+
+
+    % Returns the entry for the varialbe `n'.
+
+    lookup = proc(n: str) returns(var_entry) signals(not_found)
+	for e: var_entry in var_entry_list$elements(r.args) do
+	    if e.name = n then
+		return(e)
+	    end
+	end
+	for e: var_entry in var_entry_list$elements(r.owns) do
+	    if e.name = n then
+		return(e)
+	    end
+	end
+	for e: var_entry in var_entry_list$elements(r.locals.vars) do
+	    if e.name = n then
+		return(e)
+	    end
+	end
+	signal not_found
+    end lookup
+
+
+end lv
+
+
+% Converts a clu variable name to the c variable neme.
+
+vname = proc(e: g_env, cluname: str) returns(str) signals(unknown)
+
+    % try local variables (including arguments).
+    return(lv$name(cluname))
+	except when unfound: end
+
+    % try cluster own variables.
+    return(cluster_own$lookup(cluname))
+	except when not_found: end
+
+    % try routine own varialbes.
+    return(routine_own$lookup(cluname))
+	except when not_found: end
+
+    signal unknown
+end vname
+
+
+% Returns just `t', except for `cvt' typespec; as for `cvt' typespec,
+% returns converted typespec, whose direction is specified by `dir'.
+% A possible value of `dir' is either `cvt_up' or `cvt_down'.
+
+g_normalize_type = proc(e: g_env, t: typespec, dir: cvt_direction)
+		   returns(typespec)
+    res: typespec
+    tagcase t.abs
+    tag cvt_:
+	if dir = cvt_up then
+	    res := e.up_type
+	elseif dir = cvt_down then
+	    res := e.down_type
+	end
+    others:
+	res := t
+    end
+    return(res)
+end g_normalize_type

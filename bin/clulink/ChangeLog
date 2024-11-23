@@ -1,0 +1,195 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Wed Feb  5 09:55:39 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* start_up.clu: Doc fix.
+
+Tue Feb  4 11:49:51 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* LIB.xld: Replaced `~CLU/lib/useful.lib' with
+        `~CLU/lib/file.lib'.
+
+Fri Jan 24 09:15:19 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* start_up.clu (start_up): Use `program_arguments' instead of
+        `get_argv'.
+	* LIB.xld: Added `~CLU/lib/progenv.lib'.
+
+Wed Aug  7 14:15:58 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* sources.clu (source_targets): If the files `lib*.c' that
+        corresponds to the specified libraries exist, append them to the
+        list of the prerequisites for the output of plink.
+
+	* user.clu (rep): Changed the type of the `lib_dirs' component
+        from `string' to `sequence[file_name]'.
+	(get_lib_dirs, default_user, parse_long_option,
+        parse_short_option): Changed accordingly.
+	(lib_dirs): New operation.
+	(all_lib_dirs): New internal routine.
+	* default.clu (rep): Changed the type of the `lib_dirs' component
+        from `string' to `sequence[file_name]'.
+	(get_lib_dirs, default_lib_dirs): Changed accordingly.
+
+	* user.clu (rep): Changed the type of the `libs' component from
+        `string' to `sequence[string]'.
+	(get_libs, default_user, parse_long_option, parse_short_option):
+        Changed accordingly.
+	(libs): New operation.
+	(all_libs): New internal routine.
+	* default.clu (rep): Changed the type of the `libs' component from
+        `string' to `sequence[string]'.
+	(definition): Changed the type of the `libs' component from 'string'
+        to `sequence[string]'.
+	(create, get_libs, default_libs): Changed accordingly.
+	(words): New internal routine.
+
+	* default.clu (rep): Added `lib_dirs' as a new component.
+	(create): Changed accordingly.
+	(get_lib_dirs): New operation.
+	(default_libs): Do not include library directories in the result.
+	(default_lib_dirs): New internal routine.
+	* user.clu (rep): Added `default' and `lib_dirs' as new
+        components.
+	(get_lib_dirs): New operation.
+	(get_libs): The default libraries are listed at the end.
+	(default_user): The `lib_dirs' and `libs' components are initially
+        empty.
+	(parse_long_option): Take care whether `lib_dirs' and `libs' are
+        empty.
+	(parse_short_option): Likewise.
+	* output.clu (output_target): Support for the `lib_dirs' component
+        of the user.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Wed May 15 14:27:43 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (clulink.def): Append the definition of COFF2EXE
+        only if DJGPP is defined to 1.
+
+Sun May 12 06:45:30 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clulink.clu, default.clu, logger.clu, logger.equ, objects.clu,
+        output.clu, primary.clu, sources.clu, start_up.clu, target.clu,
+        user.clu, version.clu: Doc fix.
+
+	* Makefile.in (installdirs): Make sure that $(bindir) exists.
+
+Sat May 11 13:44:42 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (all): Require `clulink.sh'.
+	(install): Install `clulink.sh' as `$(bindir)/clulink'.
+	(clean, distclean, realclean): Remove `clulink.sh'.
+	(clulink.sh): New rule.
+
+	* clulnksh.in: New file.
+	* Makefile.in: Changed accordingly.
+
+Sat Apr 27 13:33:31 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* LIB.xld: New file.
+	* SPC.xld: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* Makefile.in: Removed `remove.bat' from the list of non-source
+        files.
+
+Tue Nov  7 07:08:19 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* sources.clu (source_targets): Append libclu2c.c to the arguments
+        to plink.
+
+Sun Sep 24 11:18:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Modification due to the changes for specification
+        files.
+
+Fri Jun 23 03:55:49 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* sources.clu (source_targets): Add C source files that correspond
+	to object files to the prerequisites of plink output if such C
+	source files exist.
+
+Wed Jun 14 04:08:56 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* logger.clu (message): Flush output stream at each line.
+
+Sat May 20 11:32:01 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Make use of MK_EQU_SOURCES, MK_MISC_SOURCES, and
+        MK_NON_SOURCES.
+
+Wed May 17 11:50:18 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clulink.clu (clulink): Signal error if the primary target can
+        not be made.
+
+	* Makefile.in: Added logger.equ to the list of miscellaneous
+        source files.
+
+	* SPC.xld: Refer to specification files in the ~CLU/lib directory.
+
+Tue May 16 03:20:56 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clulink.sh: Removed.
+
+	* SPC.xld, clulink.clu, default.clu, logger.clu, logger.equ,
+        objects.clu, output.clu, primary.clu, sources.clu, start_up.clu,
+        target.clu, user.clu, version.clu: New files.
+	* Makefile.in: Changed accordingly.
+
+Sat May 13 10:15:13 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (clulink.def): New target.
+
+Mon May  8 13:25:14 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clulink.sh (clu2c_libdir): Changed.
+
+Sat May  6 12:41:32 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of miscellaneous
+        source files.
+
+Wed May  3 08:13:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (installdirs): New target.
+
+Thu Apr 13 07:23:35 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clulink.sh: Invoke plink with absolute file name.
+
+Wed Apr 12 12:22:57 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Install to $(clu2c_bindir).
+	(install-links): New target.
+
+	* clulink.sh: Changed header location.
+
+Thu Apr  6 03:56:20 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clulink.sh: Removed -p option.  Added -g option.
+
+Fri Mar 31 12:09:48 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clulink.sh (LIBS): Removed -ljio and -lgc.
+
+	* Makefile.in: Define MISC_SRC.
+
+Thu Mar 30 11:14:08 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clulink.sh: Escaped $(...) with backslash.  Some shell interpret
+	this as command substitution.
+
+Wed Mar 29 13:46:04 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Wed Sep 28 07:13:00 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clulink.sh (LIBS): Added -ljio.

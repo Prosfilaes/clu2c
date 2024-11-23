@@ -1,0 +1,28 @@
+% split_de.clu - split directory entry into name and suffix 
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: split_de.clu,v 2.0 1996/06/10 09:02:21 ushijima Exp $
+
+
+% Splits ENT into name and suffix, which are separated by the
+% rightmost dot.
+    
+split_directory_entry = proc(ent: string) returns(string, string)
+    name: string := ent
+    suffix: string := ""
+    for i: int in int$from_to_by(string$size(ent), 1, -1) do
+	if ent[i] ~= '.' then
+	    continue
+	end
+	if ent[i - 1] ~= '.' cand ent[i + 1] ~= '.' then
+	    name := string$substr(ent, 1, i - 1)
+	    suffix := string$rest(ent, i + 1)
+	end
+	    except when bounds: end
+	break
+    end
+    return(name, suffix)
+end split_directory_entry

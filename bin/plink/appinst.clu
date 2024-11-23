@@ -1,0 +1,628 @@
+% appinst.clu - apply instance
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: appinst.clu,v 2.2 1996/10/06 12:53:21 ushijima Exp $
+
+
+% A "appinst" is a apply instance (i.e., a procedure or an iterator).
+% Apply instance results from the instantiation that gives parameters
+% to an apply generator.  A procedure/iterator implemented by a
+% nonparameterized procedure/iterator is treated as an apply instance
+% that has empty parameter list.
+
+appinst = cluster is
+	create,
+	create_cluop,
+	create_selop,
+	create_formalop,
+	get_gen,
+	get_parms,
+	get_all_parms,
+	replace,
+	get_fun_name,
+	add_entry_pointer,
+	add_invoke,
+	set_fixed,
+	get_fixed,
+	add_type,
+	get_types,
+	emit_fundecl,
+	emit_ptrdefn,
+	emit_fundefn,
+	similar
+
+    rep = record[
+	gen:      appgen,		% generator
+	parms:    parmlist,		% parameters
+	provider: op_provider,		% provider (operation only)
+	id:       int,			% instance ID
+	sel:      int,			% selector/tag ID (selop only)
+	entptrs:  as,			% C variables for entry pointers
+	fixed:    bool,			% invocation fixed?
+	invokes:  appinstlist,		% invocations from this instance
+	types:    tparmlist,		% types refered from this instance
+	printing: bool			% now printing?
+    ]
+    op_provider = oneof[
+	none:  null,			% not an operation
+	clu:   cluinst,			% cluster operation
+	sel:   selinst,			% selector operation
+	fparm: int			% operation of fomal parameter
+    ]
+    appinstlist = array[appinst]
+
+
+    % Returns the apply instance resulting from the instantiation that
+    % gives _parms_ to _gen_.  It is required that _gen_ is not an
+    % operation generator.  It is ensured that there exists only one
+    % instance for each pair of a generator and a parameter list, as
+    % far as _parms_ contains no formal parameter.
+ 
+    create = proc(gen: appgen, parms: parmlist) returns(appinst)
+	return(appgen$lookup_inst(gen, parms))
+	    except when not_found: end
+	inst: appinst := create0(gen, parms, op_provider$make_none(nil))
+	if ~formal_parmlist(parms) then
+	    down(inst).id := appgen$enter_inst(gen, inst)
+	end
+	return(inst)
+    end create
+
+
+    % Returns the apply instance resulting from the instantiation that
+    % gives _parms_ to _gen_.  It is required that _gen_ is an cluster
+    % operation generator, and that _t_ is an instance of the cluster
+    % generator which is the `provider' of _gen_.  For example, if
+    % _gen_ represents an operation _foo$bar_, _t_ must represent an
+    % instance of _foo_ (say _foo[int]_).  It is ensured that there
+    % exists only one instance for each triple <_t_, _gen_, _parms_>,
+    % as far as _parms_ contains no formal parameter.
+
+    create_cluop = proc(t: cluinst, gen: appgen, parms: parmlist)
+		   returns(appinst)
+	return(cluinst$lookup_op(t, gen.name, parms))
+	    except when not_found: end
+	inst: appinst := create0(gen, parms, op_provider$make_clu(t))
+	down(inst).id := cluinst$enter_op(t, inst)
+	return(inst)
+    end create_cluop
+
+
+    % Returns the apply instance resulting from the instantiation that
+    % gives _gen_ with _parms_.  It is required that _gen_ is an
+    % selector operation generator, and that _t_ is an instance of the
+    % selector generator which is the `provider' of _gen_.  For
+    % example, if _gen_ represents an operation _record$copy_, _t_
+    % must represent an instance of _record_ (say _record[a: int, b:
+    % string]_).  It is ensured that there exists only one instance
+    % for each triple <_t_, _gen_, _parms_>, as far as _parms_
+    % contains no formal parameter.
+
+    create_selop = proc(t: selinst, gen: appgen, parms: parmlist)
+		   returns(appinst)
+	return(selinst$lookup_op(t, gen.name, parms))
+	    except when not_found: end
+	inst: appinst := create0(gen, parms, op_provider$make_sel(t))
+	down(inst).id := selinst$enter_op(t, inst)
+	name: str := gen.name
+	if need_sel_id(name) then
+	    down(inst).sel := sel_id(t.parms, name)
+	end
+	return(inst)
+    end create_selop
+
+
+    % Returns the apply instance resulting from the instantiation that
+    % gives _gen_ with _parms_.  An apply instance created by this
+    % operation represents an operation of a formal type parameter
+    % whose position in its declaration is _id_.  It is required that
+    % the `provider' of _gen_ is also a formal type parameter.
+
+    create_formalop = proc(id: int, gen: appgen, parms: parmlist)
+		      returns(appinst)
+	return(create0(gen, parms, op_provider$make_fparm(id)))
+    end create_formalop
+
+
+    % Internal routine for _create_, _create_cluop_, _create_selop_,
+    % and _create_formalop_.
+
+    create0 = proc(gen: appgen, parms: parmlist, provider: op_provider)
+	      returns(cvt)
+	return(
+	    rep${
+		gen:      gen,
+		parms:    parms,
+		provider: provider,
+		entptrs:  as$new(),
+		id:	  0,
+		fixed:    false,
+		invokes:  appinstlist$new(),
+		sel:      undef,
+		types:    tparmlist$new(),
+		printing: false
+	    }
+	)
+    end create0
+
+
+    % Returns the generator of _inst_.
+
+    get_gen = proc(inst: cvt) returns(appgen)
+	return(inst.gen)
+    end get_gen
+
+
+    % Returns the parameters of _inst_.
+
+    get_parms = proc(inst: cvt) returns(parmlist)
+	return(inst.parms)
+    end get_parms
+
+
+    % Returns all the parameters of _inst_, including parameters of
+    % the provider (in the case of operations).  It is required that
+    % _inst_ is not an operation of a formal type parameter.
+
+    get_all_parms = proc(inst: cvt) returns(parmlist)
+	parms: parmlist := parmlist$new()
+	tagcase inst.provider
+	tag clu(provider: cluinst):
+	    parms := provider.parms
+	tag sel(provider: selinst):
+	    parms := fieldspeclist2parmlist(provider.parms)
+	others:
+	end
+	return(parmlist_concat(parms, inst.parms))
+    end get_all_parms
+
+
+    % Internal routine for _get_all_parms_.  Returns a parameter list
+    % containing the type parameters of _fspecs_ in the same order as
+    % in _fspecs_.
+
+    fieldspeclist2parmlist = proc(fspecs: fieldspeclist) returns(parmlist)
+	res: parmlist := parmlist$new()
+	for fspec: fieldspec in fieldspeclist$elements(fspecs) do
+	    parmlist$addh(res, parameter$make_tparm(fspec.parm))
+	end
+	return(res)
+    end fieldspeclist2parmlist
+
+
+    % Internal routine for _get_all_parms_.  Returns a new parameter
+    % list containing the parameters of _parms1_ followed by the
+    % parameters of _parms2_.
+
+    parmlist_concat = proc(parms1, parms2: parmlist) returns(parmlist)
+	res: parmlist := parmlist$copy1(parms1)
+	for parm: parameter in parmlist$elements(parms2) do
+	    parmlist$addh(res, parm)
+	end
+	return(res)
+    end parmlist_concat
+
+
+    % Returns a new apply instance that is similar to _inst_, except
+    % that formal parameters in _inst_ (includeing parameters of the
+    % provider, if any) is replaced with the corresponding parameters
+    % in _actuals_.
+
+    replace = proc(inst: cvt, actuals: parmlist) returns(appinst)
+	gen: appgen := inst.gen
+	newparms: parmlist := replace_parmlist(inst.parms, actuals)
+	newinst: appinst
+	tagcase inst.provider
+	tag none:
+	    newinst := appinst$create(gen, newparms)
+	tag clu(provider: cluinst):
+	    newprovider: cluinst := cluinst$create(
+		provider.gen,
+		replace_parmlist(provider.parms, actuals)
+	    )
+	    newinst := appinst$create_cluop(newprovider, gen, newparms)
+	tag sel(provider: selinst):
+	    newprovider: selinst := selinst$create(
+		provider.gen,
+		replace_fieldspeclist(provider.parms, actuals)
+	    )
+	    newinst := appinst$create_selop(newprovider, gen, newparms)
+	tag fparm(id: int):
+	    tp: tparm := replace_tparm(tparm$make_fparm(id), actuals)
+	    tagcase tp
+	    tag clu(newprovider: cluinst):
+		newinst := appinst$create_cluop(
+		    newprovider,
+		    appgen$create_cluop(gen.name, newprovider.gen),
+		    newparms
+		)
+	    tag sel(newprovider: selinst):
+		newinst := appinst$create_selop(
+		    newprovider,
+		    appgen$create_selop(gen.name, newprovider.gen),
+		    newparms
+		)
+	    others:
+		% can't happen...
+	    end
+	end
+	return(newinst)
+    end replace
+
+
+    % Returns the name of the C function corresponding to _inst_.  It
+    % is required that _inst_ is not an operation of a formal type
+    % parameter.
+
+    get_fun_name = proc(inst: cvt) returns(str)
+	if not_entry_function(inst) then
+	    return(inst.gen.fun_name)
+	end
+	gen: str
+	tagcase inst.provider
+	tag none:
+	    return(conv_appent(inst.gen.name, inst.id))
+	tag clu(i: cluinst):
+	    gen := i.gen.name
+	tag sel(i: selinst):
+	    gen := i.gen.name
+	others:
+	    % can't happen...
+	    gen := "???"
+	end
+	return(conv_opent(gen, inst.gen.name, inst.id))
+    end get_fun_name
+
+
+    % Stores _entryp_ in _inst_ as a C variable that has the pointer
+    % to the entry function of _inst_.
+
+    add_entry_pointer = proc(inst: cvt, entryp: str)
+	as$addh(inst.entptrs, entryp)
+    end add_entry_pointer
+
+
+    % Stores _invoke_ in _inst_ as an invocation from _inst_.
+
+    add_invoke = proc(inst: cvt, invoke: appinst)
+	appinstlist$addh(inst.invokes, invoke)
+    end add_invoke
+
+
+    % Sets the "fixed" field of _inst_ to _fixed_.  The fact that this
+    % field is true implies that invocations from _inst_ is "fixed".
+
+    set_fixed = proc(inst: cvt, fixed: bool)
+	inst.fixed := fixed
+    end set_fixed
+
+
+    % Returns the value of the "fixed" field of _inst_.  The fact that
+    % this field is true implies that invocations from _inst_ is
+    % "fixed".
+
+    get_fixed = proc(inst: cvt) returns(bool)
+	return(inst.fixed)
+    end get_fixed
+
+
+    % Stores _tp_ in _inst_ as a type instance refered from _inst_.
+
+    add_type = proc(inst: cvt, tp: tparm)
+	tparmlist$addh(inst.types, tp)
+    end add_type
+
+
+    % Returns the type instances stored in _inst_ so far using
+    % _add_type_.
+
+    get_types = proc(inst: cvt) returns(tparmlist)
+	return(inst.types)
+    end get_types
+
+
+    % Puts, to _outst_, the declaration of the C function
+    % corresponding to _inst_.
+
+    emit_fundecl = proc(inst: cvt, outst: stream) signals(not_possible(str))
+	stream$puts(outst, "int ")
+	stream$puts(outst, up(inst).fun_name)
+	stream$putl(outst, "();")
+    end emit_fundecl
+
+
+    % Puts, to _outst_, the definitions of entry pointers that point
+    % to the C function corresponding to _inst_.
+
+    emit_ptrdefn = proc(inst: cvt, outst: stream) signals(not_possible(str))
+	entfun: str := up(inst).fun_name
+	for entptr: str in as$elements(inst.entptrs) do
+	    stream$puts(outst, "proctype ")
+	    stream$puts(outst, entptr)
+	    stream$puts(outst, " = ")
+	    stream$puts(outst, entfun)
+	    stream$putl(outst, ";")
+	end
+    end emit_ptrdefn
+
+
+    % Puts, to _outst_, the definition of the C function corresponding
+    % to _inst_ if it is an entry function; otherwise do nothing.
+
+    emit_fundefn = proc(inst: cvt, outst: stream) signals(not_possible(str))
+	if not_entry_function(inst) then
+	    return
+	end
+	gen: appgen := inst.gen
+	emit_dbinfo(up(inst),outst)
+	args: str := emit_head(up(inst).fun_name, gen.nr_args, outst)
+	stream$putl(outst, "{")
+	first: str
+	tagcase inst.provider
+	tag none:
+	    if gen.name = "force" then
+		first := int$unparse(
+		    type_id(parameter$value_tparm(inst.parms[1]))
+		)
+	    else
+		first := emit_param_info(inst, outst)
+	    end
+	tag clu(provider: cluinst):
+	    if builtin_cluster(provider.gen.name) then
+		first := emit_oplist(inst.invokes, outst)
+	    else
+		first := emit_param_info(inst, outst)
+	    end
+	tag sel:
+	    sel: int := inst.sel
+	    if sel = undef then
+		first := emit_oplist(inst.invokes, outst)
+	    else
+		first := int$unparse(sel)
+	    end
+	others:
+	    % can't happen...
+	end
+	emit_body(first, gen.fun_name, args, outst)
+	stream$putl(outst, "}")
+    end emit_fundefn
+
+    % Internal routine for _emit_fundefn_. 
+
+    emit_dbinfo = proc(inst: cvt, outst: stream)
+	db:db_env:= db_env$get()
+	if ~db.debug then
+	    return
+	end
+
+	tagcase inst.provider
+	tag none:
+	    stream$putl(
+		outst,
+		db_env$apinst_info(
+		    db,
+		    up(inst).fun_name,
+		    appinst_unparse(up(inst))
+		)
+	    )
+	tag clu(provider: cluinst):
+	    stream$putl(
+		outst,
+		db_env$opinst_info(
+		    db,
+		    up(inst).fun_name,
+		    cluinst_unparse(provider),
+		    appinst_unparse(up(inst))
+		)
+	    )
+	tag sel(provider: selinst):
+	    stream$putl(
+		outst,
+		db_env$opinst_info(
+		    db,
+		    up(inst).fun_name,
+		    selinst_unparse(provider),
+		    appinst_unparse(up(inst))
+		)
+	    )
+	others:
+	    % can't happen...
+	end
+    end emit_dbinfo
+
+    % Internal routine for _emit_fundefn_.  Puts, to _outst_, a header
+    % of a definiton of C function named _name_ with _nr_args_
+    % argument(s).
+
+    emit_head = proc(name: str, nr_args: int, outst: stream) returns(str)
+	stream$puts(outst, "int ")
+	stream$puts(outst, name)
+	args_buf: stream := stream$create_output()
+	for i: int in int$from_to(1, nr_args) do
+	    stream$puts(args_buf, "arg")
+	    stream$puts(args_buf, int$unparse(i))
+	    if i < nr_args then
+		stream$puts(args_buf, ", ")
+	    end
+	end
+	args: str := args_buf.contents
+	stream$putc(outst, '(')
+	stream$puts(outst, args)
+	stream$putc(outst, ')')
+	stream$putc(outst, '\n')
+	if nr_args > 0 then
+	    stream$putspace(outst, 4)
+	    stream$puts(outst, "object ")
+	    stream$puts(outst, args)
+	    stream$putl(outst, ";")
+	end
+	return(args)
+    end emit_head
+
+
+    % Internal routine for _emit_fundefn_.  Puts, to _outst_, the
+    % definition of the parameter-dependent infomation of _inst_ and
+    % returns the C expression that refers to the information.
+
+    emit_param_info = proc(inst: rep, outst: stream) returns(str)
+	oplist: str := emit_oplist(inst.invokes, outst)
+	vparms: str := emit_vparms(inst, outst)
+	stream$putspace(outst, 4)
+	stream$puts(outst, "static param_info pi = {")
+	stream$puts(outst, oplist)
+	stream$puts(outst, ", ")
+	stream$puts(outst, int$unparse(inst.id))
+	stream$puts(outst, ", ")
+	tagcase inst.provider
+	tag none:
+	    stream$puts(outst, "-1")
+	tag clu(provider: cluinst):
+	    stream$puts(outst, int$unparse(provider.id))
+	tag sel(provider: selinst):
+	    stream$puts(outst, int$unparse(provider.id))
+	others:
+	    % can't happen...
+	end
+	stream$puts(outst, ", ")
+	stream$puts(outst, vparms)
+	stream$putl(outst, "};")
+	return("&pi")
+    end emit_param_info
+
+
+    % Internal routine for _emit_fundefn_.  Puts, to _outst_, the
+    % definition of the list of C functions listed in _invokes_ and
+    % returns the C expression that refers to the list.
+    
+    emit_oplist = proc(invokes: appinstlist, outst: stream) returns(str)
+	oplist: str
+	if appinstlist$empty(invokes) then
+	    oplist := "0"
+	else
+	    stream$putspace(outst, 4)
+	    stream$putl(outst, "static void *oplist[] = {")
+	    for invoke: appinst in appinstlist$elements(invokes) do
+		stream$putc(outst, '\t')
+		stream$puts(outst, invoke.fun_name)
+		stream$putl(outst, ",")
+	    end
+	    stream$putspace(outst, 4)
+	    stream$putl(outst, "};")
+	    oplist := "oplist"
+	end
+	return(oplist)
+    end emit_oplist
+
+
+    % Internal routine for _emit_fundefn_.  Puts, to _outst_, the
+    % definition of the list of value parameters of _inst_ and returns
+    % the C expression that refers to the list.
+
+    emit_vparms = proc(inst: rep, outst: stream) returns(str)
+	vparms_pool: as := as$new()
+	tagcase inst.provider
+	tag clu(provider: cluinst):
+	    for parm: parameter in parmlist$elements(provider.parms) do
+		tagcase parm
+		tag vparm(vp: vparm):
+		    tagcase vp
+		    tag lit(s: str):
+			as$addh(vparms_pool, s)
+		    others:
+		    end
+		others:
+		end
+	    end
+	others:
+	end
+	for parm: parameter in parmlist$elements(inst.parms) do
+	    tagcase parm
+	    tag vparm(vp: vparm):
+		tagcase vp
+		tag lit(s: str):
+		    as$addh(vparms_pool, s)
+		others:
+		end
+	    others:
+	    end
+	end
+	vparms: str
+	if as$empty(vparms_pool) then
+	    vparms := "0"
+	else
+	    stream$putspace(outst, 4)
+	    stream$puts(outst, "static object vparms[] = {")
+	    for vp: str in as$elements(vparms_pool) do
+		stream$puts(outst, vp)
+		stream$puts(outst, ", ")
+	    end
+	    stream$putl(outst, "};")
+	    vparms := "vparms"
+	end
+	return(vparms)
+    end emit_vparms
+
+
+    % Internal routine for _emit_fundefn_.  Puts, to _outst_, the
+    % invocation of the C function named _body_ with _first_ as the
+    % first argument and _args_ as the rest of arguments.
+
+    emit_body = proc(first: str, body: str, args: str, outst: stream)
+	stream$putspace(outst, 4)
+	stream$puts(outst, "return ")
+	stream$puts(outst, body)
+	stream$puts(outst, "(")
+	stream$puts(outst, first)
+	if ~str$empty(args) then
+	    stream$puts(outst, ", ")
+	    stream$puts(outst, args)
+	end
+	stream$putl(outst, ");")
+    end emit_body
+
+
+    % Returns true if _inst1_ and _inst2_ refer to the same object;
+    % otherwise returns false.
+
+    similar = proc(inst1, inst2: cvt) returns(bool)
+	return(inst1 = inst2)
+    end similar
+
+
+    % Internal routine.  Returns true if a C function corresponding to
+    % _inst_ is NOT an entry function; otherwise returns false.  It is
+    % required that _inst_ is "fixed" about invocations from _inst_.
+
+    not_entry_function = proc(inst: rep) returns(bool)
+	tagcase inst.provider
+	tag none:
+	    return(parmlist$empty(inst.parms))
+	tag clu(provider: cluinst):
+	    provname: str := provider.gen.name
+	    if provname = "array" cor provname = "sequence" then
+		% A C function corresponding to an operation of a
+		% built-in type generator is an entry funtion if and
+		% only if the operation invokes at least one operation
+		% of the type parameter.
+		return(appinstlist$empty(inst.invokes))
+	    else
+		% A C function corresponding to an operation of a
+		% user-defined type generator is an entry function if
+		% and only if the operation takes at least one parameter.
+		return(
+		    parmlist$empty(provider.parms)
+		    cand parmlist$empty(inst.parms)
+		)
+	    end
+	tag sel:
+	    return(appinstlist$empty(inst.invokes) cand inst.sel = undef)
+	tag fparm:
+	    return(false)
+	end
+    end not_entry_function
+
+
+end appinst

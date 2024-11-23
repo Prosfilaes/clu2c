@@ -1,0 +1,302 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Wed Feb  5 09:55:40 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* argument.clu: Doc fix.
+
+Fri Jan 24 09:57:41 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* argument.clu: Doc fix.
+
+	* argument.clu (arguments): Use `program_arguments' instead of
+        `get_argv'.
+	* LIB.xld: New file.
+	* Makefile.in: Changed accordingly.
+
+Mon Oct  7 03:08:56 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* main.clu (emit): Generate code that includes <clu2c.h> only.
+
+Sun Oct  6 12:53:21 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* appinst.clu (emit_head, emit_vparms): Use `object' instead of
+        `elt'.
+
+	* appinst.clu (emit_oplist, emit_vparms): Avoid the use of `NULL'.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sun May 12 06:44:45 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* appgen.clu, appinst.clu, argument.clu, assoc.clu, clugen.clu,
+        cluinst.clu, config.equ, debug.clu, error.clu, formal.clu,
+        gentab.clu, main.clu, name.clu, parse.clu, plink.equ, read.clu,
+        replace.clu, selgen.clu, selinst.clu, unparse.clu: Doc fix.
+
+	* Makefile.in (install-links): Removed.
+
+Sat Apr 27 05:22:10 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed `remove.bat' from the list of non-source
+        files.
+
+Mon Aug 28 13:51:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* appgen.clu, appinst.clu, argument.clu, assoc.clu, clugen.clu,
+        cluinst.clu, debug.clu, error.clu, formal.clu, gentab.clu,
+        main.clu, name.clu, parse.clu, read.clu, replace.clu, selgen.clu,
+        selinst.clu, unparse.clu: Avoided to use non-standard notations.
+
+	* unparse.clu, selinst.clu, selgen.clu, replace.clu, read.clu,
+        parse.clu, name.clu, main.clu, gentab.clu, formal.clu, error.clu,
+        debug.clu, cluinst.clu, clugen.clu, assoc.clu, argument.clu,
+        appgen.clu: Doc fix.
+
+Sat May 20 11:33:50 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Make use of MK_EQU_SOURCES and MK_NON_SOURCES.
+
+Sun May  7 09:46:35 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added plink.equ to the list of miscellaneous source
+        files.
+
+Sat May  6 12:42:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of miscellaneous
+        source files.
+
+Wed Apr 12 11:59:31 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Cleared action for install-links.
+
+Wed Apr  5 13:13:47 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added debug.clu and unparse.clu to the list of CLU
+        source files.
+
+	* appinst.clu (emit_fundefn): Call emit_dbinfo.
+	(emit_dbinfo): New internal routine.
+
+	* appgen.clu (emit_types): Generate type information in debugging
+        mode.
+
+	* argument.clu (arguments): Recognize -g option.
+
+	* clugen.clu (enter_typeid, emit_typeid): New operations.
+
+	* cluinst.clu (rep): Added typeid.
+	(create): Support for the new representation.
+	(emit_types): Generate type information in debugging mode.
+	(enter_typeid, get_typeid, emit_typeid): New operations.
+
+	* parse.clu (scanner): Removed mappgen.
+
+	* main.clu (start_up): Call enter_typeid.
+	(enter_typeid): New procedure.
+	(emit): Generate debugging information in debugging mode.
+
+	* selgen.clu (enter_typeid, emit_typeid): New operations.
+
+	* selinst.clu (rep): Added typeid.
+	(create): Support for the new representation.
+	(emit_types): Generate type information in debugging mode.
+	(enter_typeid, get_typeid, emit_typeid): New operations.
+
+	* debug.clu, unparse.clu: New files.
+
+Fri Mar 31 05:49:42 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Define MISC_SRC.
+
+Wed Mar 29 13:46:05 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Thu Nov  3 12:49:36 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* config.equ: New file.
+
+Fri Sep 16 03:56:42 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* appinst.clu (not_entry_function): Determine correctly whether
+        array/sequence operations have entry functions.
+
+Fri Jun 25 12:35:21 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* main.clu (process_comment): Corrected the bug that any own
+        variable in a parameterize cluster causes that the name of the
+        cluster is taken to be the name of a routine.
+
+Sat Apr 17 09:57:37 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* main.clu (emit): Changed the include directory conventions.
+
+Thu Dec 17 08:02:47 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* appgen.clu, appinst.clu, argument.clu, assoc.clu, clugen.clu,
+        cluinst.clu, error.clu, formal.clu, gentab.clu, main.clu,
+        name.clu, parse.clu, plink.equ, read.clu, replace.clu, selgen.clu,
+        selinst.clu: New files.
+
+	* code.clu, etc.clu, p_decl.clu, plink.clu, tidtab.clu, plink.equ:
+        Removed.
+
+Wed Oct 21 04:53:13 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* p_decl.clu (apply_call): Signal the no_decl exception when the
+	parameterized module definition in question is not found.
+	(cop_call, bltin_call, force_eval, add_new_call): Likewise.
+
+	* plink.clu (param_mod_call): New procedure.  Separated from
+	start_up.  Process "param_mod_call" information.  Calls of
+	user-defined parameterized module are processed immediately if
+	possible.
+
+Fri Oct 16 09:26:40 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* p_decl.clu (add_new_call): Fixed a bug about checking whether
+        two parameter lists are the same.
+
+Wed Sep 23 09:18:07 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* Version 1.1 released.
+
+Tue Sep  8 11:01:04 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* code.clu (entry_tab): New cluster.  Do part of job that
+        make_code did.
+
+	* p_decl.clu (emit_selop_decls, emit_selop_defs): New operations.
+        (generate_selop_entries): Replaced with emit_selop_decls and
+        emit_selop_defs.
+
+	* tidtab.clu (output): Do not genarate variable definitions if the
+        variable is to be defined as an empty array.
+
+Thu Aug  6 06:35:39 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* p_decl.clu (bind): Remove duplicate vparm[...] construct.
+
+Wed Aug  5 09:29:20 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* p_decl.clu (apply_call): Added exception handler for the
+        not_find exception signaled by get_decl.
+	(cop_call, bltin_call, force_eval, add_new_call): Likewise
+
+Fri Jul 17 12:27:59 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* code.clu (make_code): Generate entry functions for selector
+        operations.
+
+	* etc.clu (ac): Moved to plink.equ.
+	* plink.equ (ac): New equate.  Moved from etc.clu.
+
+	* etc.clu (cutto_clus_param): May signal the selector exception.
+        All callers changed.
+	(cut_parm2): New procedure.
+	* p_decl.clu (get_formal_index): Accept SEL:TYPE notation.
+
+Wed Jul 15 05:40:46 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* etc.clu (builtin_parm): Recognize print and _gcd operations of
+        built-in type generators as requiring parameter-dependent
+        information.  
+	(get_arg_num): Return correct result for print and _gcd operations
+        of built-in type generators.
+
+	* p_decl.clu (bltin_pivks): Recognize print and _gcd
+        operations.
+	(add_new_call, ent_func_id): Process different sizes of parameter
+        specifications correctly.
+
+Fri May  1 21:17:44 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* code.clu (make_code): Receive one more argument of tidtab.  All
+        callers chagned.  Generate entry functions for force.
+	* p_decl.clu (force_eval): New operation.
+	(mod_kind, p_ivk): Added force_.
+	(bind_formal): Accept force expression.
+	(get_decl, new_call, add_new_call, get_med_caller): Likewise.
+	(actual_types): Likewise.
+	(get_med_caller): Receive an argument of tidtab.  All callers
+	chagned.
+	* plink.clu (start_up): Accept force expression.	
+	* plink.equ (op_kind): Added force_.  (force_inst): New equate.
+	* tidtab.clu (bind_id): Raised to operation from internal routine.
+        (lookup, unparse): New operations.
+	(entries_unparse): New internal routine.
+	(entry_unparse): New internal routine.
+	(str_unparse): New internal routine.
+	(bindlist_unparse): New internal routine.
+	(bind_unparse): New internal routine.
+	(val_unparse): New internal routine.
+	(ai_unparse): New internal routine.
+	(as_unparse): New internal routine.
+
+Mon Apr 20 12:21:13 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* plink.clu (start_up): Support for any and force.
+	* tidtab.clu: New file.
+	* p_decl (actual_types): New operation.
+	(has_formal): Raised to operation from internal routine.
+
+Tue Apr 14 17:31:39 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* plink.clu, p_decl.clu, etc.clu, code.clu: Use #id directive.
+
+	* code.clu (make_code): Support for value parameters.
+
+	* plink.clu (start_up): Selector operations can be evaluated as an
+        expression of proctype.
+
+Sat Mar 21 16:34:31 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* etc.clu (get_words): Process character and string literal
+        correctly.
+
+	* p_decl.clu (p_call): Added vparms.
+	(bind): Support for value parameters.
+	(extract_vparms): New operation.
+	* plink.equ (apply_inst, cop_inst): Added vparms.
+
+	* p_decl.clu (new_call): Fixed a bug that things won't do if an
+        actual parameter is an instantiation of another parameterized
+        cluster.
+
+Tue Mar 17 17:44:51 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* plink.clu, plink.equ, etc.clu, p_decl.clu, code.clu: Doc fix.
+
+Tue Mar 10 13:41:57 1992  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* etc.clu (get_words): Tuned up.
+
+Mon Mar  2 21:55:06 1992  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* plink.clu (start_up): Support for user-defined parameterized
+        modules.
+
+	* plink.equ: New file.
+
+Mon Mar  2 21:53:20 1992  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* etc.clu (cutto_clus_param, read_arg): New procedures.
+        (ext_func): New cluster.
+	(cut_parm): New iterator.
+
+Mon Mar  2 21:52:43 1992  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* p_decl.clu, code.clu: New files.
+
+Wed Feb 19 15:35:57 1992  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* Version 1.0 released.
+
+Mon Feb 10 09:04:11 1992  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* plink.clu, etc.clu, builtin.clu, arg.clu: New files.

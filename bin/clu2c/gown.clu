@@ -1,0 +1,539 @@
+% gown.clu - own variable manager
+%
+% Copyright (c) 1996, 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: gown.clu,v 2.3 1997/02/05 09:55:33 ushijima Exp $
+
+
+% cluster_own - cluster own variable manager.
+
+cluster_own = cluster is declare, undeclare, lookup, put_init, initializer
+
+    initializer_name = "#initown"
+
+
+    % Representation.
+
+    rep = record[
+	vars: varlist,
+	init: mowninit
+    ]
+
+    varlist = array[var]
+
+    var = record[
+	name: str,
+	val:  str
+    ]
+
+    mowninit = variant[
+	none: null,
+	one:  owninit
+    ]
+
+    owninit = record[
+	flag:          str,		% initialization flag
+	invoke:        stmt,		% invocation of initializer
+	initializer:   applydefn	% definition of initializer
+    ]
+
+    exprrow = array[expr]
+    stmtrow = array[stmt]
+
+    own r: rep := rep${
+	vars: varlist$new(),
+	init: mowninit$make_none(nil)
+    }
+
+
+    % Operations.
+
+
+    % Declares cluster own variables in `inits'.
+
+    declare = proc(e: g_env, inits: initlist)
+	assigns: stmtrow := stmtrow$new()
+	for ini: init in initlist$elements(inits) do
+	    tagcase ini.stmt
+	    tag decl(d: decl):
+		declare1(e, d)
+	    tag init(di: declinit):
+		for d: decl in decllist$elements(di.decls) do
+		    declare1(e, d)
+		end
+		stmtrow$addh(assigns, g_make_assign(di, ini.line))
+	    end
+	end
+	if ~stmtrow$empty(assigns) then
+	    mowninit$change_one(
+		r.init,
+		owninit${
+		    flag:        decl_flag(e),
+		    invoke:      make_invoke(e),
+		    initializer: make_initializer(assigns)
+		}
+	    )
+	end
+    end declare
+
+
+    % Invalidates the effect of the previous `declare' invocation.
+
+    undeclare = proc()
+	varlist$trim(r.vars, 1, 0)
+	mowninit$change_none(r.init, nil)
+    end undeclare
+
+
+    % Signals `not_found' if `name' does not name any of the current
+    % cluster own variables; otherwise returns a C expression that
+    % corresponds to the cluster own variable named `name'.
+
+    lookup = proc(name: str) returns(str) signals(not_found)
+	for v: var in varlist$elements(r.vars) do
+	    if v.name = name then
+		return(v.val)
+	    end
+	end
+	signal not_found
+    end lookup
+
+
+    % Signals `no_init' if the current cluster does not have any own
+    % variable or any own variable is not initialized; otherwise
+    % generates code that invokes cluster own variable initializer if
+    % needed.
+
+    put_init = proc(e: g_env) signals(no_init)
+	oinit: owninit
+	tagcase r.init
+	tag none:
+	    signal no_init
+	tag one(oi: owninit):
+	    oinit := oi
+	end
+	flag: str := oinit.flag
+	co: code_man := e.co
+	
+	code_man$put_if(co, flag || " == FALSE")
+	code_man$begin_block(co)
+	code_man$put_assign(co, flag, "TRUE")
+	g_stmt(e, oinit.invoke, 0)      % 0 is dummy.
+	code_man$end_block(co)
+    end put_init
+
+
+    % Signals `no_init' if the current cluster does not have any own
+    % variable or any own variable is not initialized; otherwise
+    % returns AST of the cluster own variable initializer.
+
+    initializer = proc() returns(applydefn) signals(no_init)
+	tagcase r.init
+	tag none:
+	    signal no_init
+	tag one(oi: owninit):
+	    return(oi.initializer)
+	end
+    end initializer
+
+
+    % Internal routines.
+
+
+    % Processes one declaration.
+
+    declare1 = proc(e: g_env, d: decl)
+	db: dbinfo := e.db
+	co: code_man := e.co
+	parmed: bool := e.cluster_parmed
+	t: str := g_name_type(g_cluname_type(d.type_))
+	vars: varlist := r.vars
+	for i: idn in idnlist$elements(d.idns) do
+	    name: str := i.str
+	    v: str := g_name_own_var_clu(e, name)
+	    dbinfo$type_info(db, e,d.type_)
+	    if parmed then
+		code_man$info(
+		    co,
+		    " own_var," || e.cluster_name || "," || t || " " || v
+		)
+		ti: str := dbinfo$own_var_info(
+		    db,
+		    "clus",
+		    "param",
+		    name,
+		    v,
+		    d.type_.id,
+		    e.cluster_name
+		)
+		    except when not_debug_mode:
+			ti:=""
+		    end
+		code_man$extern(co, t, "", v, "[]" || ti)
+	    else
+		ti: str := dbinfo$own_var_info(
+		    db,
+		    "clus",
+		    "noparam",
+		    name,
+		    v,
+		    d.type_.id,
+		    e.cluster_name
+		)
+		    except when not_debug_mode:
+			ti := ""
+		    end
+		code_man$static(co, t, "", v, ti)
+	    end
+	    if parmed then
+		v := v || "[pi->clus_own_id]"
+	    end
+	    varlist$addh(vars, var${name: name, val: v})
+	end
+    end declare1
+
+
+    % Declares own variable initialization flag and returns a C
+    % expression that accesses the flag.
+
+    decl_flag = proc(e: g_env) returns(str)
+	flag: str := g_name_own_flag_clu(e)
+	co: code_man := e.co
+	val: str
+	if e.cluster_parmed then
+	    code_man$info(
+		co,
+		" own_var," || e.cluster_name || ",bool " || flag
+	    )
+	    code_man$extern(co, "bool", "", flag, "[]")
+	    val := flag || "[pi->clus_own_id]"
+	else
+	    code_man$static(co, "bool", "", flag, " = FALSE")
+	    val := flag
+	end
+	return(val)
+    end decl_flag
+
+
+    % Returns AST of the invocation of the initializer.
+
+    make_invoke = proc(e: g_env) returns(stmt)
+	own op_type: typespec := make_proctype()
+	return(
+	    stmt$create(
+		stmtabs$make_invoke(
+		    invoke${
+		    apply:
+			expr$create(
+			    exprabs$make_op(
+				clusterop${
+				    type_: make_cluster_spec(e),
+				    name:  initializer_name,
+				    parms: exprlist$new()
+				}
+			    ),	
+			    op_type
+			),
+		    args:
+			exprlist$new(),
+		    line:
+			0
+		    }
+		),
+		0
+	    )
+	)
+    end make_invoke
+
+
+    % Returns AST of the initializer.
+
+    make_initializer = proc(stmts: stmtrow) returns(applydefn)
+					    signals(no_init)
+	own t: typespec := make_proctype()
+	if stmtrow$empty(stmts) then
+	    signal no_init
+	end
+	id: idn := idn$create(initializer_name, idnkind$make_opgen("_initown"))
+	return(
+	    applydefn${
+		idn:        id,
+		gen:        cmpvar$stuffs().ce.proc_,
+		parms:      decllist$new(),
+		type_:      t,
+		args:       decllist$new(),
+		vals:       typelist$new(),
+		sigs:       exceptionlist$new(),
+		where_:     restrictlist$new(),
+		equates:    equatelist$new(),
+		init:       initlist$new(),
+		vars:       idnrow$new(),
+		body:       stmtlist$a2s(stmts),
+		start_line: stmtrow$bottom(stmts).line,
+		end_line:   stmtrow$top(stmts).line,
+		references: as$new()
+	    }
+	)
+    end make_initializer
+
+
+    % Returns typespec of `proctype()'.
+
+    make_proctype = proc() returns(typespec)
+	compe: CE := cmpvar$stuffs().ce
+	t: typespec, old: bool := CE$get_type(
+	    compe,
+	    typeabs$make_apply(
+		applytype${
+		    gen:  compe.proc_,
+		    args: typelist$new(),
+		    vals: typelist$new(),
+		    sigs: exceptionlist$new()
+		}
+	    )
+	)
+	return(t)
+    end make_proctype
+
+
+    % Returns typespec of the current cluster.
+
+    make_cluster_spec = proc(e: g_env) returns(typespec)
+	spec: typespec, old: bool := CE$get_type(
+	    cmpvar$stuffs().ce,
+	    typeabs$make_cluster_(
+		clutype${
+		    gen:   XLIB$lookup(e.cluster_name),
+		    parms: make_parms(e)
+		}
+	    )
+	)
+	return(spec)
+    end make_cluster_spec
+
+
+    % Returns the parameter part of the current cluster typespec.
+
+    make_parms = proc(e: g_env) returns(exprlist)
+	compe: CE := cmpvar$stuffs().ce
+	parms: exprrow := exprrow$new() 
+	for d: decl in decllist$elements(e.cluster_parms) do
+	    t: typespec := d.type_
+	    tagcase t.abs
+	    tag type_:
+		for i: idn in idnlist$elements(d.idns) do
+		    t1: typespec, old: bool := CE$get_type(
+			compe,
+			typeabs$make_idn(i)
+		    )
+		    exprrow$addh(parms, expr$create(exprabs$make_type_(t1), t))
+		end
+	    others:
+		for i: idn in idnlist$elements(d.idns) do
+		    exprrow$addh(parms, expr$create(exprabs$make_idn(i), t))
+		end
+	    end
+	end
+	return(exprlist$a2s(parms))
+    end make_parms
+
+
+end cluster_own
+
+
+% routine_own - routine own variables manager.
+
+routine_own = cluster is declare, undeclare, lookup, put_init
+
+
+    % Representation.
+
+    rep = record[
+	vars: varlist,
+	init: owninit
+    ]
+
+    varlist = array[var]
+
+    var = record[
+	name: str,
+	val:  str
+    ]
+
+    owninit = record[
+	assigns: stmtrow,
+	flag:    str
+    ]
+	
+    exprrow = array[expr]
+    stmtrow = array[stmt]
+
+
+    own r: rep := rep${
+	vars: varlist$new(),
+	init: owninit${assigns: stmtrow$new(), flag: ""}
+    }
+
+
+    % Operations.
+
+
+    % Declares routine own variables in `inits'.
+
+    declare = proc(e: g_env, inits: initlist, scope_end: int)
+	assigns: stmtrow := r.init.assigns
+	for ini: init in initlist$elements(inits) do
+	    tagcase ini.stmt
+	    tag decl(d: decl):
+		declare1(e, d, ini.line, scope_end)
+	    tag init(di: declinit):
+		for d: decl in decllist$elements(di.decls) do
+		    declare1(e, d, ini.line, scope_end)
+		end
+		stmtrow$addh(assigns, g_make_assign(di, ini.line))
+	    end
+	end
+	if ~stmtrow$empty(assigns) then
+	    r.init.flag := decl_flag(e)
+	end
+    end declare
+
+
+    % Invalidates the effect of the previous `declare' invocation.
+
+    undeclare = proc()
+	varlist$trim(r.vars, 1, 0)
+	oi: owninit := r.init
+	stmtrow$trim(oi.assigns, 1, 0)
+	oi.flag := ""
+    end undeclare
+
+
+    % Signals `not_found' if `name' does not name any of the current
+    % routine own variables; otherwise returns a C expression that
+    % corresponds to the routine own variable named `name'.
+
+    lookup = proc(name: str) returns(str) signals(not_found)
+	for v: var in varlist$elements(r.vars) do
+	    if v.name = name then
+		return(v.val)
+	    end
+	end
+	signal not_found
+    end lookup
+
+
+    % Signals `no_init' if the current routine does not have any own
+    % variable or any own variable is not initialized; otherwise
+    % generates code that initializes routine own variable if needed.
+
+    put_init = proc(e: g_env, scope_end: int) signals(no_init)
+	oi: owninit := r.init
+	assigns: stmtrow := oi.assigns
+	if stmtrow$empty(assigns) then
+	    signal no_init
+	end
+	co: code_man := e.co
+	flag: str := oi.flag
+	code_man$put_if(co, flag || " == FALSE")
+	code_man$begin_block(co)
+	code_man$put_assign(co, flag, "TRUE")
+	for assign: stmt in stmtrow$elements(assigns) do
+	    g_stmt(e, assign, scope_end)
+	end
+	code_man$end_block(co)
+    end put_init
+
+
+    % Internal routines.
+
+
+    % Processes one declaration.
+
+    declare1 = proc(e: g_env, d: decl, decl_line: int, scope_end: int)
+	co: code_man := e.co
+	parmed: bool := e.routine_parmed
+	t: typespec := d.type_
+	ctype: str := g_name_type(g_cluname_type(t))
+	vars: varlist := r.vars
+	for i: idn in idnlist$elements(d.idns) do
+	    n: str := i.str			% variable name in CLU
+	    v: str				% corresponding C expression
+	    db:dbinfo := e.db
+	    if parmed then
+		v := g_name_own_var_apply(e, i.str)
+		code_man$info(
+		    co,
+		    " own_var," || e.rname || "," || ctype || " " || v
+		)
+		ti: str := dbinfo$own_var_info(
+		    db,
+		    "apply",
+		    "param",
+		    n,
+		    v,
+		    d.type_.id,
+		    e.rname
+		)
+		    except when not_debug_mode:
+			ti:=""
+		    end
+		dbinfo$type_info(db, e, d.type_)
+		code_man$extern(co, ctype, "", v, "[] "|| ti)
+		v := v || "[pi->local_own_id]"
+	    else
+		lv$decl(i, t, LOCAL_OWN, e.rtype, decl_line, scope_end)
+		v := lv$name(i.str)
+	    end
+	    varlist$addh(vars, var${name: i.str, val: v})
+	end
+    end declare1
+
+
+    % Declares own variable initialization flag and returns a C
+    % expression that accesses the flag.
+
+    decl_flag = proc(e: g_env) returns(str)
+	co: code_man := e.co
+	flag: str := g_name_own_flag(e)
+	val: str
+	if e.routine_parmed then
+	    code_man$info(co, " own_var," || e.rname || ",bool " || flag)
+	    code_man$extern(co, "bool", "", flag, "[]")
+	    val := flag || "[pi->local_own_id]"
+	else
+	    code_man$declare(co, "static bool " || flag || " = FALSE;")
+	    val := flag
+	end
+	return(val)
+    end decl_flag
+
+
+end routine_own
+
+
+% Returns an assignment statement derived from `di'.  The line number
+% of the resulting statement is set to `line'.
+
+g_make_assign = proc(di: declinit, line: int) returns(stmt)
+    idns: idnrow := idnrow$new()
+    for d: decl in decllist$elements(di.decls) do
+	for i: idn in idnlist$elements(d.idns) do
+	    idnrow$addh(idns, i)
+	end
+    end
+    return(
+	stmt$create(
+	    stmtabs$make_assn(
+		assn${
+		    left:  idnlist$a2s(idns),
+		    anys:  di.anys,
+		    right: exprlist$[di.expr]
+		}
+	    ),
+	    line
+	)
+    )
+end g_make_assign

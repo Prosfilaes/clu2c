@@ -1,0 +1,22 @@
+$Id: README,v 2.0 1996/06/10 09:04:20 ushijima Exp $
+
+
+Description
+***********
+
+This directory contains source code for executable commands.
+
+
+Subdirectories
+**************
+
+`clu2c'
+	contains source code for the CLU compiler.
+
+`clulink'
+	contains source code for the front end for the C compiler and
+	the pre-linker.
+
+`plink'
+	contains source code for the pre-linker for parameterized
+	modules.

@@ -1,0 +1,73 @@
+
+
+######################################################################
+#
+# Makefile.dos.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = mk
+
+# Top-level build directory
+topdir = ..
+
+
+#### Source files ####
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README archive.m4 c2o.m4 clusrc.m4 csrc.m4 dos.m4 exe.m4 hdrsrc.m4 mk.m4 spcsrc.m4 template.m4 unix.m4 wclusrc.m4 x68.m4
+
+# All the source files
+ALL_SRC = $(MISC_SRC)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all:
+
+# Copies all the products
+install:
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+
+# Makes clean
+clean:
+
+# Makes clean as disributed
+distclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\remove Makefile Makefile.top
+
+# Makes really clean
+realclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\remove Makefile Makefile.top
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+
+# Does some check
+check:
+
+
+#### Rules specific to this directory ####
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	copy Makefile.top+$(config_mk)+$(srcdir)\Makefile.dos Makefile
+
+# Forces a particular target to be made
+always:

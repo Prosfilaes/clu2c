@@ -1,0 +1,49 @@
+dnl $Id: Makefile.in,v 2.10 1997/02/05 08:53:56 ushijima Exp $
+include(`mk.m4')
+MK_CURRENT_DIRECTORY(`lib')
+MK_SUBDIRECTORIES(`gc jaio external built-in stdio clu2c')
+MK_DEFINE_VARIABLE(`ARCHIVE', `libclu2c.a')
+MK_MISC_SOURCES(`Index basic.spc makelib sysnames')
+MK_NON_SOURCES(`dirent.lib external.lib file.lib filename.lib int.lib math.lib progenv.lib pstream.lib runtime.lib uint.lib')
+MK_APPEND_PREREQ(`install', `installdirs')
+MK_APPEND_ACTION(`install',
+	`MK_INSTALL_DATA(`$(ARCHIVE)', `$(clu2c_libdir)')
+	-$(RANLIB) $(clu2c_libdir)/$(ARCHIVE)
+	MK_INSTALL_SOURCE_DATA(`Index', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`basic.spc', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`sysnames', `$(clu2c_libdir)')
+	MK_INSTALL_DATA(`libclu2c.c', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`dirent.lib', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`external.lib', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`file.lib', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`filename.lib', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`int.lib', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`math.lib', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`progenv.lib', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`pstream.lib', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`runtime.lib', `$(clu2c_libdir)')
+	MK_INSTALL_SOURCE_DATA(`uint.lib', `$(clu2c_libdir)')')
+MK_MOSTLYCLEAN_FILES(`$(ARCHIVE)')
+MK_CLEAN_FILES(`libclu2c.c')
+MK_APPEND_ACTION(`all',
+	`MK_CAT_FILES(`libclu2c.c',
+		`MK_PATH_NAME(`$(srcdir)', `clu2c', `op-table.c')',
+		`MK_PATH_NAME(`$(srcdir)', `stdio', `op-table.c')')')
+MK_DEFINE_RULE(`cfiles', `cfiles', `', `MK_MAKE_IN_SUBDIRS(`cfiles', `stdio clu2c')')
+MK_DEFINE_RULE(`cfiles_clean', `cfiles-clean', `', `MK_MAKE_IN_SUBDIRS(`cfiles-clean', `stdio clu2c')')
+MK_DEFINE_RULE(`installdirs', `installdirs', `',
+	`MK_INSTALL_DIRECTORY(`$(clu2c_rootdir)')
+	MK_INSTALL_DIRECTORY(`$(clu2c_libdir)')')
+MK_DEFINE_RULE(`lib', `lib', `',
+	`$(CLU2C) < makelib')
+MK_CREATED_FILES
+MK_VARIABLE_DEFINITION(`ARCHIVE', `Archive file')
+MK_END
+MK_SPECIFIC_RULES
+MK_RULE_DEFINITION(`cfiles', `Creates all C files.')
+MK_RULE_DEFINITION(`installdirs', `Prepares installtion directories')
+MK_END
+MK_MAINTENANCE_RULES
+MK_RULE_DEFINITION(`cfiles_clean', `Deletes all files created by making cfiles')
+MK_RULE_DEFINITION(`lib', `Creates interface specification library files')
+MK_END

@@ -1,0 +1,18 @@
+% username.clu - implementation of user_name
+%
+% This file was derived from PCLU distribution (as of 11/18/93), and
+% has been modified by Department of Mathematical and Computing
+% Sciences, Tokyo Institute of Technology.
+%
+% Conditions for using, copying, modifying, and distributing this
+% file are the same as those of PCLU.
+%
+% $Id: username.clu,v 2.0 1996/06/10 09:01:42 ushijima Exp $
+
+
+% Copyright Massachusetts Institute of Technology 1981, 1989
+
+user_name = proc () returns (string)
+	return(_external_getenv("USER"))
+	   except when not_found: return("") end
+	end user_name

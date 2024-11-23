@@ -1,0 +1,25 @@
+% g_form.clu - implementation of g_form
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: g_form.clu,v 2.0 1996/06/10 09:01:38 ushijima Exp $
+
+
+g_form = proc (x: real, int_width, frac_width: int)
+	 returns (string)
+	 signals (illegal_field_width, insufficient_field_width)
+    own exp_width: int := real$_exp_width ()
+    if x = 0.0 then
+	return (f_form (x, int_width, frac_width))
+    else
+	exponent: int := real$exponent (x)
+	if -1 <= exponent cand exponent < int_width then
+	    return (f_form (x, int_width, frac_width))
+	else
+	    return (e_form (x, 1, int_width + frac_width - exp_width - 3))
+	end
+    end
+	resignal illegal_field_width, insufficient_field_width
+end g_form

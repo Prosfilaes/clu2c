@@ -1,0 +1,12 @@
+% system.clu - invoke system command processor
+%
+% Copyright (c) 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: system.clu,v 1.2 1997/02/05 09:55:57 ushijima Exp $
+
+
+system = proc(command: string) returns(int)
+    return(_external_system(command))
+end system

@@ -1,0 +1,223 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Wed Feb  5 08:56:45 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Removed `lib/compat*'.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sun Jun  9 12:32:19 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* defs.98, defs.dos, defs.x68 (infodir): Changed to
+        `$(clu2c_rootdir)\info'.
+
+Sat Jun  8 09:17:18 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* insubdir.bat: Do not use environment string.
+
+	* mkmkmfbat: Make `mkmf.bat' unset `systype' after creating all
+        makefiles.
+
+	* configmk.in (VERSION, ABRIDGED_VERSION): New variables.
+	* defs.98, defs.dos, defs.x68 (distname): Defined using `VERSION'.
+	(dos_distname): Defined using `ABRIDGED_VERSION'.
+
+Thu Jun  6 14:23:07 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* makedist: New file.
+	* Makefile.in: Changed accordingly.
+
+Sat May 25 13:02:41 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Added `doc'.
+
+Sun May 12 06:48:01 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* dosfile, fakeclush.in, insubdir.bat, m4all, mkconfh, mkconfmk,
+        mkmf.sh, mkmf1.bat, mkmkmfbat, remove.bat: Doc fix.
+
+Mon Apr 29 06:23:14 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* defs.dos (COMMANDFLAGS): Added `/e:4096'.  I'm not certain
+	whether this flag is appropriate for all systems, but this flag
+	does work for us.
+
+	* Makefile.in: Define `CONFIG'.  Changed the list of non-source
+        files accordingly.
+	(config-files): New target.
+
+Sun Apr 28 05:09:26 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* defs.98, defs.dos, defs.x68 (CLU2CFLAGS): Changed to
+        `--optimize'.
+
+Sat Apr 27 11:14:52 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Removed `lib/math' and `lib/runtime'.
+
+Tue Apr 23 14:16:20 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Added `lib/clu2c'.
+
+Sun Feb 11 12:12:52 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* defs.98, defs.dos, defs.x68: Define HAVE_FLOAT_H.
+
+Sun Jan 21 12:36:16 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* defs.98, defs.dos, defs.x68 (DISABLE_DYNAMIC_LOADING): New
+        entry.
+
+	* mkconfmk: Take a value of an empty string if a variable is
+        defined but not given a value.
+
+	* mkconfh, mkconfmk: Print warning message if a variable is not
+        defined in the specified definition file.
+	* defs.98, defs.dos, defs.x68: Changed accordingly.
+
+Mon Jan 15 03:22:10 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Changed according to the changes to the Japanese I/O
+        library.
+
+Mon Nov 20 13:43:27 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* defs.98: Define DJGPP_EMU387_BROKEN.
+
+Fri Nov  3 12:38:05 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Renamed `lib/gc-4.4' as `lib/gc'.
+
+	* configmk.in (GC_VERSION): Removed.
+	* defs.98, defs.dos, defs.x68: Changed accordingly.
+
+Sun Oct 29 12:28:26 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configmk.in (AS): New variable.
+
+Tue Sep 26 12:50:40 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* dosfile: Rewritten in perl.
+
+Sun Sep 24 09:11:49 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Removed spc*.
+
+Sun May 21 06:12:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* configmk.in: Renamed from config.min.
+	* Makefile.in, mkconfmk: Changed accordingly.
+
+	* fakeclush.in: Renamed from fakeclu.sin.
+	* Makefile.in: Changed accordingly.
+
+	* mkconfh: Changed input file name.
+
+	* mkmkmfbat: Define system type as `dos' unless otherwise specified.
+
+Sat May 20 14:17:37 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added rules for creating configuration files.
+
+	* mkconfh, mkconfmk, mkmkmfbat, README, defs.98, defs.dos,
+	defs.x68, dosfile, m4all, mkmf1.bat, remove.bat: New files.
+
+	* Makefile.in: Make use of MK_MISC_SOURCES and MK_NON_SOURCES.
+
+Wed May 17 07:58:59 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Added spc directories.
+
+Sat May 13 09:51:54 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (config): New target.
+
+	* config.min (COFF2EXE): Renamed from AOUT2EXE.
+
+Tue May  9 06:45:12 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* config.min (COMMAND, COMMANDFLAGS): New variables.
+
+	* config.min: All the variables shall be substituted by configure.
+
+Sat May  6 12:19:45 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of miscellaneous
+        source files.
+
+	* Makefile.in: Changed configuration file names.
+
+Wed May  3 05:31:18 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* fakeclu.sin: Changed message format.
+
+Sun Apr 30 12:19:14 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added conf-dos.h and conf-dos.mk to the list of
+        miscellaneous source files.
+
+Thu Apr 20 08:50:10 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Added lib/math.
+
+Wed Apr 19 13:23:54 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Removed lib/clu2c.
+
+Wed Apr 12 10:15:42 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* config.min (version, clu2c_rootdir, clu2c_bindir, clu2c_libdir,
+	clu2c_includedir): New variables.
+
+	* ALLDIRS: Removed lib/cmp and lib/mit.
+
+	* ALLDIRS: Added lib/compat, lib/compat/libasm, lib/compat/libclu,
+	lib/compat/sysasm, and lib/compat/sysclu.
+
+Tue Apr 11 12:38:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Added lib/runtime.
+
+Sun Apr  2 10:18:42 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: Added lib/built-in, lib/external, and lib/stdio.
+	Renamed lib/jio as lib/jpio.
+
+Fri Mar 31 07:55:01 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ALLDIRS: New file.
+
+	* Makefile.in: Added ALLDIRS to MISC_SRC.
+
+	* mkmf.sh: Get a list of directories from the ALLDIRS file.
+
+	* Makefile.in: New file.
+
+Thu Mar 30 11:16:36 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* install-sh: New file.
+
+Wed Mar 29 13:49:11 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mkheader.bat, mkheader.sh: Removed.
+
+	* mkmf.sh: New file.
+
+	* config.min (POUT): Removed.  This variable should be defined in
+	make file in each directory.
+
+Tue Mar 28 09:11:17 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* config.min (POUT): Changed to default.
+	(plink_method): Removed.
+	(PLINK_METHOD): New variable.
+	(GC_VERSION): Catched up to the current version.
+
+Wed Mar 22 05:30:12 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* config.min, fakeclu.sin, insubdir.bat, mkheader.bat,
+        mkheader.sh: New files.

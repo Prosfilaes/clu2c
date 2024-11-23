@@ -1,0 +1,737 @@
+% menv.clu - environment for make facility
+%
+% Copyright (c) 1992, 1996, 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: menv.clu,v 2.16 1997/02/05 09:55:37 ushijima Exp $
+
+
+% m_env - make environment.
+
+m_env = cluster is
+	create,			% stuff -> m_env
+	set_location,		% m_env, fname, as ->
+	set_dependency,		% m_env, str, as ->
+	get_merge_args,		% m_env -> as
+	get_ce_args,		% m_env -> as
+	get_specs_args,		% m_env -> as
+	get_compile_args,	% m_env -> as
+	get_check_args,		% m_env -> as
+	dump,			% m_env -> => not_possible(str)
+	restore			% stuff -> m_env
+				%	=> up_to_date, not_possible(str)
+
+    SPECLIB_FNAME    = "SPC.lib"
+    SPCLIST_FNAME    = "SPC." || XLOAD_SUFFIX
+    EQULIST_FNAME    = "EQU." || XLOAD_SUFFIX
+    CLULIST_FNAME    = "CLU." || XLOAD_SUFFIX
+    LIBLIST_FNAME    = "LIB." || XLOAD_SUFFIX
+
+    rep = record[
+	location:     xref,	% file --> component modules
+	dependency:   xref,	% user module --> provider modules
+	from_scratch: bool,	% whether or not all files shall be compiled
+	merge_arg:    str,	% argument of MERGE command
+	ce_arg:       str,	% argument of CE command
+	specs_arg:    str,	% argument of SPECS command
+	compile_args: strset,	% argument of COMPILE command
+	outst:        stream,	% output stream for message
+	date:	      date	% timestamp of this environment
+    ]
+
+    % Used as a constant.
+    own oldest_date: date := date$create(1, 1, 1, 0, 0, 0)
+  
+
+    % Returns a new make environment.
+
+    create = proc(e: stuff) returns(cvt) signals(none)
+	env_date: date := get_env_date()
+	outst: stream := e.outst
+	equfile: str, equ_newest: date := check_files("equ", outst)
+	spcfile: str, spc_newest: date := check_files("spc", outst)
+	libfile: str, lib_newest: date := check_files("lib", outst)
+	clufile: str, clu_newest: date := check_files("clu", outst)
+	targets: strset := check_targets(env_date, clufile)
+	if strset$empty(targets) then
+	    signal none
+	end
+	em: rep := rep${
+	    location:     xref$create(),
+	    dependency:   xref$create(),
+	    from_scratch: true,
+	    merge_arg:    libfile,
+	    ce_arg:       equfile,
+	    specs_arg:    spcfile,
+	    compile_args: targets,
+	    outst:        outst,
+	    date:         env_date
+	}
+	m_env$set_location(up(em), basic_name(), e.basic_mods)
+	stream$putl(outst, "Making from scratch...")
+	return(em)
+    end create
+
+
+    % Modifies E.  Records a file named FN as contains
+    % MODULES. Previous content about the file is discarded.
+
+    set_location = proc(e: cvt, fn: fname, modules: as)
+
+	% update location
+
+	location: xref := e.location
+	file: str := fname$unparse(fn)
+	old: strset
+	old := strset$as2ss(get_refs(location, file))
+	    except when unknown_key:
+		old := strset$create()
+	    end
+	set_refs(location, file, modules)
+
+	% update dependency
+
+	dependency: xref := e.dependency
+	for mod: str in strset$elements(old - strset$as2ss(modules)) do
+	    xref$rem_refs(dependency, mod)
+	end
+
+    end set_location
+
+
+    % Modifies E.  Records the fact that module MOD refers to modules
+    % in PROVIDERS.  Previous content about module MOD is discarded.
+
+    set_dependency = proc(e: cvt, mod: str, providers: as)
+	set_refs(e.dependency, mod, providers)
+    end set_dependency
+
+    
+    % Returns an array of names of files from which interface
+    % specifications are to be merged if such file exist. possibly
+    % using "@" or "*" notation; otherwise returns an empty array.
+
+    get_merge_args = proc(e: cvt) returns(as)
+	args: as := as$new()
+	if e.from_scratch then
+	    arg: str := e.merge_arg
+	    if ~str$empty(arg) then
+		as$addh(args, arg)
+	    end
+	end
+	return(args)
+    end get_merge_args
+
+
+    % Returns an array of the names of equate files to be added to CE
+    % if such files exist, possibly using "@" or "*" notation;
+    % otherwise returns an empty array.
+
+    get_ce_args = proc(e: cvt) returns(as)
+	arg: str := e.ce_arg
+	if str$empty(arg) then
+	    return(as$new())
+	else
+	    return(as$[arg])
+	end
+    end get_ce_args
+
+    
+    % Returns an array of names of files from which DU specs are to be
+    % created.  The result always contains the names of the "target"
+    % files (i.e., CLU files to be compiled).
+
+    get_specs_args = proc(e: cvt) returns(as)
+	args: as := as$new()
+	if e.from_scratch then
+	    arg: str := e.specs_arg
+	    if ~str$empty(arg) then
+		as$addh(args, arg)
+	    end
+	end
+	for arg: str in as$elements(up(e).compile_args) do
+	    as$addh(args, arg)
+	end
+	return(args)
+    end get_specs_args
+
+
+    % Returns an array of names of the "target" files (i.e., CLU files
+    % to be compiled).
+
+    get_compile_args = proc(e: cvt) returns(as)
+	args: as
+	if e.from_scratch then
+	    file: str, junk: date := check_files("clu", e.outst)
+	    args := as$[file]
+	else
+	    args := as$new()
+	    for arg: str in strset$elements(e.compile_args) do
+		as$addh(args, arg)
+	    end
+	end
+	return(args)
+    end get_compile_args
+
+
+    % Returns an array of names of files which are not compiled but
+    % need type check due to their providers' DU specs changed.
+
+    get_check_args = proc(e: cvt) returns(as)
+	
+	if e.from_scratch then
+	    return(as$new())
+	end
+
+	% Updates dependency/location tables.
+	for file: str in strset$elements(e.compile_args) do
+	    fn: fname := fname$parse(file)
+	    merge_deploc(e, fn)
+		except when not_possible(*): end
+	end
+
+	% From the compiled modules, collects modules whose DU specs
+	% has been changed into CHANGES.
+	changes: strset := strset$create()
+	for file: str in strset$elements(e.compile_args) do
+	    for module: str in components(e, file) do
+		d: DU := XLIB$lookup(module)
+		if d.cdate > e.date then
+		    strset$append(changes, module)
+		end
+	    end
+	end
+
+	% Gets REV_LOC and REV_DEP to be "reversed" xrefs of location
+	% and dependency, respectively.
+	rev_loc: xref := xref$create()
+	for file, module: str in xref$elements(e.location) do
+	    xref$add_ref(rev_loc, module, file)
+	end
+	rev_dep: xref := xref$create()
+	for user, provider: str in xref$elements(e.dependency) do
+	    xref$add_ref(rev_dep, provider, user)
+	end
+
+	% Gets ARGS to be names of files which have not been compiled
+	% during this make phase and refers to modules in CHANGES.
+	args: as := as$new() 
+	users: strset := strset$create()
+	for provider: str in strset$elements(changes) do
+	    for user: str in as$elements(get_refs(rev_dep, provider)) do
+		strset$append(users, user)
+	    end
+		except when unknown_key: end
+	end
+	cover: strset := strset$create()
+	for component: str in strset$elements(users) do
+	    strset$append(cover, get_refs(rev_loc, component)[1])
+		except when unknown_key: end
+	end
+	for file: str in strset$elements(cover) do
+	    if ~strset$is_in(e.compile_args, file) then
+		as$addh(args, file)
+	    end
+	end
+
+	return(args)
+    end get_check_args
+
+
+    % Dumps the make environment.
+
+    dump = proc(e: cvt) signals(not_possible(str))
+	location: xref := e.location
+	xref$rem_refs(location, fname$unparse(basic_name()))
+	begin
+	    jcl: str := "dump " || fname$unparse(speclib_name())
+	    outst: stream := e.outst
+	    process_commands(command_line$create(jcl), outst, from_internal_)
+		except when unsuccessful:
+		    signal not_possible("dump failed")
+		end
+	end
+	    resignal not_possible
+    end dump
+
+
+    % Restores the make environment.
+
+    restore = proc(e: stuff) returns(cvt)
+	      signals(up_to_date, not_possible(str))
+	env_date: date := get_env_date()
+	outst: stream := e.outst
+	equfile: str, equ_newest: date := check_files("equ", outst)
+	spcfile: str, spc_newest: date := check_files("spc", outst)
+	libfile: str, lib_newest: date := check_files("lib", outst)
+	clufile: str, clu_newest: date := check_files("clu", outst)
+	targets: strset := check_targets(env_date, clufile)
+	if strset$empty(targets)
+	    cand equ_newest < env_date
+	    cand spc_newest < env_date
+	then
+	    % all .c files are up to date
+	    signal up_to_date
+	end
+	em: rep := rep${
+	    location:     xref$create(),
+	    dependency:   xref$create(),
+	    from_scratch: equ_newest > env_date,
+	    merge_arg:    libfile,
+	    ce_arg:       equfile,
+	    specs_arg:    spcfile,
+	    compile_args: targets,
+	    outst:        outst,
+	    date:         env_date
+	}
+	m_env$set_location(up(em), basic_name(), e.basic_mods)
+	location, dependency: xref
+	begin
+	    dependency, location := restore_deploc(em, clufile)
+	    if file_exists(speclib_name()) then
+		jcl: str := "merge " || fname$unparse(speclib_name())
+		process_commands(command_line$create(jcl),
+				 outst, from_internal_)
+		except when unsuccessful:
+		    signal not_possible("merge failed")
+		end
+	    else
+		signal not_possible("no spec library")
+	    end
+	end
+	    resignal not_possible
+
+	if em.from_scratch then
+	    stream$putl(outst, "Making from scratch...")
+	end
+	return(em)
+    end restore
+
+
+    % internal routines
+
+
+    % Returns the "make-environment's date", that is, the date and
+    % time when the last "make" completed.
+
+    get_env_date = proc() returns(date)
+	return(file_date(speclib_name(), false))
+	    except when not_possible(*):
+		return(oldest_date)
+	    end
+    end get_env_date
+
+
+    % Checks files associated with SUFFIX, that is, files with suffix
+    % "clu" for SUFFIX = "clu", or files listed in xload file, for
+    % example, CLU.xload for SUFFIX = "clu".  This procedure returns
+    % string representing all files associated with SUFFIX and date of
+    % newest one.  Signals UNKNOWN_SUFFIX if SUFFIX is none of "clu",
+    % "equ", "spc".
+
+    check_files = proc(suffix: str, outst: stream) returns(str, date)
+		  signals(unknown_suffix)
+	own speclib: fname := fname$parse(SPECLIB_FNAME)
+	newest: date := oldest_date
+	file: str := ""
+	list: fname
+	if suffix = "equ" then
+	    list := fname$parse(EQULIST_FNAME)
+	elseif suffix = "spc" then
+	    list := fname$parse(SPCLIST_FNAME)
+	elseif suffix = "clu" then
+	    list := fname$parse(CLULIST_FNAME)
+	elseif suffix = "lib" then
+	    list := fname$parse(LIBLIST_FNAME)
+	else
+	    signal unknown_suffix
+	end
+	suffixes: qs := qs$[suffix]
+	if file_exists(list) then
+	    file := "@" || fname$unparse(list)
+	    newest := file_date(list, false)
+	else
+	    file := "*." || suffix
+	    exists: bool := false
+	    nullst: stream := stream$open(fname$parse(nul_dev()), "write")
+	    for fn: fname in input_file_names(file, suffixes, nullst) do
+		if fn = speclib then
+		    continue
+		end
+		exists := true
+		break
+	    end
+	    stream$close(nullst)
+		except when not_possible(*): end
+	    if ~exists then
+		return("", oldest_date)
+	    end
+	end
+	    except when not_possible(*): end
+	for fn: fname in input_file_names(file, suffixes, outst) do
+	    if fn = speclib then
+		continue
+	    end
+	    d: date := file_date(fn, false)
+		except when not_possible(*):
+		    d := oldest_date
+		end
+	    if d > newest then
+		newest := d
+	    end
+	end
+	return(file, newest)
+    end check_files
+
+
+    % Returns a set of "targets".  A target is a CLU file which is
+    % required to be compiled.
+
+    check_targets = proc(env_date: date, file: str) returns(strset)
+		    signals(not_possible(str))
+	targets: strset := strset$create()
+	trash: stream := stream$open(fname$parse(nul_dev()), "write")
+	for fn: fname in input_file_names(file, qs$["clu"], trash) do
+	    cfn: fname := fname$create("", fn.name, "c", "")
+	    cdate: date := file_date(cfn, false)
+		except when not_possible(*):
+		    cdate := oldest_date
+		end
+	    cludate: date := file_date(fn, false)
+		except when not_possible(*):
+		    % what should be done?
+		    cludate := oldest_date
+		end
+	    if cludate > cdate cor cludate > env_date then
+		strset$append(targets, fname$unparse(fn))
+	    end
+	end
+	    except
+	    when none:
+	    when not_possible(why: string):
+		signal not_possible(why)
+	    end
+	stream$close(trash)
+	    except when not_possible(*): end
+	return(targets)
+    end check_targets
+
+
+    % Yields names of all component modules in the file named FILE.
+    % If the name of file is not known by make-environment, then the
+    % UNKNOWN_FILE exception occurs.
+
+    components = iter(e: rep, file: str) yields(str) signals(unknown_file)
+	for component: str in as$elements(get_refs(e.location, file)) do
+	    yield(component)
+	end
+	    except when unknown_key:
+		signal unknown_file
+	    end
+    end components
+
+
+    % utility routines for xref
+
+
+    % Modifies tab.  Makes REFS be associated with KEY.  The
+    % references previously associated with KEY are discarded.
+
+    set_refs = proc(tab: xref, key: str, refs: as)
+	xref$rem_refs(tab, key)
+	xref$add_refs(tab, key, refs)
+    end set_refs
+
+
+    % Signals UNKNOWN_KEY if KEY is not a key in TAB; otherwise
+    % returns an array of all references associated with KEY in TAB.
+
+    get_refs = proc(tab: xref, key: str) returns(as) signals(unknown_key)
+	if ~xref$exists(tab, key) then
+	    signal unknown_key
+	end
+	refs: as := as$new()
+	for ref: str in xref$get_refs(tab, key) do
+	    as$addh(refs, ref)
+	end
+	return(refs)
+    end get_refs
+
+
+    %
+
+    restore_deploc = proc(e: rep, file: str) returns(xref, xref)
+		     signals(not_possible(string))
+	location: xref := xref$create()
+	dependency: xref := xref$create()
+	trash: stream := stream$open(fname$parse(nul_dev()), "write")
+	for fn: fname in input_file_names(file, qs$["clu"], trash) do
+	    merge_deploc(e, fn)
+	end
+	    resignal not_possible
+	return(dependency, location)
+    end restore_deploc
+
+
+    %
+
+    merge_deploc = proc(e: rep, fn: fname) signals(not_possible(string))
+	modules: as := as$new()
+	cfn: fname := fname$create("", fn.name, cmpvar$suffix(), fn.other)
+	if ~file_exists(cfn) then
+	    return
+	end
+	    except when not_possible(*):
+		return
+	    end
+	for module: str, dependents: as in dependencies(cfn) do
+	    xref$add_refs(e.dependency, module, dependents)
+	    as$addh(modules, module)
+	end
+	    resignal not_possible
+	set_location(up(e), fn, modules)
+    end merge_deploc
+
+
+    %
+
+    dependencies = iter(fn: fname) yields(str, as) signals(not_possible(str))
+	input: stream := open_stream_quiet(fn, "read")
+	    except when open_failed(why: str):
+		signal not_possible(why)
+	    end
+	while true do
+	    line: str := stream$getl(input)
+	    if str$indexs("/*", line) ~= 1 then
+		break
+	    end
+	    buffer: as := as$new()
+	    i: int := 3
+	    bound: int := str$indexs("*/", line)
+	    while i < bound do
+		while i < bound cand str$indexc(line[i], " \t") > 0 do
+		    i := i + 1
+		end
+		j: int := i
+		while j < bound cand line[j] ~= ',' do
+		    j := j + 1
+		end
+		size: int := j - i
+		while size > 0 & str$indexc(line[i + size - 1], " \t") > 0 do
+		    size := size - 1
+		end
+		as$addh(buffer, str$substr(line, i, size))
+		i := j + 1
+	    end
+	    if as$size(buffer) >= 2 cand as$reml(buffer) = "depend" then
+		module: str := as$reml(buffer)
+		buffer.low := 1
+		yield(module, buffer)
+	    end
+	end
+	    resignal not_possible
+	stream$close(input)
+	    except when not_possible(*): end
+    end dependencies
+
+
+    % Opens the file named FN, in the mode given by MODE.  This
+    % procedure does a similar thing to OPEN_STREAM (See top1.clu),
+    % except that it does not put any message on erronous conditions.
+
+    open_stream_quiet = proc(fn: fname, mode: str) returns(stream)
+			signals(open_failed(str))
+	if mode ~= "write" then
+	    fn := check_file_name(fn)
+	end
+	return(stream$open(fn, mode))
+	    except when not_possible(why: str):
+		cause: str 
+		if why = "bad access mode" then
+		    cause := why
+		else
+		    cause := fname$unparse(fn) || ": " || why
+		end
+		signal open_failed(cause)
+	    end
+    end open_stream_quiet
+
+
+    %
+
+    speclib_name = proc() returns(fname)
+	own fn: fname := fname$parse(SPECLIB_FNAME)
+	return(fn)
+    end speclib_name
+
+end m_env
+
+
+strset = cluster is
+	create, add, sub, mul, append, is_in, empty, elements, ss2as, as2ss,
+	equal, similar, copy
+
+
+    % ABSTRACTION FUNCTION
+    %   A(r) = { r[i] | low(r) <= i <= high(r) }
+
+    % REP INVARIANT
+    %   For all integers i, j such that low(r) <= i < j <= high(r)
+    %	    r[i] ~= r[j]
+
+    rep = as
+
+
+    % Returns a new, empty set.
+
+    create = proc() returns(cvt)
+	return(rep$new())
+    end create
+
+
+    % Returns a union of X and Y, i.e., For all E in the result, E is
+    % in at least one of X and Y.
+
+    add = proc(x, y: strset) returns(strset)
+	z: strset := strset$copy(x)
+	for e: str in strset$elements(y) do
+	    strset$append(z, e)
+	end
+	return(z)
+    end add
+
+
+    % Returns Z such that Z = { E | E is in X and is not in Y. }.
+
+    sub = proc(x, y: strset) returns(strset)
+	z: strset := create()
+	for e: str in strset$elements(x) do
+	    if ~strset$is_in(y, e) then
+		strset$append(z, e)
+	    end
+	end
+	return(z)
+    end sub
+
+
+    % Returns an intersection of X and Y.
+
+    mul = proc(x, y: strset) returns(strset)
+	z: strset := create()
+	for e: str in elements(x) do
+	    if strset$is_in(y, e) then
+		strset$append(z, e)
+	    end
+	end
+	return(z)
+    end mul
+
+
+    % Modifies X.  Appends ELT to X.
+
+    append = proc(x: cvt, elt: str)
+	if ~strset$is_in(up(x), elt) then
+	    rep$addh(x, elt)
+	end
+    end append
+
+
+    % Returs true if E is in X; otherwise returns false.
+
+    is_in = proc(x: cvt, e: str) returns(bool)
+	% Implementd by a naive method.
+	for s: str in rep$elements(x) do
+	    if s = e then
+		return(true)
+	    end
+	end
+	return(false)
+    end is_in
+
+
+    % Returns true if X is empty; otherwise returns false.
+
+    empty = proc(x: cvt) returns(bool)
+	return(rep$empty(x))
+    end empty
+
+
+    % Requires that X does not modified by the body of the FOR
+    % statement that invokes this iterator.  Yields each element in X,
+    % in the lexicographic order.
+
+    elements = iter(x: cvt) yields(str)
+	sort(x)
+	for s: str in rep$elements(x) do
+	    yield(s)
+	end
+    end elements
+
+
+    % Returns an array that contains exactly the same elements in the
+    % lexicographic order.
+
+    ss2as = proc(x: cvt) returns(as)
+	sort(x)
+	return(rep$copy(x))
+    end ss2as
+
+
+    % Returns a set that contains all elements of X.  X may have
+    % contain duplicate elements.
+
+    as2ss = proc(x: as) returns(strset)
+	y: strset := create()
+	for e: str in as$elements(x) do
+	    strset$append(y, e)
+	end
+	return(y)
+    end as2ss
+
+
+    % Returns true if X is the same object as Y; otherwise returns
+    % false.
+
+    equal = proc(x, y: cvt) returns(bool)
+	return(x = y)
+    end equal
+ 
+
+    % Returns true if and only if X and Y represents the same set,
+    % i.e., the result is equal to ( E is in X <=> E is in Y ).
+
+    similar = proc(x, y: cvt) returns(bool)
+	sort(x)
+	sort(y)
+	return(rep$similar(x, y))
+    end similar
+ 
+ 
+    copy = proc(x: cvt) returns(cvt)
+	return(rep$copy(x))
+    end copy
+
+    
+    %%%%%%%% internal routines %%%%%%%%
+
+
+    % Modifies LIST.  Sorts LIST in the ascending order.
+
+    sort = proc(list: as)
+	% Implemented by a naive method.
+	for i: int in as$indexes(list) do
+	    mindex: int := i
+	    for j: int in int$from_to(i + 1, as$high(list)) do
+		if list[j] < list[mindex] then
+		    mindex := j
+		end
+	    end
+	    tmp: str := list[i]
+	    list[i] := list[mindex]
+	    list[mindex] := tmp
+	end
+    end sort
+
+
+end strset

@@ -1,0 +1,29 @@
+% fn_simpl.clu - simplify file name
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: fn_simpl.clu,v 2.0 1996/06/10 09:02:12 ushijima Exp $
+
+
+file_name_simplify = proc(fn: fname) returns(fname)
+    fname = file_name
+    dir: string := fn.dir 
+    if ~_is_atomic_directory(dir) then
+	dir := fname$unparse(file_name_simplify(fname$parse(dir)))
+    end
+    entry: string := file_name_nondirectory(fn)
+    if entry = "." then
+	fn := fname$parse(dir)
+    elseif entry = ".." cand ~string$empty(dir) then
+	dirfn: fname := fname$parse(dir)
+	parent: string := file_name_nondirectory(dirfn)
+	if _is_atomic_directory(dir) cor parent ~= ".." then
+	    fn := fname$parse(dirfn.dir)
+	end
+    elseif dir ~= fn.dir then
+	fn := fname$create(dir, fn.name, fn.suffix, fn.other)
+    end
+    return(fn)
+end file_name_simplify

@@ -1,0 +1,4 @@
+dnl $Id: Makefile.in,v 2.0 1996/06/10 09:06:21 ushijima Exp $
+include(`mk.m4')
+MK_CURRENT_DIRECTORY(`mk')
+MK_MISC_SOURCES(`archive.m4 c2o.m4 clusrc.m4 csrc.m4 dos.m4 exe.m4 hdrsrc.m4 mk.m4 spcsrc.m4 template.m4 unix.m4 wclusrc.m4 x68.m4')

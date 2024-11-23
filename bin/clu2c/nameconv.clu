@@ -1,0 +1,450 @@
+% nameconv.clu
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: nameconv.clu,v 2.0 1996/06/10 09:04:33 ushijima Exp $
+
+
+% This file contains various name conversion procedures.  All of them
+% takes some strings and optional integer and returns string.  No
+% composite date structure spcecific to "clu2c" or "plink" is used
+% because this file is intended to be `shared' by these two programs.
+
+
+AF_PREFIX = "AF"	% for C functions corresponding to applies
+OF_PREFIX = "OF"	% for C functions corresponding to operations
+OM_PREFIX = "OM"	% for C macros corresponding to operations
+PV_PREFIX = "PV"	% for C variables that point to entry functions
+LV_PREFIX = "LV"	% for C variables that corresponding to local variables
+TV_PREFIX = "TV"	% for C variables that have type ID's
+WV_PREFIX = "WV"	% for C variables corresponding to own variables
+IV_PREFIX = "IV"
+IF_PREFIX = "IF"
+
+DELIM = "_"		% general delimiter
+OPDELIM = "_D"		% provider-op delimiter
+
+
+% Returns the name of the C function corresponding to _apply_.
+
+conv_appfun = proc(apply: str) returns(str)
+    return(AF_PREFIX || conv_idn(apply))
+end conv_appfun
+
+
+% Returns the name of the _id_'th entry functin corresponding to the
+% _apply_ procedure/iterator.
+
+conv_appent = proc(apply: str, id: int) returns(str)
+    return(AF_PREFIX || int$unparse(id) || conv_idn(apply))
+end conv_appent
+
+
+% Returns the name of the C function corresponding to the _provider_$_op_
+% operation.
+
+conv_opfun = proc(provider, op: str) returns(str)
+    res: str
+    if provider = "record"
+       cor provider = "struct"
+       cor provider = "oneof"
+       cor provider = "variant"
+    then
+	% selector operation
+	res := OF_PREFIX || conv_idn(provider) || OPDELIM
+			 || conv_idn(discard_sel(op))
+    else
+	% cluster operation
+	if op = "#initown" then
+	    return(conv_initfun(provider))
+	end
+	if op[1] = '%' then
+	    op := str$rest(op, 2)
+	end
+	res := OF_PREFIX || conv_idn(provider) || OPDELIM || conv_idn(op)
+    end
+    return(res)
+end conv_opfun
+
+
+% Returns the name of the _id_'th entry function corresponding to the
+% _provider_$_op_ operation.
+
+conv_opent = proc(provider, op: str, id: int) returns(str)
+    if op = "#initown" then
+	return(IF_PREFIX || int$unparse(id) || discr_clu(provider))
+    end
+    if op[1] = '%' then
+	op := str$rest(op, 2)
+    end
+	except when bounds: end
+    return(OF_PREFIX || int$unparse(id) || conv_idn(provider) || OPDELIM
+		     || conv_idn(op))
+end conv_opent
+
+
+% Returns the name of the C macro corresponding to the _provider_$_op_
+% operation.
+
+conv_opmac = proc(provider, op: str) returns(str)
+    if provider = "null"
+       cor provider = "int"
+       cor provider = "bool"
+       cor provider = "int"
+       cor provider = "real"
+       cor provider = "char"
+       cor provider = "string"
+       cor provider = "array"
+       cor provider = "sequence"
+       cor provider = "proctype"
+       cor provider = "itertype"
+    then
+	% built-in cluster operation
+	return(OM_PREFIX || conv_idn(provider) || OPDELIM || conv_idn(op))
+    elseif provider = "record"
+	   cor provider = "struct"
+	   cor provider = "oneof"
+	   cor provider = "variant"
+    then
+	% built-in selector operation
+	return(OM_PREFIX || conv_idn(provider) || OPDELIM
+			 || conv_idn(discard_sel(op)))
+    else
+	% user-defined cluster operation
+	return(OM_PREFIX || provider || OPDELIM || op)
+    end
+end conv_opmac
+
+
+% Returns the operation name without selector part (e.g., "get" for
+% "get_foo") if a given name is the operation name of selector type
+% (e.g., record, oneof, etc.)  Otherwise simply returns its argument.
+
+discard_sel = proc(op: str) returns(str)
+    entlist = sequence[ent]
+    ent = struct[prefix: str, sz: int, res: str]
+    own ops: entlist := entlist$[
+	ent${prefix: "get_",     sz: 4, res: "get"},
+	ent${prefix: "set_",     sz: 4, res: "set"},
+	ent${prefix: "replace_", sz: 8, res: "replace"},
+	ent${prefix: "make_",    sz: 5, res: "make"},
+	ent${prefix: "is_",      sz: 3, res: "is"},
+	ent${prefix: "value_",   sz: 6, res: "value"},
+	ent${prefix: "change_",  sz: 7, res: "change"}
+    ]
+    for e: ent in entlist$elements(ops) do
+	if str$substr(op, 1, e.sz) = e.prefix then
+	    return(e.res)
+	end
+    end
+    return(op)
+end discard_sel
+
+
+% Returns the name of the C function that initializes cluster own
+% variables.
+
+conv_initfun = proc(owner: str) returns(str)
+    return(IF_PREFIX || discr_clu(owner))
+end conv_initfun
+
+
+% Returns the name of the C variable corresponding to the _var_ local
+% variable.
+
+conv_localvar = proc(var: str) returns(str)
+    return(LV_PREFIX || conv_idn(var))
+end conv_localvar
+
+
+% Returns the name of the C variable corresponding to the _var_ own
+% variable of the _owner_ procedure/iterator.  _Parmed_ (abbreviation
+% of `parameterized') specifies whether _owner_ is parameterized or
+% not.
+
+conv_ownvar_app = proc(var, owner: str, parmed: bool) returns(str)
+    if parmed then
+	return(WV_PREFIX || conv_idn(var) || discr_app(owner))
+    else
+	return(WV_PREFIX || conv_idn(var))
+    end
+end conv_ownvar_app
+
+
+% Returns the name of the C variable corresponding to the _var_ own
+% variable of the _provider$op_ operation.  _Parmed_ (abbreviation
+% of `parameterized') specifies whether _provider$op_ is parameterized
+% or not.
+
+conv_ownvar_op = proc(var, provider, op: str, parmed: bool) returns(str)
+    if parmed then
+	return(WV_PREFIX || conv_idn(var) || discr_op(provider, op))
+    else
+	return(WV_PREFIX || conv_idn(var))
+    end
+end conv_ownvar_op
+
+
+% Returns the name of the C variable corresponding to the _var_ own
+% variable of the _owner_ cluster.
+
+conv_ownvar_clu = proc(var, owner: str) returns(str)
+    return(WV_PREFIX || conv_idn(var) || discr_clu(owner))
+end conv_ownvar_clu
+
+
+% Returns the name of the C variable that indicates whether
+% own variables of the _owner_ procedure/iterator need to be
+% initialized.  _Parmed_ (abbreviation of `parameterized' specifies
+% whether _owner_ is parameterized or not.
+
+conv_initvar_app = proc(owner: str, parmed: bool) returns(str)
+    if parmed then
+	return(IV_PREFIX || discr_app(owner))
+    else
+	return(IV_PREFIX)
+    end
+end conv_initvar_app
+
+
+% Returns the name of the C variable that indicates whether own
+% variables of the _provider$op_ operation need to be initialized.
+% _Parmed_ (abbreviation of `parameterized') specifies whether
+% _provider$op_ is parameterized or not.
+
+conv_initvar_op = proc(provider, op: str, parmed: bool) returns(str)
+    if parmed then
+	return(IV_PREFIX || discr_op(provider, op))
+    else
+	return(IV_PREFIX)
+    end
+end conv_initvar_op
+
+
+% Returns the name of the C variable that indicates whether own
+% variables of the _owner_ cluster need to be initialized.
+
+conv_initvar_clu = proc(owner: str) returns(str)
+    return(IV_PREFIX || discr_clu(owner))
+end conv_initvar_clu
+
+
+% Returns the name of the C variable that points to the entry function
+% that corresponds to the instantiation of a parameterized routine.
+
+conv_entptr_app = proc(apply: str, id: int) returns(str)
+    return(conv_entptr(id, discr_app(apply)))
+end conv_entptr_app
+
+conv_entptr_op = proc(provider, op: str, id: int) returns(str)
+    return(conv_entptr(id, discr_op(provider, op)))
+end conv_entptr_op
+
+conv_entptr = proc(id: int, discr: str) returns(str)
+    return(PV_PREFIX || int$unparse(id) || discr)
+end conv_entptr
+
+
+% Returns the name of the C variable that has type ID's.
+
+conv_tidvar_app = proc(apply: str, id: int) returns(str)
+    return(conv_tidvar(id, discr_app(apply)))
+end conv_tidvar_app
+
+conv_tidvar_op = proc(provider, op: str, id: int) returns(str)
+    return(conv_tidvar(id, discr_op(provider, op)))
+end conv_tidvar_op
+
+conv_tidvar = proc(id: int, discr: str) returns(str)
+    return(TV_PREFIX || int$unparse(id) || discr)
+end conv_tidvar
+
+
+% Discriminators.
+
+discr_app = proc(apply: str) returns(str)
+    return("_IN" || conv_idn(apply))
+end discr_app
+
+discr_clu = proc(clu: str) returns(str)
+    return("_IN_C" || conv_idn(clu))
+end discr_clu
+
+discr_op = proc(provider, op: str) returns(str)
+    if op = "#initown" then
+	return("_IN_" || conv_initfun(provider))
+    end
+    if op[1] = '%' then
+	op := str$rest(op, 2)
+    end
+    return("_IN" || conv_idn(provider) || OPDELIM || conv_idn(op))
+end discr_op
+
+
+% Converts identifiers
+
+conv_idn_j10n = proc(id: str) returns(str)
+    ac = array[char]
+    ASCII = 0
+    KANJI = 1
+    own res: ac := ac$new()
+    
+    % If _i_ contains no `wide'-char and no underscore, nothing has to
+    % be done.
+    begin
+	for c: char in str$chars(id) do
+	    if c = '_' | char$c2i(c) > 127 then
+		% conversion is needed
+		exit convert
+	    end
+	end
+	return(id)
+    end
+	except when convert: end
+
+    ac$trim(res, 1, 0)
+    state: int := ASCII
+    for c: char in str$chars(id) do
+	if char$c2i(c) <= 127 then
+	    if state = KANJI then
+		ac$addh(res, '_')
+		ac$addh(res, 'A')
+		state := ASCII
+	    end
+	    if c = '_' then
+		ac$addh(res, c)
+	    end
+	    ac$addh(res, c)
+	else
+	    if state = ASCII then
+		ac$addh(res, '_')
+		ac$addh(res, 'X')
+		state := KANJI
+	    end
+	    for digit: char in hex_digits(char$c2i(c)) do
+		ac$addh(res, digit)
+	    end
+	end
+    end
+    return(str$ac2s(res))
+end conv_idn_j10n
+
+conv_idn_noj10n = proc(id: str) returns(str)
+    ac = array[char]
+    own res: ac := ac$new()
+
+    % Returns ID as it is If ID contains no underscore.
+    if str$indexc('_', id) = 0 then
+	return(id)
+    end 
+
+    % Doubles underscores.
+    ac$trim(res, 1, 0)
+    for c: char in str$chars(id) do
+	if c = '_' then
+	    ac$addh(res, c)
+	end
+	ac$addh(res, c)
+    end
+ 
+    return(str$ac2s(res))
+end conv_idn_noj10n
+
+
+hex_digits = iter(i: int) yields(char) signals(negative_argument)
+    own digit_chars: str := "0123456789abcdef"
+    if i < 0 then
+	signal negative_argument
+    end
+    for weight: int in int$from_to_by(3, 0, -1) do
+	base: int := 16 ** weight
+	digit: int := i / base
+	i := i - digit * base
+	yield(digit_chars[digit + 1])
+    end
+end hex_digits
+ 
+A_PREFIX = 'A' % prefix of apply
+F_PREFIX = 'F' % prefix of function
+M_PREFIX = 'M' % prefix of macro
+I_PREFIX = 'I' % prefix of init
+O_PREFIX = 'O' % prefix of operation
+DELIM_1  = '_' 
+DELIM_2  = 'D'
+
+% decode_var() :
+%
+% Converts C variable name into CLU variable name (incomplete)
+
+decode_var = proc(var:str) returns(str) signals(bad_format)
+    return(str$rest(decode_idn(var),3))
+end decode_var
+
+decode_idn = proc(id:str) returns(str)
+    ac = array[char]
+    ASCII = 0
+    KANJI = 1
+    underscore_flag:bool := false
+    byte_state:int:=1
+    state:int := ASCII
+    code:int  := 0
+
+    ret:ac:=ac$new()
+    begin
+       for c:char in str$chars(id) do
+          if c = '_' & underscore_flag then
+             ac$addh(ret, c)
+             underscore_flag := false
+          elseif c = '_' & ~underscore_flag then
+             underscore_flag := true
+          elseif c = 'A' & underscore_flag then
+             state := ASCII
+	  elseif c = 'X' & underscore_flag then
+             state := KANJI
+          elseif state = ASCII then
+	     ac$addh(ret, c)
+          elseif state = KANJI & byte_state = 1 then
+             code := hex2int(c)
+             byte_state := 2
+          elseif state = KANJI & byte_state = 2 then
+	     code := code * 16 + hex2int(c)
+             byte_state := 3
+          elseif state = KANJI & byte_state = 3 then
+	     code := code * 16 + hex2int(c)
+             byte_state := 4
+          elseif state = KANJI & byte_state = 4 then
+	     code := code * 16 + hex2int(c)
+             byte_state := 1
+             ac$addh(ret, char$i2c(code))
+          end
+       end
+    end
+    return(str$ac2s(ret))
+end decode_idn
+
+
+% Converts hexadecimal digit into decimal digit.
+
+hex2int = proc(id:char) returns(int) signals(not_possible)
+   if     id = '0' then return(0)
+   elseif id = '1' then return(1) 
+   elseif id = '2' then return(2)
+   elseif id = '3' then return(3)
+   elseif id = '4' then return(4)
+   elseif id = '5' then return(5)
+   elseif id = '6' then return(6)
+   elseif id = '7' then return(7)
+   elseif id = '8' then return(8)
+   elseif id = '9' then return(9)
+   elseif id = 'a' then return(10)
+   elseif id = 'b' then return(11)
+   elseif id = 'c' then return(12)
+   elseif id = 'd' then return(13)
+   elseif id = 'e' then return(14)
+   elseif id = 'f' then return(15)
+   else 
+	signal not_possible
+   end
+end hex2int

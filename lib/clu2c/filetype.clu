@@ -1,0 +1,91 @@
+% filetype.clu - file type query routines
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: filetype.clu,v 2.0 1996/06/10 09:02:05 ushijima Exp $
+
+
+% Returns true if a file named FN exists and it is a block device;
+% otherwise returns false.
+
+file_is_block_device = proc(fn: file_name) returns(bool)
+    stat = _external_stat
+    struct_stat = _external_struct_stat
+    s: struct_stat := stat(file_name_to_string(fn))
+	except when not_possible(*):
+	    return(false)
+	end
+    return(struct_stat$is_block_device(s))
+end file_is_block_device
+
+
+% Returns true if a file named FN exists and it is a character device;
+% otherwise returns false.
+
+file_is_character_device = proc(fn: file_name) returns(bool)
+    stat = _external_stat
+    struct_stat = _external_struct_stat
+    s: struct_stat := stat(file_name_to_string(fn))
+	except when not_possible(*):
+	    return(false)
+	end
+    return(struct_stat$is_character_device(s))
+end file_is_character_device
+
+
+% Returns true if a file named FN exists and it is a directory;
+% otherwise returns false.
+
+file_is_directory = proc(fn: file_name) returns(bool)
+    stat = _external_stat
+    struct_stat = _external_struct_stat
+    s: struct_stat := stat(file_name_to_string(fn))
+	except when not_possible(*):
+	    return(false)
+	end
+    return(struct_stat$is_directory(s))
+end file_is_directory
+
+
+% Returns true if a file named FN exists and it is a fifo (i.e., named
+% pipe); otherwise returns false.
+
+file_is_fifo = proc(fn: file_name) returns(bool)
+    stat = _external_stat
+    struct_stat = _external_struct_stat
+    s: struct_stat := stat(file_name_to_string(fn))
+	except when not_possible(*):
+	    return(false)
+	end
+    return(struct_stat$is_fifo(s))
+end file_is_fifo
+
+
+% Returns true if a file named FN exists and it is a regular file;
+% otherwise returns false.
+
+file_is_regular = proc(fn: file_name) returns(bool)
+    stat = _external_stat
+    struct_stat = _external_struct_stat
+    s: struct_stat := stat(file_name_to_string(fn))
+	except when not_possible(*):
+	    return(false)
+	end
+    return(struct_stat$is_regular(s))
+end file_is_regular
+
+
+% Returns true if a file named FN exists and it is a symbolic link;
+% otherwise returns false.
+
+file_is_symbolic_link = proc(fn: file_name) returns(bool)
+    stat = _external_stat
+    struct_stat = _external_struct_stat
+    s: struct_stat := stat(file_name_to_string(fn))
+	except when not_possible(*):
+	    return(false)
+	end
+    return(struct_stat$is_symbolic_link(s))
+end file_is_symbolic_link

@@ -1,0 +1,712 @@
+% gparam.clu - support for parameterized modules
+%
+% Copyright (c) 1992, 1996, 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: gparam.clu,v 2.12 1997/02/05 09:55:34 ushijima Exp $
+
+
+param = cluster is
+	reset,
+	begin_cluster,
+	end_cluster,
+	new_apply,
+	entryp_apply,
+	entryp_op,
+	entryp_force,
+	entryp_selop,
+	vparm,
+	tid,
+	nth_idn
+
+    rep = record[
+	tgen_parms: parmentrow,	% formal parameters of type generator
+	agen_parms: parmentrow	% formal parameters of apply generator
+    ]
+    parmentrow = array[parment]
+    parment = oneof[tparm, vparm: str]
+
+    instantiation = oneof[
+	apply:  applyinst,
+	op:     opinst,
+	force_: typespec
+    ]
+    applyinst = record[
+	agenname:  str,
+	agenparms: exprlist,
+	type_:     str
+    ]
+    opinst = record[
+	tgenname:  str,
+	tgenparms: tgenparms_t,
+	agenname:  str,
+	agenparms: exprlist,
+	has_where: bool,
+	type_:     str
+    ]
+    tgenparms_t = oneof[
+	cluop:  exprlist,
+	selop:  fieldspeclist,
+	formal: idn
+    ]
+
+    own r: rep := rep${
+	tgen_parms, agen_parms: parmentrow$new()
+    }
+
+
+    % Resets the owned rep
+
+    reset = proc()
+	parmentrow$trim(r.tgen_parms, 1, 0)
+	parmentrow$trim(r.agen_parms, 1, 0)
+    end reset
+
+
+    % Begins a new cluster definition
+
+    begin_cluster = proc(id: idn, parms: decllist, co: code_man)
+		    signals(nonparameterized)
+	if decllist$empty(parms) then
+	    signal nonparameterized
+	end
+	tgen_parms: parmentrow := r.tgen_parms
+	parmentrow$trim(tgen_parms, 1, 0)
+	nparms: int := 0
+	for d: decl in decllist$elements(parms) do
+	    tagcase d.type_.abs
+	    tag type_:
+		for i: idn in idnlist$elements(d.idns) do
+		    parmentrow$addh(tgen_parms, parment$make_tparm(i.str))
+		    nparms := nparms + 1
+		end
+ 	    others:
+ 		for i: idn in idnlist$elements(d.idns) do
+ 		    parmentrow$addh(tgen_parms, parment$make_vparm(i.str))
+		    nparms := nparms + 1
+		end
+	    end
+	end
+	code_man$info(
+	    co,
+	    " param_mod_decl,cluster," || id.str || "," || int$unparse(nparms)
+	)
+    end begin_cluster
+
+    end_cluster = proc()
+	parmentrow$trim(r.tgen_parms, 1, 0)
+    end end_cluster
+
+
+    % Begins a new procedure/iterator/operation definition
+
+    new_apply = proc(e: g_env, def: applydefn) signals(nonparameterized)
+	parms: decllist := def.parms
+	if ~e.cluster_parmed cand decllist$empty(parms) then
+	    signal nonparameterized
+	end
+	agen_parms: parmentrow := r.agen_parms
+	parmentrow$trim(agen_parms, 1, 0)
+	for d: decl in decllist$elements(parms) do
+	    tagcase d.type_.abs
+	    tag type_:
+		for id: idn in idnlist$elements(d.idns) do
+		    parmentrow$addh(agen_parms, parment$make_tparm(id.str))
+		end
+ 	    others:
+ 		for id: idn in idnlist$elements(d.idns) do
+ 		    parmentrow$addh(agen_parms, parment$make_vparm(id.str))
+		end
+	    end
+	end
+	nargs: int := g_nr_idns(def.args)
+	if def.gen.unique = "itertype" then
+	    nargs := nargs + 2
+	end
+	co: code_man := e.co
+	if g_env$in_cluster(e) then
+	    % cluster operation
+	    opname: str := def.idn.str
+	    if opname[1] = '%' then
+		opname := str$rest(opname, 2)
+	    end
+	    code_man$info(
+		co,
+		" param_mod_decl,clus_op,"
+		|| int$unparse(nargs)
+		|| ","
+		|| e.cluster_name
+		|| ","
+		|| opname
+	    )
+	else
+	    % procedure/iterator (not an operation)
+	    code_man$info(
+		co,
+		" param_mod_decl,apply,"
+		|| int$unparse(nargs)
+		|| ","
+		|| def.idn.str
+	    )
+	end
+    end new_apply
+
+
+    % Returns a C expression that represents the pointer to the entry
+    % function corresponding to the instantiation of the parameterized
+    % routine "app" of type "t".  (Type "t" will be a proctype or an
+    % itertype.)  Signals "nonparameterized" if the routine has no
+    % parameter.
+
+    entryp_apply = proc(e: g_env, app: clutype, t: typespec)
+		   returns(str)
+		   signals(nonparameterized)
+	if exprlist$empty(app.parms) then
+	    signal nonparameterized
+	end
+	return(
+	    entryp_generic(
+		e,
+		instantiation$make_apply(
+		    applyinst${
+			agenname:  app.gen.unique,
+			agenparms: app.parms,
+			type_:     g_cluname_type(t)})))
+    end entryp_apply
+
+
+    % Returns a C expression that represents the pointer to the entry
+    % function corresponding to the instantiation of the parameterized
+    % cluster operation "cluop" of type "t".  (Type "t" will be a proctype
+    % or an itertype.)  Signals "nonparameterized" if the routine has no
+    % parameter.
+
+    entryp_op = proc(e: g_env, op: clusterop, t: typespec)
+		returns(str)
+		signals(nonparameterized)
+	agenname: str := op.name
+	if agenname[1] = '%' then
+	    agenname := str$rest(agenname, 2)
+	end
+	agenparms: exprlist := op.parms
+	tgenname: str
+	tgenparms: tgenparms_t
+	has_where: bool
+	tagcase op.type_.abs
+	tag cluster_(clut: clutype):
+	    parms: exprlist := clut.parms
+	    if exprlist$empty(parms) cand exprlist$empty(agenparms) then
+		signal nonparameterized
+	    end
+	    gen: DU := clut.gen
+	    tgenname := gen.unique
+	    tgenparms := tgenparms_t$make_cluop(parms)
+	    has_where := g_has_where(gen, agenname)
+	tag select(selt: seltype):
+	    parms: fieldspeclist := selt.parms
+	    if fieldspeclist$empty(parms) cand exprlist$empty(agenparms) then
+		signal nonparameterized
+	    end
+	    gen: DU := selt.gen
+	    tgenname := gen.unique
+	    tgenparms := tgenparms_t$make_selop(parms)
+	    has_where := g_has_where(gen, agenname)
+	tag idn(id: idn):
+	    tgenname := id.str
+	    tgenparms := tgenparms_t$make_formal(id)
+	    has_where := false	% precisely, "not necessarily be true"
+	others:
+	    % cannot happen
+	end
+	type_: str := g_cluname_type(t)
+	    except when unknown_type:
+		type_ := "proctype"
+	    end
+	return(
+	    entryp_generic(
+		e,
+		instantiation$make_op(
+		    opinst${
+			tgenname:  tgenname,
+			agenname:  agenname,
+			tgenparms: tgenparms,
+			agenparms: agenparms,
+			has_where: has_where,
+			type_:     type_})))
+	    resignal nonparameterized
+    end entryp_op
+
+
+    % Returns a C expression that represents the pointer to the entry
+    % function corresponding to the instantiation of the parameterized
+    % procedure force.
+
+    entryp_force = proc(e: g_env, t: typespec) returns(str)
+	return(entryp_generic(e, instantiation$make_force_(t)))
+    end entryp_force
+
+
+    % Generic version of entryp_*
+
+    entryp_generic = proc(e: g_env, inst: instantiation) returns(str)
+					       signals(nonparameterized)
+	kind, info1, info2: str 
+	has_formal: bool := false
+	builtin: bool := false
+	routine_type: str := ""
+	tagcase inst
+	tag apply(ainst: applyinst):
+	    kind := "apply"
+	    info1 := ainst.agenname || ","
+	    parms: ac := ac$new()
+	    has_formal := p_exprlist(e, ainst.agenparms, parms)
+	    info2 := str$ac2s(parms)
+	    routine_type := ainst.type_
+	tag op(oinst: opinst):
+	    tgenname: str := oinst.tgenname
+	    if builtin_tgen(tgenname) then
+		if ~oinst.has_where then
+		    signal nonparameterized
+		end
+		builtin := true
+		kind := g_cluname_op(tgenname, oinst.agenname)
+	    else
+		kind := "clop"
+	    end
+	    info1 := ""
+	    type_: str
+	    tgenparms1: str
+	    parms: ac := ac$new()
+	    tagcase oinst.tgenparms
+	    tag cluop(tgenparms: exprlist):
+		if exprlist$empty(tgenparms) then
+		    type_ := tgenname
+		else
+		    has_formal := p_exprlist(e, tgenparms, parms)
+		    tgenparms1 := str$ac2s(parms)
+		    type_ := oinst.tgenname || "[" || tgenparms1 || "]"
+		end
+	    tag selop(tgenparms: fieldspeclist):
+		if fieldspeclist$empty(tgenparms) then
+		    type_ := oinst.tgenname
+		else
+		    has_formal := p_fieldspeclist(e, tgenparms, parms)
+		    tgenparms1 := str$ac2s(parms)
+		    type_ := oinst.tgenname || "[" || tgenparms1 || "]"
+		end
+	    tag formal(id: idn):
+		has_formal := p_idn(oinst.tgenname, parms)
+		type_ := str$ac2s(parms)
+		routine_type := "proctype"
+	    end
+	    routine_type := oinst.type_
+	    op_parms: str
+	    if exprlist$empty(oinst.agenparms) then
+		op_parms := "no_param"
+	    else
+		ac$trim(parms, 1, 0)
+		has_formal := has_formal
+			      | p_exprlist(e, oinst.agenparms, parms)
+		op_parms := str$ac2s(parms)
+	    end
+	    if builtin then
+		info2 := tgenparms1
+	    else
+		info2 := type_ || "," || oinst.agenname || "," || op_parms
+	    end
+	tag force_(t: typespec):
+	    kind := "force"
+	    info1 := ""
+	    parms: ac := ac$new()
+	    has_formal := p_typespec(e, t, parms)
+	    info2 := str$ac2s(parms)
+	    routine_type := "proctype"
+	end
+	head: str
+	if builtin then
+	    head := " built-in param,"
+	else
+	    head := " param_mod_call,"
+	end
+	caller: str := e.rname
+	if has_formal then
+	    % Some acutual parameters consist of formal parameters.
+	    code_man$info(
+		e.co,
+		head || kind || ",formal," || info1 || caller || "," || info2
+	    )
+	    return(g_name_oplistref(lb$add("fp_ivk") - 1))
+	else
+	    % Actual paramters do not contain any formal parameter.
+	    % determine the name of the pointer to entry function
+	    entryp: str := g_name_entryp(e, lb$add("ap_ivk"))
+	    code_man$extern(e.co, g_name_type(routine_type), "", entryp, "")
+	    code_man$info(
+		e.co,
+		head || kind || "," || entryp || "," || info1 || caller || ","
+		|| info2
+	    )
+	    return(entryp)
+	end
+    end entryp_generic
+
+
+    % Returns the C expression that corresponds to the selector type
+    % operation whose opration name contains selector or tag (e.g.,
+    % record$get_a).
+
+    entryp_selop = proc(e: g_env, gen, op: str, fspecs: fieldspeclist)
+		   returns(str)
+	co: code_man := e.co
+	parms: ac := ac$new()
+	has_formal: bool := p_fieldspeclist(e, fspecs, parms)
+	entryp: str
+	res: str
+	if has_formal then
+	    entryp := "formal"
+	    res := g_name_oplistref(lb$add("fp_ivk") - 1)
+	else
+	    entryp := g_name_entryp(e, lb$add("ap_ivk"))
+	    code_man$extern(co, g_name_type("proctype"), "", entryp, "")
+	    res := entryp
+	end
+	code_man$info(
+	    co,
+	    " built-in param,"
+	    || g_cluname_op(gen, op)
+	    || ","
+	    || entryp
+	    || ","
+	    || e.rname
+	    || ","
+	    || str$ac2s(parms)
+	)
+	return(res)
+    end entryp_selop
+
+
+    % Returns C expression that represents non-type parameter "parm".
+    % Signals "not_found" if "parm" does not name a non-type parameter.
+
+    vparm = proc(parm: str) returns(str) signals(not_found)
+	index: int := 0
+	begin
+	    for ent: parment in parmentrow$elements(r.tgen_parms) do
+		tagcase ent
+		tag vparm(s: str):
+		    index := index + 1
+		    if s = parm then
+			exit found
+		    end
+		others:
+		end
+	    end
+	    for ent: parment in parmentrow$elements(r.agen_parms) do
+		tagcase ent
+		tag vparm(s: str):
+		    index := index + 1
+		    if s = parm then
+			exit found
+		    end
+		others:
+		end
+	    end
+	    signal not_found
+	end
+	    except when found: end
+	return("(pi->vparms[" || int$unparse(index -1) || "])")
+    end vparm
+
+
+    % Returns the C expression that represents type ID of "t".
+
+    tid = proc(e: g_env, t: typespec) returns(str)
+	parm: ac := ac$new()
+	has_formal: bool := p_typespec(e, t, parm)
+	res: str := g_name_tid_var(e, lb$add("tid"))
+	code_man$info(
+	    e.co,
+	    " tid,"
+	    || res
+	    || ","
+	    || e.rname
+	    || ","
+	    || str$ac2s(parm)
+	)
+	dbinfo$tid_info(e.db, res,t.id)
+	dbinfo$type_info(e.db, e,t)
+	if has_formal then
+	    code_man$extern(e.co, "int", "", res, "[]")
+	    res := res || "[pi->local_own_id]"
+	    %		    ^^^^^^^^^^^^^^^^ AD HOC
+	else
+	    code_man$extern(e.co, "int", "", res, "")
+	end
+	return(res)
+    end tid
+
+
+    % parameterlized invocation has seven form
+    %
+    % 1) proc[int]
+    % 2) t$op (t is formal type parameter of this module)
+    % 3) clus$add[int]
+    % 4) clus[int]$add (combination with 3) may exists)
+    % 5) record[name:string]$get_name
+    % 6) anyize[char]
+    % 7) force[char]
+
+    % following procedures create type string
+    % all procedure's first argument is its syntax tree
+    % second argument is type string prototype array[char]
+    % this array is passed through procdures and
+    % increasingly absorb type elements
+    % all procedures returns boolean value
+    % it indicate its syntax tree include formal parameter or not
+
+  p_exprlist = proc(e: g_env, t: exprlist, ar:ac) returns(bool)
+    has_formal: bool := false
+    first:bool := true
+    for x:expr in exprlist$elements(t) do
+      tagcase x.abs
+      tag type_(val:typespec):
+	  dbinfo$type_info(e.db, e,val)
+      others :
+      end
+      if first then first := false
+	else ac$addh(ar, ' ')
+      end
+      has_formal := p_expr(e, x, ar) cor has_formal
+    end
+    return(has_formal)
+  end p_exprlist
+
+  p_expr = proc(e: g_env, t:expr, ar:ac) returns(bool)
+
+    s:string
+    has_formal: bool := false
+    tagcase t.abs
+      tag null_(val:null):
+	s := null_expr()
+      tag bool_(val:bool):
+	s := bool_expr(val)
+      tag int_(val:int):
+	s := int_expr(val)
+      tag real_(val:real):
+	s := real_expr(val)
+      tag char_(val:char):
+	s := char_expr(e, val)
+      tag str(val:string):
+	s := string_expr1(e, val, false)
+      tag type_(val:typespec):
+	return(p_typespec(e, val, ar))
+      tag idn(i: idn):
+	tmp: ac := ac$new()
+	p_idn(i.str, tmp)
+	s := str$ac2s(tmp)
+	has_formal := true
+      others:
+	g_env$err(e, "param expr sort is unknown")
+	signal failure("unknown parameter type")
+    end
+    for cc: char in str$chars("vparm[") do
+      ac$addh(ar, cc)
+    end
+    for cc:char in str$chars(s) do
+      ac$addh(ar, cc)
+    end
+    ac$addh(ar, ']')
+    return(has_formal)
+  end p_expr
+
+  p_typespec = proc(e: g_env, t: typespec, ar: ac) returns(bool)
+
+    tagcase t.abs
+      tag cluster_(cy:clutype):
+	% normal type parameter
+	return(p_clutype(e, cy, ar))
+      tag select(sl:seltype):
+	% taged type parameter
+	return(p_seltype(e, sl, ar))
+      tag idn(val:idn):
+	% formal parameter
+	s:string := val.str
+	return(p_idn(s, ar))
+      tag any_:
+	for c: char in str$chars("any") do
+	  ac$addh(ar, c)
+	end
+	return(false)
+      tag apply(ap:applytype):
+	% proctype or itertype
+	for cc:char in str$chars(ap.gen.unique) do
+	  ac$addh(ar, cc)
+	end
+	return(false)	% ???
+      others:
+	g_env$err(e, "internal error: param$p_typespec")
+    end
+
+  end p_typespec
+
+    % parameter is formal parameter
+    % search both formal parameter tables
+    %   (cparamtab, aparamtab)
+    % and yields formal parameter number
+    % as string "#1"
+
+  p_idn = proc(t:string, ar:ac) returns(bool)
+
+    n: int := nth_idn(t)		% position in parameter list
+    for cc:char in str$chars("formal") do
+       ac$addh(ar, cc)
+    end
+    for cc:char in str$chars(int$unparse(n)) do
+      ac$addh(ar, cc)
+    end
+    ac$addh(ar, '_')		% end mark for formal parameter
+    return(true)
+
+  end p_idn
+
+
+    % Returns the index of the "parm" formal parameter .  Signals
+    % "not_found" if the "parm" does not name a formal paramter.
+
+    nth_idn = proc(parm: str) returns(int) signals(not_found)
+	index: int := 1
+	for ent: parment in parmentrow$elements(r.tgen_parms) do
+	    p: str
+	    tagcase ent
+	    tag tparm(s: str):
+		p := s
+	    tag vparm(s: str):
+		p := s
+	    end
+	    if p = parm then
+		return(index)
+	    end
+	    index := index + 1
+	end
+	for ent: parment in parmentrow$elements(r.agen_parms) do
+	    p: str
+	    tagcase ent
+	    tag tparm(s: str):
+		p := s
+	    tag vparm(s: str):
+		p := s
+	    end
+	    if p = parm then
+		return(index)
+	    end
+	    index := index + 1
+ 	end
+	signal not_found
+    end nth_idn
+
+  % normal type parameter like `int' or `array[char]'
+
+  p_clutype = proc(e: g_env, t:clutype, ar:ac) returns(bool)
+    has_formal: bool := false
+    for cc:char in str$chars(t.gen.unique) do
+      ac$addh(ar, cc)
+    end
+    if ~exprlist$empty(t.parms) then
+      ac$addh(ar, '[')
+      has_formal := p_exprlist(e, t.parms, ar)
+      ac$addh(ar, ']')
+    end
+    return(has_formal)
+  end p_clutype
+
+  % taged type generater
+  % like record, oneof
+
+  p_seltype = proc(e: g_env, t: seltype, ar: ac) returns(bool)
+    name:string := t.gen.unique
+    for cc:char in str$chars(name) do
+      ac$addh(ar, cc)
+    end
+    ac$addh(ar, '[')
+    has_formal: bool := p_fieldspeclist(e, t.parms, ar)
+    ac$addh(ar, ']')
+    return(has_formal)
+  end p_seltype
+
+  % tag fields
+
+  p_fieldspeclist = proc(e: g_env, t: fieldspeclist, ar: ac) returns(bool)
+
+    has_formal: bool := false
+    first:bool := true
+    for fs:fieldspec in fieldspeclist$elements(t) do
+      if first then
+	 first := false
+      else
+	 ac$addh(ar, ' ')
+      end
+      has_formal := p_fieldspec(e, fs, ar) cor has_formal
+    end
+    return(has_formal)
+
+  end p_fieldspeclist
+
+  p_fieldspec = proc(e: g_env, t:fieldspec, ar:ac) returns(bool)
+    for c: char in str$chars(t.sel) do
+	ac$addh(ar, c)
+    end
+    ac$addh(ar, ':')
+    return(p_typespec(e, t.type_, ar))
+  end p_fieldspec
+
+
+  % Returns a string representation of corresponding char or string
+  % literals.
+
+  get_char_lit = proc(c: char) returns(str)
+    return("\'" || get_char_lit1(c) || "\'")
+  end get_char_lit
+
+  get_char_lit1 = proc(c: char) returns(str)
+    i: int := char$c2i(c)
+    if 20 <= i cand i <= 126 then		% printable char
+      if c = '\'' then
+	return("\\\'")
+      elseif c = '\"' then
+	return("\\\"")
+      elseif c = '\\' then
+	return("\\\\")
+      else
+	return(str$c2s(c))
+      end
+    else					% unprintable char
+      code: str := "00" || int_oct_unparse(i)
+      return("\\" || str$rest(code, str$size(code) - 2))
+    end
+  end get_char_lit1
+ 
+  get_str_lit = proc(s: str) returns(str)
+    res: ac := ac$['\"']
+    for c: char in str$chars(s) do
+      for c1: char in str$chars(get_char_lit1(c)) do
+	ac$addh(res, c1)
+      end
+    end
+    ac$addh(res, '\"')
+    return(str$ac2s(res))
+  end get_str_lit
+
+
+    % Returns true iff the "gen" names a built-in type generator.
+
+    builtin_tgen = proc(gen: str) returns(bool)
+	builtin_tgens = "/array/sequence/record/struct/oneof/variant/"
+	i: int := str$indexs(gen, builtin_tgens)
+	return(i > 0
+	       cand builtin_tgens[i - 1] = '/'
+	       cand builtin_tgens[i + str$size(gen)] = '/')
+    end builtin_tgen
+    
+
+end param

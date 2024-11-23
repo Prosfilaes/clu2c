@@ -1,0 +1,245 @@
+% gexcept.clu
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: gexcept.clu,v 2.15 1996/05/12 06:42:42 ushijima Exp $
+
+
+% Generates code for except statement.
+
+g_except = proc(e: g_env, s: exceptstmt, scope_end: int)
+    g_except_handlers(e, s, g_attached_stmt(e, s.stmt, scope_end))
+end g_except
+
+
+% Generates code for statement to which handlers are attached and
+% returns the label at the handlers.
+
+g_attached_stmt = proc(e: g_env, s: stmt, scope_end: int) returns(str)
+    g_env$begin_except(e)
+    cur_handler: str := e.current_handler
+    g_stmt(e, s, scope_end)
+    g_env$end_except(e)
+    return(cur_handler)
+end g_attached_stmt
+
+
+% Generates code for exception handlers (zero or more `when' handlers
+% and an optional `others' handler).
+
+g_except_handlers = proc(e: g_env, s: exceptstmt, cur_handler: str)
+    co: code_man := e.co
+    code_man$put_if(co, "FALSE")
+    code_man$begin_block(co)
+    code_man$put_label(co, cur_handler)
+    arms: handlerlist := s.arms		% `when' handlers
+    for i: int in handlerlist$indexes(arms) do
+	g_handler(e, arms[i], i)
+    end
+    if handlerlist$empty(arms) then
+	tagcase s.others_
+	tag none:
+	    % simply go to the outer handler
+	    code_man$putl(co, "goto " || e.current_handler || ";")
+	tag arm(arm: othersarm):
+	    g_othersarm(e, arm)
+	end
+    else
+	g_mothersarm(e, s.others_)
+    end
+    code_man$end_block(co)
+end g_except_handlers
+
+
+% Generates code for `when' handler.
+
+g_handler = proc(e: g_env, arm: handler, index: int)
+    co: code_man := e.co
+
+    % generate code for checking exception name 
+    cond: str := g_except_check(e, arm.names)
+    if index = 1 then
+	code_man$put_if(co, cond)
+    else
+	code_man$put_else_if(co, cond)
+    end
+	
+    tagcase arm.vars
+    tag decls(decls: decllist):
+	code_man$begin_block(co)
+	lv$begin_scope()
+	% generate code for declarations of local variables and
+	% assignments to these locals.
+	last: int := stmtlist$top(arm.body.stmts).line
+	    except when bounds:
+		last := arm.line
+	    end
+	i: int := 1
+	for d: decl in decllist$elements(decls) do
+	    g_decl(e, d, arm.line, last)
+	    for id: idn in idnlist$elements(d.idns) do
+		code_man$put_assign(co, vname(e, id.str), g_name_xresult(i))
+		i := i + 1
+	    end
+	end
+	% put debugging information and no operation so that debugger
+	% can set break point here.
+	if cmpvar$debug() then
+	    dbinfo$line_info(e.db, arm.line)
+	    code_man$putl(co, "nop();")
+	end
+	% generate code for the handler body
+	g_body(e, arm.body)
+	lv$put_local_decls(e)
+	lv$end_scope()
+	code_man$end_block(co)
+    others:
+	% generate code for the handler body
+	if cmpvar$debug() then
+	    code_man$begin_block(co)
+	    dbinfo$line_info(e.db, arm.line)
+	    code_man$putl(co, "nop();")
+	    g_body(e, arm.body)	
+	    code_man$end_block(co)
+	else
+	    g_body(e, arm.body)
+	end
+    end
+end g_handler
+
+
+% Returs a C expression that checks if the current exception name is
+% one of the names listed in `names'.  `names' is assumed to be
+% nonempty.
+
+g_except_check = proc(e: g_env, names: namelist) returns(str)
+    own str_eq: str := conv_opmac("string", "equal")
+    cond: str := str_eq || "(signame, " || string_expr(e, names[1]) || ")"
+    for i: int in int$from_to(2, namelist$size(names)) do
+	cond := cond || " || " ||  str_eq || "(signame, "
+		|| string_expr(e, names[i]) || ")"
+    end
+    return(cond)
+end g_except_check
+
+
+% Generates code for an optional `others' handler.  If there is no
+% `others' handler, the code that jumps to the outer handler is
+% generated.
+
+g_mothersarm = proc(e: g_env, marm: mothersarm)
+    co: code_man := e.co
+    code_man$putl(co, "else")
+    tagcase marm
+    tag none:
+	% go to the outer handler
+	code_man$begin_block(co)
+	code_man$putl(co, "goto " || e.current_handler || ";")
+	code_man$end_block(co)
+    tag arm(arm: othersarm):
+	g_othersarm(e, arm)
+    end
+end g_mothersarm
+
+
+% Generates code for `others' handler.
+
+g_othersarm = proc(e: g_env, arm: othersarm)
+    tagcase arm.decl
+    tag none:
+	if cmpvar$debug() then
+	    co: code_man := e.co
+	    code_man$begin_block(co)
+	    dbinfo$line_info(e.db, arm.line)
+	    code_man$putl(co, "nop();")
+	    g_body(e, arm.body)	
+	    code_man$end_block(co)
+	else
+	    g_body(e, arm.body)
+	end
+    tag decl(d: decl):
+	co: code_man := e.co
+	code_man$begin_block(co)
+	lv$begin_scope()
+	last: int := stmtlist$top(arm.body.stmts).line
+	    except when bounds:
+		last := arm.line
+	    end
+	g_decl(e, d, arm.line, last)
+	code_man$put_assign(co, vname(e, d.idns[1].str), "signame")
+	if cmpvar$debug() then
+	    dbinfo$line_info(e.db, arm.line)
+	    code_man$putl(co, "nop();")
+	end
+	g_body(e, arm.body)
+	lv$put_local_decls(e)
+	lv$end_scope()
+	code_man$end_block(co)
+    end
+end g_othersarm
+
+
+% Generates code for resignal statement.
+
+g_resignal = proc(e: g_env, rs: resignalstmt, scope_end: int)
+    co: code_man := e.co
+
+    % generate code for statement to which handlers are attached
+    cur_handler: str := g_attached_stmt(e, rs.stmt, scope_end)
+
+    % generate code for exception handlers
+    code_man$put_if(co, "FALSE")
+    code_man$begin_block(co)
+    code_man$put_label(co, cur_handler)
+    code_man$put_if(co, g_except_check(e, rs.resigs))
+    code_man$begin_block(co)
+    code_man$putl(co, "return(SIG);")
+    code_man$end_block(co)
+    code_man$putl(co, "else")
+    code_man$begin_block(co)
+    code_man$putl(co, "goto " || e.current_handler || ";")
+    code_man$end_block(co)
+    code_man$end_block(co)
+
+end g_resignal
+
+
+% Generates code for signal statement.
+
+g_signal = proc(e: g_env, cond: condition)
+    g_condition(e, cond)
+    code_man$putl(e.co, "return(SIG);")
+end g_signal
+
+
+% Generates code for exit statement.
+
+g_exit = proc(e: g_env, cond: condition)
+    g_condition(e, cond)
+    code_man$putl(e.co, "goto " || e.current_handler || ";")
+end g_exit
+
+
+% Generates code that sets exception name and results as specified in
+% `cond'.
+
+g_condition = proc(e: g_env, cond: condition)
+    co: code_man := e.co
+
+    % set results.
+    args: exprlist := cond.args
+    for i: int in exprlist$indexes(args) do
+	x: str
+	x := g_expr(e, args[i])
+	    except when proctype_expr(p: proc_expr):
+		x := p.code
+	    end
+	code_man$put_assign(co, g_name_xresult(i), x)
+    end
+
+    % set exception name.
+    code_man$put_assign(co, "signame", string_expr(e, cond.name))
+
+end g_condition

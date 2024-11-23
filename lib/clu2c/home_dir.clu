@@ -1,0 +1,33 @@
+% home_dir.clu - get home directory of user
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: home_dir.clu,v 2.0 1996/06/10 09:02:17 ushijima Exp $
+
+
+% Returns USER's home directory if it can be determined; otherwise
+% signals NOT_FOUND.  An empty USER implies the user associated with
+% the currently executing process.  The "CLU" user is treated as to
+% have the CLU system root directory as its home directory.  The
+% result is a directory name, i.e., all the components other than
+% *directory* are empty.
+
+home_directory = proc(user: string) returns(file_name) signals(not_found)
+    getenv = _external_getenv
+    getpwnam = _external_getpwnam
+    dir: string
+    if string$empty(user) then
+	dir := getenv("HOME")
+    elseif user = "CLU" then
+	dir := rt_env$one().system_root_directory.dir
+    else
+	dir := getpwnam(user).dir
+    end
+	resignal not_found
+    return(file_name$create(dir, "", "", ""))
+	except when bad_format:
+	    signal not_found
+	end
+end home_directory

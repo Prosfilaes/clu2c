@@ -1,0 +1,214 @@
+% $Id: plink.equ,v 2.0 1996/06/10 09:04:57 ushijima Exp $
+
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+
+
+% Some useful abbreviations.
+
+str = string
+as = array[str]
+ss = sequence[str]
+ai = array[int]
+fnamelist = array[file_name]
+
+
+% Command line options.
+
+option = record[
+    outfile: str,
+    extract: bool
+]
+
+
+% Default output files.
+
+default_table_out   = "op-table.c"
+default_extract_out = "-"
+
+
+% Result of _process_comment_.
+
+comment_status = int
+unrelated = 0
+related   = 1
+invalid   = 2
+
+
+% Default value for instance ID or selector/tag ID.
+
+undef = -1
+
+
+% Support for _gentab_.
+
+generator = oneof[
+    clu: clugen,
+    sel: selgen,
+    app: appgen
+]
+
+
+% Date structures of parameters.
+
+parmlist = array[parameter]
+parameter = oneof[
+    tparm: tparm,
+    vparm: vparm
+]
+tparm = oneof[
+    clu:   cluinst,
+    sel:   selinst,
+    fparm: int
+]
+vparm = oneof[
+    lit:   str,
+    fparm: int
+]
+fieldspeclist = array[fieldspec]
+fieldspec = record[
+    sel:  str,
+    parm: tparm
+]
+tparmlist = array[tparm]
+
+
+% Support for _instantiate_apply_.
+
+apply_instantiation = record[
+    gen:        str,
+    parms:      str,
+    entryp:     str,
+    caller:     str,
+    has_formal: bool
+]
+
+
+% Support for _instantiate_cluop_ and _instantiate_selop_.
+
+op_instantiation = record[
+    tgen:        str,
+    opgen:       str,
+    tparms:      str,
+    opparms:     str,
+    entryp:      str,
+    caller:      str,
+    has_formal:  bool
+]
+
+
+% The following information should be extracted from "basic.types".
+
+b_entrylist = sequence[b_entry]
+b_entry = struct[gen: str, ops: b_invokelist]
+b_invokelist = sequence[b_invoke]
+b_invoke = struct[caller: str, nr_args: int, callee: str]
+
+builtin_cluop_invokes = b_entrylist$[
+    b_entry${
+    gen:
+	 "array",
+    ops:
+	b_invokelist$[
+	    b_invoke${caller: "fill_copy", nr_args: 3, callee: "copy"},
+	    b_invoke${caller: "similar", nr_args: 2, callee: "similar"},
+	    b_invoke${caller: "similar1", nr_args: 2, callee: "equal"},
+	    b_invoke${caller: "copy", nr_args: 1, callee: "copy"},
+	    b_invoke${caller: "print", nr_args: 2, callee: "print"},
+	    b_invoke${caller: "encode", nr_args: 2, callee: "encode"},
+	    b_invoke${caller: "decode", nr_args: 2, callee: "decode"},
+	    b_invoke${caller: "_gcd", nr_args: 2, callee: "_gcd"}
+	]
+    },
+    b_entry${
+    gen:
+	 "sequence",
+    ops:
+	b_invokelist$[
+	    b_invoke${caller: "fill_copy", nr_args: 2, callee: "copy"},
+	    b_invoke${caller: "equal", nr_args: 2, callee: "equal"},
+	    b_invoke${caller: "similar", nr_args: 2, callee: "similar"},
+	    b_invoke${caller: "copy", nr_args: 1, callee: "copy"},
+	    b_invoke${caller: "print", nr_args: 2, callee: "print"},
+	    b_invoke${caller: "encode", nr_args: 2, callee: "encode"},
+	    b_invoke${caller: "decode", nr_args: 2, callee: "decode"},
+	    b_invoke${caller: "_gcd", nr_args: 2, callee: "_gcd"}
+	]
+    }
+]
+
+builtin_selop_invokes = b_entrylist$[
+    b_entry${
+    gen:
+	 "record",
+    ops:
+	b_invokelist$[
+	    b_invoke${caller: "similar", nr_args: 2, callee: "similar"},
+	    b_invoke${caller: "similar1", nr_args: 2, callee: "equal"},
+	    b_invoke${caller: "copy", nr_args: 1, callee: "copy"},
+	    b_invoke${caller: "print", nr_args: 2, callee: "print"},
+	    b_invoke${caller: "encode", nr_args: 2, callee: "encode"},
+	    b_invoke${caller: "decode", nr_args: 2, callee: "decode"},
+	    b_invoke${caller: "_gcd", nr_args: 2, callee: "_gcd"},
+	    b_invoke${caller: "get", nr_args: 1, callee: ""},
+	    b_invoke${caller: "set", nr_args: 2, callee: ""}
+	]
+    },
+    b_entry${
+    gen:
+	 "oneof",
+    ops:
+	b_invokelist$[
+	    b_invoke${caller: "equal", nr_args: 2, callee: "equal"},
+	    b_invoke${caller: "similar", nr_args: 2, callee: "similar"},
+	    b_invoke${caller: "copy", nr_args: 1, callee: "copy"},
+	    b_invoke${caller: "print", nr_args: 2, callee: "print"},
+	    b_invoke${caller: "encode", nr_args: 2, callee: "encode"},
+	    b_invoke${caller: "decode", nr_args: 2, callee: "decode"},
+	    b_invoke${caller: "_gcd", nr_args: 2, callee: "_gcd"},
+	    b_invoke${caller: "make", nr_args: 1, callee: ""},
+	    b_invoke${caller: "is", nr_args: 1, callee: ""},
+	    b_invoke${caller: "value", nr_args: 1, callee: ""}
+	]
+    },
+    b_entry${
+    gen:
+	 "struct",
+    ops:
+	b_invokelist$[
+	    b_invoke${caller: "equal", nr_args: 2, callee: "equal"},
+	    b_invoke${caller: "similar", nr_args: 2, callee: "similar"},
+	    b_invoke${caller: "copy", nr_args: 1, callee: "copy"},
+	    b_invoke${caller: "print", nr_args: 2, callee: "print"},
+	    b_invoke${caller: "encode", nr_args: 2, callee: "encode"},
+	    b_invoke${caller: "decode", nr_args: 2, callee: "decode"},
+	    b_invoke${caller: "_gcd", nr_args: 2, callee: "_gcd"},
+	    b_invoke${caller: "get", nr_args: 1, callee: ""},
+	    b_invoke${caller: "replace", nr_args: 2, callee: ""}
+	]
+    },
+    b_entry${
+    gen:
+	 "variant",
+    ops:
+	b_invokelist$[
+	    b_invoke${caller: "similar", nr_args: 2, callee: "similar"},
+	    b_invoke${caller: "similar1", nr_args: 2, callee: "equal"},
+	    b_invoke${caller: "copy", nr_args: 1, callee: "copy"},
+	    b_invoke${caller: "print", nr_args: 2, callee: "print"},
+	    b_invoke${caller: "encode", nr_args: 2, callee: "encode"},
+	    b_invoke${caller: "decode", nr_args: 2, callee: "decode"},
+	    b_invoke${caller: "_gcd", nr_args: 2, callee: "_gcd"},
+	    b_invoke${caller: "make", nr_args: 1, callee: ""},
+	    b_invoke${caller: "change", nr_args: 2, callee: ""},
+	    b_invoke${caller: "is", nr_args: 1, callee: ""},
+	    b_invoke${caller: "value", nr_args: 1, callee: ""}
+	]
+    }
+]
+
+
+% For debug messages.
+
+no_message = ss$[]

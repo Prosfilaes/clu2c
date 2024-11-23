@@ -1,0 +1,20 @@
+% fn_nodir.clu - get non-directory part of file name
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: fn_nodir.clu,v 2.0 1996/06/10 09:02:10 ushijima Exp $
+
+
+file_name_nondirectory = proc(fn: file_name) returns(string)
+    entry: string
+    if string$empty(fn.name) then
+	entry := ""
+    elseif string$empty(fn.suffix) then
+	entry := fn.name
+    else
+	entry := string$append(fn.name, '.') || fn.suffix
+    end
+    return(entry)
+end file_name_nondirectory

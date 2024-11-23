@@ -1,0 +1,13 @@
+% getenv.clu - get environment
+%
+% Copyright (c) 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: getenv.clu,v 1.2 1997/02/05 09:55:51 ushijima Exp $
+
+
+getenv = proc(name: string) returns(string) signals(not_found)
+    return(_external_getenv(name))
+	resignal not_found
+end getenv

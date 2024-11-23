@@ -1,0 +1,100 @@
+
+
+######################################################################
+#
+# Makefile.dos.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = include
+
+# Top-level build directory
+topdir = ..
+
+# Subdirectories
+subdirs = clu2c config
+
+
+#### Source files ####
+
+# Interface specification files
+HDR_SRC = $(HDR_SRC_1)
+HDR_SRC_1 = clu2c.h
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README
+
+# All the source files
+ALL_SRC = $(HDR_SRC) $(MISC_SRC)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all:
+	
+
+# Copies all the products
+install: installdirs
+	copy *.h $(clu2c_includedir)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\insubdir clu2c $(MAKE) install
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\insubdir config $(MAKE) install
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+	
+
+# Makes clean
+clean:
+	
+
+# Makes clean as disributed
+distclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\remove Makefile Makefile.top
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\insubdir clu2c $(MAKE) distclean
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\insubdir config $(MAKE) distclean
+
+# Makes really clean
+realclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\remove Makefile Makefile.top
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\insubdir clu2c $(MAKE) realclean
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\insubdir config $(MAKE) realclean
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\insubdir clu2c $(MAKE) dist
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\insubdir config $(MAKE) dist
+
+# Does some check
+check:
+
+
+#### Rules specific to this directory ####
+
+# Prepares installation directory
+installdirs:
+	-mkdir $(clu2c_rootdir)
+	-mkdir $(clu2c_includedir)
+	-mkdir $(clu2c_includedir)
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	copy Makefile.top+$(config_mk)+$(srcdir)\Makefile.dos Makefile
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\insubdir clu2c $(MAKE) mkfiles
+	$(COMMAND) $(COMMANDFLAGS) /c ..\config\insubdir config $(MAKE) mkfiles
+
+# Forces a particular target to be made
+always:

@@ -1,0 +1,287 @@
+
+
+######################################################################
+#
+# Makefile.unix.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = bin/clulink
+
+# Top-level build directory
+topdir = ../..
+
+# Default flags to plink
+DEFAULT_PLINKFLAGS = 
+
+# All the flags to plink
+ALL_PLINKFLAGS = $(DEFAULT_PLINKFLAGS) $(PLINKFLAGS)
+
+# Command line to fake clu2c execution
+FAKE_CLU2C = sh $(top_srcdir)/fakeclu.sh
+
+# Command line to execute plink
+REAL_PLINK = $(PLINK) $(ALL_PLINKFLAGS) -o $(POUT).c $(CLU_INT)
+
+# Command line to fake plink execution
+FAKE_PLINK = $(LN_S) $(srcdir)/pretrans/$(POUT).c $(POUT).c
+
+# Default flags to the C compiler
+DEFAULT_CFLAGS = -I$(top_srcdir)/include -w
+
+# All the flags to the C compiler
+ALL_CFLAGS = $(DEFAULT_CFLAGS) $(CFLAGS)
+
+# Default libraries
+DEFAULT_LIBS = -L$(LIBDIR) -lclu2c
+
+# All the libraries
+ALL_LIBS = $(DEFAULT_LIBS) $(LIBS)
+
+
+#### Source files ####
+
+# CLU source files
+CLU_SRC = $(CLU_SRC_1) $(CLU_SRC_2) $(CLU_SRC_3)
+CLU_SRC_1 = clulink.clu default.clu logger.clu objects.clu output.clu
+CLU_SRC_2 = primary.clu sources.clu start_up.clu target.clu user.clu
+CLU_SRC_3 = version.clu
+
+# Equate files
+EQU_SRC = logger.equ
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README LIB.xld clulnksh.in
+
+# All the source files
+ALL_SRC = $(CLU_SRC) $(EQU_SRC) $(MISC_SRC)
+
+
+#### Created files ####
+
+# Intermediate C files translated from CLU files
+CLU_INT = $(CLU_INT_1) $(CLU_INT_2) $(CLU_INT_3)
+CLU_INT_1 = clulink.c default.c logger.c objects.c output.c
+CLU_INT_2 = primary.c sources.c start_up.c target.c user.c
+CLU_INT_3 = version.c
+
+# Object files compiled from intermediate C files
+CLU_OBJ = $(CLU_OBJ_1) $(CLU_OBJ_2) $(CLU_OBJ_3)
+CLU_OBJ_1 = clulink.o default.o logger.o objects.o output.o
+CLU_OBJ_2 = primary.o sources.o start_up.o target.o user.o
+CLU_OBJ_3 = version.o
+
+# Base name of output file of plink
+POUT = op-table
+
+# Pre-translated C files
+PRE = $(CLU_INT) $(POUT).c
+
+# Base name for the executable file
+EXEBASE = clulink
+
+# Executable file extension (can be empty)
+EXEEXT = 
+
+# Executable file
+EXE = $(EXEBASE)$(EXEEXT)
+
+# All the object files
+ALL_OBJ = $(POUT).o $(CLU_OBJ)
+
+
+#### Variables for source code maintenance ####
+
+# Non-source files included in the distribution
+NON_SRC = Makefile.dos Makefile.unix fakeclu.bat objects
+
+# All the files included in the distribution
+DIST = $(ALL_SRC) $(NON_SRC)
+
+# Default flags to m4
+DEFAULT_M4FLAGS = -I$(top_srcdir)/mk
+
+# All the flags to m4
+ALL_M4FLAGS = $(DEFAULT_M4FLAGS) $(M4FLAGS)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all: $(EXE) clulink.def clulink.sh
+
+# Copies all the products
+install: $(EXE) installdirs
+	$(INSTALL_PROGRAM) $(INSTALLFLAGS) $(EXE) $(clu2c_bindir)/$(EXE)
+	$(INSTALL_DATA) $(INSTALLFLAGS) clulink.def $(clu2c_libdir)/clulink.def
+	$(INSTALL_PROGRAM) $(INSTALLFLAGS) clulink.sh $(bindir)/clulink
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+	rm -f $(EXE) $(POUT).o
+	rm -f clulink.def
+	rm -f $(CLU_OBJ)
+
+# Makes clean
+clean:
+	rm -f $(EXE) $(POUT).o
+	rm -f SPC.lib clu2c.time $(POUT).c
+	rm -f clulink.def
+	rm -f clulink.sh
+	rm -f $(CLU_INT)
+	rm -f $(CLU_OBJ)
+
+# Makes clean as disributed
+distclean:
+	rm -f Makefile Makefile.top
+	rm -f $(EXE) $(POUT).o
+	rm -f SPC.lib clu2c.time $(POUT).c
+	rm -f clulink.def
+	rm -f clulink.sh
+	rm -f $(CLU_INT)
+	rm -f $(CLU_OBJ)
+
+# Makes really clean
+realclean:
+	rm -f Makefile Makefile.top
+	rm -f $(EXE) $(POUT).o
+	rm -f SPC.lib clu2c.time $(POUT).c
+	rm -f clulink.def
+	rm -f clulink.sh
+	rm -f $(CLU_INT)
+	rm -f $(CLU_OBJ)
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST) $(PRE)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+	@$(top_srcdir)/config/makedist -p $(distname) $(curdir) $(PRE)
+
+# Does some check
+check:
+
+
+#### Rules specific to this directory ####
+
+# Creates clulink.def
+clulink.def: Makefile
+	echo CC=$(CC)>clulink.def
+	echo LIBS=$(LIBS)>>clulink.def
+
+# Creates clulink.sh
+clulink.sh: Makefile $(srcdir)/clulnksh.in
+	sed "s|@clu2c_rootdir@|$(clu2c_rootdir)|" $(srcdir)/clulnksh.in >$@
+
+# Creates all the C files
+cfiles: clu2c.time $(POUT).c
+
+# Translates all the CLU source files to C files
+clu2c.time: $(CLU_SRC)
+	$(CLU2C) $(CLU2CFLAGS) --make
+	echo clu2c.time > clu2c.time
+
+# Pre-link
+$(POUT).c: $(CLU_INT)
+	$(PLINK_METHOD)
+
+# Links all the object files
+$(EXE): $(ALL_OBJ) $(LIBDIR)/libclu2c.a
+	$(CC) $(ALL_CFLAGS) $(ALL_OBJ) $(ALL_LIBS) $(LDFLAGS) -o $(EXE)
+
+# Prepares installation directories
+installdirs:
+	test -d $(clu2c_rootdir) || mkdir $(clu2c_rootdir)
+	test -d $(clu2c_bindir) || mkdir $(clu2c_bindir)
+	test -d $(clu2c_libdir) || mkdir $(clu2c_libdir)
+	test -d $(bindir) || mkdir $(bindir)
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	cat Makefile.top $(topdir)/config.mk $(srcdir)/Makefile.unix > Makefile
+
+# Forces a particular target to be made
+always:
+
+
+#### Suffix rules ####
+
+.SUFFIXES:
+.SUFFIXES: .o .c .clu
+
+# Compiles CLU files
+.clu.c:
+	rm -f clu2c.time
+	$(MAKE) clu2c.time
+
+# Compiles C file to get object file
+.c.o:
+	$(CC) $(ALL_CFLAGS) -c $<
+
+
+#### Rules for source code maintenance ####
+
+# Creates fakeclu.bat
+fakeclu.bat: Makefile
+	@echo creating fakeclu.bat
+	@echo echo off > fakeclu.bat
+	@echo rem fakeclu.bat.\  Generated automatically by make. >> fakeclu.bat
+	@for i in $(CLU_INT); do \
+		echo echo preparing $$i >>fakeclu.bat; \
+		echo "if not exist $$i copy pretrans\\$$i $$i >nul" >> fakeclu.bat; \
+	done
+
+# Deletes all files created by making cfiles
+cfiles-clean:
+	rm -f $(CLU_INT) $(POUT).c SPC.lib clu2c.time
+
+# Creates a list of all the objects
+objects: always
+	echo $(ALL_OBJ) > objects
+
+# Processes m4 files
+m4:
+	@for os in unix dos; do					\
+	    mk=Makefile.$$os;						\
+	    echo creating $$mk;						\
+	    $(M4) $(ALL_M4FLAGS) -DOSTYPE=$$os Makefile.in >$$mk.new;	\
+	    if test ! $$?; then						\
+		echo $$mk is unchanged;					\
+		rm -f $$mk.new;						\
+		exit 1;							\
+	    elif cmp -s $$mk $$mk.new 2>/dev/null; then			\
+		echo $$mk is unchanged;					\
+		rm -f $$mk.new;						\
+	    else							\
+		rm -f $$mk;						\
+		mv $$mk.new $$mk;					\
+	    fi;								\
+	done
+
+# Creates dos distribution
+dosdist: $(DIST) $(PRE)
+	@$(top_srcdir)/config/makedist -d $(dos_distname) $(curdir) $(DIST)
+	@$(top_srcdir)/config/makedist -d -p $(dos_distname) $(curdir) $(PRE)
+
+# Creates the list of source files
+source-list:
+	@if [ $(curdir) = . ]; then\
+	    cp /dev/null source-list;\
+	    for i in $(ALL_SRC); do\
+		echo $$i >>source-list;\
+	    done;\
+	else\
+	    for i in $(ALL_SRC); do\
+		echo $(curdir)/$$i >>$(topdir)/source-list;\
+	    done;\
+	fi

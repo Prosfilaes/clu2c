@@ -1,0 +1,130 @@
+% assoc.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: assoc.clu,v 2.0 1996/06/10 09:04:44 ushijima Exp $
+
+
+% An "assoc_array" is a poor implementation of an associative array.
+% An associative array is an array indexed by a string.
+
+assoc_array = cluster[t: type] is
+	new,
+	reset,
+	enter,
+	lookup,
+	keys,
+	values
+
+    rep = record[
+	entries:   entrylist,
+	last_stat: lookup_status
+    ]
+    entrylist = array[entry]
+    entry = record[
+	key: str,
+	val:  t
+    ]
+    lookup_status = oneof[
+	none:      null,
+	found:     entry,
+	not_found: str
+    ]
+
+
+    % Returns a new, empty associateve array.
+
+    new = proc() returns(cvt)
+	return(
+	    rep${
+		entries:   entrylist$new(),
+		last_stat: lookup_status$make_none(nil)
+	    }
+	)
+    end new
+
+
+    % Resets _tab_.  It is ensured that _tab_ is empty.
+
+    reset = proc(tab: cvt)
+	entrylist$trim(tab.entries, 1, 0)
+	tab.last_stat := lookup_status$make_none(nil)
+    end reset
+
+
+    % Signals _not_found_ if _tab_ has no entry for _key_; otherwise
+    % returns the value associated with _key_.
+
+    lookup = proc(tab: cvt, key: str) returns(t) signals(not_found)
+	tagcase tab.last_stat
+	tag found(ent: entry):
+	    if ent.key = key then
+		return(ent.val)
+	    end
+	tag not_found(n: str):
+	    if n = key then
+		signal not_found
+	    end
+	others:
+	end
+	for ent: entry in entrylist$elements(tab.entries) do
+	    if ent.key = key then
+		tab.last_stat := lookup_status$make_found(ent)
+		return(ent.val)
+	    end
+	end
+	tab.last_stat := lookup_status$make_not_found(key)
+	signal not_found
+    end lookup
+
+
+    % Signals _exists_ if an entry for _key_ already exists; otherwise
+    % enters _val_ in _tab_, associated with _key_.
+
+    enter = proc(tab: cvt, key: str, val: t) signals(exists)
+	tagcase tab.last_stat
+	tag found(ent: entry):
+	    if ent.key = key then
+		% exists
+		signal exists
+	    end
+	tag not_found(n: str):
+	    if n = key then
+		% does not exist
+		entrylist$addh(tab.entries, entry${key: key, val: val})
+		tab.last_stat := lookup_status$make_none(nil)
+		return
+	    end
+	others:
+	end
+	% Here the entry for "key" may or may not exist.
+	for ent: entry in entrylist$elements(tab.entries) do
+	    if ent.key = key then
+		signal exists
+	    end
+	end
+	entrylist$addh(tab.entries, entry${key: key, val: val})
+    end enter
+
+
+    % Yields all keys of _tab_ in an arbitrary order.
+
+    keys = iter(tab: cvt) yields(str)
+	for ent: entry in entrylist$elements(tab.entries) do
+	    yield(ent.key)
+	end
+    end keys
+
+
+    % Yields all values in _tab_ in an arbitrary order.
+
+    values = iter(tab: cvt) yields(t)
+	for ent: entry in entrylist$elements(tab.entries) do
+	    yield(ent.val)
+	end
+    end values
+
+
+end assoc_array

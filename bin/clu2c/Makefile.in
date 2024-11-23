@@ -1,0 +1,35 @@
+dnl $Id: Makefile.in,v 2.0 1996/06/10 09:04:37 ushijima Exp $
+include(`mk.m4')
+MK_REQUIRE(`exe')
+MK_REQUIRE(`clusrc')
+MK_CURRENT_DIRECTORY(`bin', `clu2c')
+MK_EXE_NAME(`clu2c')
+MK_CLU_SOURCES(`build.clu cconst.clu cdefn1.clu cdefn2.clu ce.clu cenv.clu')
+MK_CLU_SOURCES(`cexpr1.clu cexpr2.clu cmpvar.clu command.clu coper.clu')
+MK_CLU_SOURCES(`cspecs.clu cstmt1.clu cstmt2.clu debug.clu du.clu eval1.clu')
+MK_CLU_SOURCES(`eval2.clu gcons.clu genv.clu gexcept.clu gexpr.clu')
+MK_CLU_SOURCES(`ginvoke.clu glit.clu gname.clu gopt.clu gown.clu gparam.clu')
+MK_CLU_SOURCES(`gstmt.clu gtop.clu idn.clu init.clu make.clu menv.clu')
+MK_CLU_SOURCES(`nameconv.clu pconst.clu pdefn1.clu pdefn2.clu penv.clu')
+MK_CLU_SOURCES(`pexpr.clu plist.clu pstmt1.clu pstmt2.clu pttkn.clu')
+MK_CLU_SOURCES(`syntax.clu table.clu tkntab.clu top1.clu top2.clu vcmp.clu')
+MK_CLU_SOURCES(`xlib.clu xref.clu')
+MK_EQU_SOURCES(`clu2c.equ config.equ passes.equ syntax.equ')
+MK_MISC_SOURCES(`EQU.xld LIB.xld clu2c.hlp clu2csh.in')
+MK_APPEND_ACTION(`install',
+	`MK_INSTALL_SOURCE_DATA(`clu2c.hlp', `$(clu2c_libdir)')')
+MK_APPEND_ACTION(`installdirs', `MK_INSTALL_DIRECTORY(`$(clu2c_libdir)')')
+ifelse(OSTYPE, `unix',
+`MK_CLEAN_FILES(`clu2c.sh')
+MK_APPEND_PREREQ(`all', `clu2c.sh')
+MK_APPEND_ACTION(`install',
+	`MK_INSTALL_PROGRAM(`clu2c.sh', `$(bindir)', `clu2c')')
+MK_APPEND_ACTION(`installdirs',
+	`MK_INSTALL_DIRECTORY(`$(bindir)')')
+MK_DEFINE_RULE(`clu2c_sh',
+	`clu2c.sh',
+	`Makefile $(srcdir)/clu2csh.in',
+	`sed "s|@clu2c_rootdir@|$(clu2c_rootdir)|" $(srcdir)/clu2csh.in >MK_DOLLAR(@)')
+MK_SPECIFIC_RULES
+MK_RULE_DEFINITION(`clu2c_sh', `Creates clu2c.sh')
+MK_END')

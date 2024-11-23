@@ -1,0 +1,14 @@
+% now.clu - get current date and time 
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: now.clu,v 2.0 1996/06/10 09:01:39 ushijima Exp $
+
+
+now = proc() returns(date)
+    gettime = _external_gettime
+    year, month, day, hour, min, sec: int := gettime()
+    return(date$create(day, month, year, hour, min, sec))
+end now

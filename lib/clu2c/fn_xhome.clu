@@ -1,0 +1,46 @@
+% fn_xhome.clu - expand home directory in tilde notation
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: fn_xhome.clu,v 2.0 1996/06/10 09:02:14 ushijima Exp $
+
+
+% Tilde must be the first character.  For example, "a:~/" is not
+% expanded.
+
+file_name_expand_home_directory = proc(fn: file_name) returns(file_name)
+    if fn.dir[1] ~= '~' then
+	return(fn)
+    else
+	i: int := 2
+	while ~_is_path_delimiter(fn.dir[i]) do
+	    i := i + 1
+	end
+	    except when bounds: end
+	user: string := string$substr(fn.dir, 2, i - 2)
+	home: file_name := home_directory(user)
+	    except when not_found:
+		return(fn)
+	    end
+	restdir: string
+	if i > string$size(fn.dir) then
+	    restdir := ""
+	else
+	    restdir := string$rest(fn.dir, i + 1)
+	end
+	fn := file_name$create(restdir, fn.name, fn.suffix, fn.other)
+	return(file_name_apply_directory(fn, home))
+    end
+	except when bounds: end
+    if string$empty(fn.name) cor fn.name[1] ~= '~' then
+	return(fn)
+    end
+    user: string := string$rest(file_name$unparse(fn), 2)
+    home: file_name := home_directory(user)
+        except when not_found:
+	    return(fn)
+	end
+    return(directory_file_name(home))
+end file_name_expand_home_directory

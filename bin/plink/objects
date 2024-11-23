@@ -1,0 +1,1 @@
+op-table.o appgen.o appinst.o argument.o assoc.o clugen.o cluinst.o debug.o error.o formal.o gentab.o main.o name.o nameconv.o parse.o read.o replace.o selgen.o selinst.o unparse.o

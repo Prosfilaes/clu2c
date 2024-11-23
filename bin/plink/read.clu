@@ -1,0 +1,228 @@
+% read.clu
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: read.clu,v 2.0 1996/06/10 09:04:53 ushijima Exp $
+
+
+read_comments = iter(fnames: fnamelist) yields(str)
+    ee: e_env := e_env$get()
+    for fn: file_name in fnamelist$elements(fnames) do
+	inst: stream := stream$open(fn, "read")
+	    except when not_possible(why: str):
+		e_env$err(ee, ss$[file_name$unparse(fn), ": ", why])
+		continue
+	    end
+	ee.file_name := fn
+	for comment: str in read_comments_one_file(inst) do
+	    yield(comment)
+	end
+	stream$close(inst)
+	    except when not_possible(*):
+		stream$abort(inst)
+	    end
+    end
+end read_comments
+
+
+% Yields comments in the beginning of "inst".  A block comment is
+% treated as one comment.  In this case a break between lines are
+% replaced with a space character.
+
+read_comments_one_file = iter(inst: stream) yields(str)
+    ee: e_env := e_env$get()
+    ee.line := inst.lineno
+    line: str := stream$getl(inst)
+	except when end_of_file, not_possible(*):
+	    return
+	end
+    index: int := match_comment_start(line)
+    while index > 0 do
+	% Reads one comment.  A comment may be in multiple lines (so
+	% called "block comment").  Continued line may have '*' in head.
+        comment: str := ""
+	while true do
+	    % Here "index" points to the beginning of the comment body
+	    % in "line".
+	    last: int := match_comment_end(line)
+	    if last >= 0 then
+		% "line" is the last line of the current comment.
+	    	if index <= last then
+		    if ~str$empty(comment) then
+			comment := comment || " "
+		    end
+		    comment := comment
+			       || str$substr(line, index, last - index + 1)
+		end
+		if ~str$empty(comment) then
+		    yield(comment)
+		end
+		break
+	    end
+	    last := chop_trailing_blanks(line)
+	    if index <= last then
+		if ~str$empty(comment) then
+		    comment := comment || " "
+		end
+		comment := comment || str$substr(line, index, last - index + 1)
+	    end
+	    line := stream$getl(inst)
+	    index := match_continued_comment(line)
+	end	    	
+	% Next comment.
+	ee.line := inst.lineno
+	line := stream$getl(inst)
+	index := match_comment_start(line)
+    end
+	except when end_of_file, not_possible(*): end
+end read_comments_one_file
+
+
+% Splits "comment" into substrings delimited by a comma (and trailing
+% blank characters).  Commas in a char/string literal don't work as
+% delimiters.
+
+split = proc(comment: str) returns(as)
+    own res: as := as$predict(1, 10)
+    as$trim(res, 1, 0)
+    in_field: bool := false	% in a field?
+    in_char_lit:bool := false	% in a char literal?
+    in_str_lit:bool := false	% in a string literal?
+    lastc: char := '\000'	% c in the previous iteration
+    start: int			% index of the beginning of a field
+    for i: int in int$from_to(1, str$size(comment)) do
+	c: char := comment[i]
+	if ~in_field then
+	    if c = ' ' | c = '\t' then
+		% Blank characters between fields.
+		lastc := c
+		continue
+	    else
+		% Beginning of a new field.
+		in_field := true
+		start := i
+	    end
+	end
+	if c = ',' cand ~in_char_lit cand ~in_str_lit then	% end of field
+	    as$addh(res, str$substr(comment, start, i - start))
+	    in_field := false
+	elseif c = '\'' cand lastc ~= '\\' then
+	    in_char_lit := ~in_char_lit
+	elseif c = '\"' cand lastc ~= '\\' then
+	    in_str_lit := ~in_str_lit
+	end
+	lastc := c
+    end
+    if in_field then
+	as$addh(res, str$rest(comment, start))
+    end
+    return(res)
+end split
+
+
+%% The following routines were needless if there would be a regular
+%% expression library...
+
+
+% Returns the index of the character in "line" next to the /^\s*\/\*\s*/
+% pattern.  Returns 0 otherwise.
+
+match_comment_start = proc(line: str) returns(int)
+    index: int := str$indexs("/*", line)
+    if index = 0 then
+	return(0)
+    end
+    for i: int in int$from_to(1, index - 1) do
+	c: char := line[i]
+	if c ~= ' ' & c ~= '\t' then
+	    return(0)
+	end
+    end
+    index := index + 2		% skip "/*"
+    size: int := str$size(line)
+    while index <= size do
+	c: char := line[index]
+	if c ~= ' ' & c ~= '\t' then
+	    return(index)
+	end
+	index := index + 1
+    end
+    return(index)
+end match_comment_start
+
+
+% Returns the index of the character in "line" previous to the
+% /\s*\*\/\s*$/ pattern.  Returns -1 otherwise.
+
+match_comment_end = proc(line: str) returns(int)
+    index: int := str$indexs("*/", line)
+    if index = 0 then
+	return(-1)
+    end
+    for i: int in int$from_to(index + 2, str$size(line)) do
+	c: char := line[i]
+	if c ~= ' ' & c ~= '\t' then
+	    return(-1)
+	end
+    end
+    index := index - 1		% previous to "*/"
+    while index >= 1 do
+	c: char := line[index]
+	if c ~= ' ' & c ~= '\t' then
+	    return(index)
+	end
+	index := index - 1
+    end
+    return(index)
+end match_comment_end
+
+
+% Returns the index of the last non-blank charcter in "line".  Returns 0
+% if there is no non-blank character.
+
+chop_trailing_blanks = proc(line: str) returns(int)
+    for index: int in int$from_to_by(str$size(line), 1, -1) do
+	c: char := line[index]
+	if c ~= ' ' & c ~= '\t' then
+	    return(index)
+	end
+    end
+    % There is no non-blank character
+    return(0)
+end chop_trailing_blanks
+
+
+% Returns the index of the character in "line" next to the /^\s*(\*\s*)?/
+% pattern.
+
+match_continued_comment = proc(line: str) returns(int)
+    index: int := 1
+    size: int := str$size(line)
+    % Skip blanks in head.
+    begin
+	while index <= size do
+	    c: char := line[index]
+	    if c ~= ' ' & c ~= '\t' then
+		if c = '*' then
+		    exit asterisk
+		else
+		    break
+		end
+	    end
+	    index := index + 1
+	end
+	return(index)
+    end
+	except when asterisk: end
+    index := index + 1		% Skips '*'.
+    while index <= size do
+	c: char := line[index]
+	if c ~= ' ' & c ~= '\t' then
+	    break
+	end
+	index := index + 1
+    end
+    return(index)
+end match_continued_comment

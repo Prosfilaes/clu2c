@@ -1,0 +1,57 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Wed Feb  5 09:55:45 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* library.texi, basic.texi, advanced.texi: Doc fix.
+
+	* install.texi (Distribution): Do not mention clu2c-VER.tar.Z,
+        which is no longer prepared.
+
+Fri Jan 31 13:19:39 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* library.texi: Removed the descriptions about the abstractions
+	derived from MIT CLU implementations.
+
+	* library.texi: Added a new subsection: Unsigned Integers.
+
+Sun Jan 26 10:35:25 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* library.texi: Added a new section: Integer Handling.
+
+Fri Jan 24 09:57:41 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* advanced.texi, basic.texi, library.texi: Doc fix.
+
+	* library.texi: Reorganized sections `Program Arguments', `Program
+	Environment', and `Program Termination' into a single section
+	`Program Environment'.  Added descriptions about `getenv',
+	`system', and `terminate'; removed desctiptions about
+	`_get_pname', `_get_xjname', `get_argv', `_environ', `quit_',
+	`_exit', and `_stop'.
+
+Thu Jan 16 14:11:49 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* basic.texi: Removed descriptions about obsolete options: `-B'
+        and `-D'.
+	* advanced.texi: Removed descriptions about obsolete commands:
+        `bindir', `dir', and `escape'.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sun Jun  9 12:35:32 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install-info): Added an action for MS-DOS systems.
+
+Thu Jun  6 05:52:20 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* install.texi: Minor improvement.
+
+Sat May 25 12:58:57 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in, README, advanced.texi, basic.texi, changes.texi,
+	clu2c.texi, copying.texi, index.texi, install.texi, intro.texi,
+	library.texi: New files.

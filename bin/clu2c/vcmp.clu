@@ -1,0 +1,61 @@
+% vcmp.clu - system dependent routines
+%
+% This file was derived from PCLU distribution (as of 11/18/93), and
+% has been modified by Department of Mathematical and Computing
+% Sciences, Tokyo Institute of Technology.
+%
+% Conditions for using, copying, modifying, and distributing this
+% file are the same as those of PCLU.
+%
+% $Id: vcmp.clu,v 2.2 1996/05/12 07:33:11 ushijima Exp $
+
+
+%	VCMP	CLU
+% Copyright Massachusetts Institute of Technology 1982, 1989
+%	CLU compiler: VAX/UNIX dependent routines
+
+# extend
+
+basic_name = proc () returns (fname)
+	return(fname$create("~CLU/lib", "basic", BASIC_SUFFIX, ""))
+	end basic_name
+
+nul_dev = proc () returns (str)
+	return(file_name$unparse(_null_device_name()))
+	end nul_dev
+
+dsuffix = proc () returns (str)
+	return("")
+	end dsuffix
+
+binary_suffix = proc () returns (str)
+	return ("c")
+	end binary_suffix
+
+equate_suffix = proc () returns (str)
+	return("equ")
+	end equate_suffix
+
+code_temp = proc () returns (str)
+	return("_c_")
+	end code_temp
+
+bin_temp = proc () returns (str)
+	return("_b_")
+	end bin_temp
+
+safety_name = proc () returns (fname)
+	return(fname$create("~CLU/lib", SAFETY_FNAME, SAFETY_SUFFIX, ""))
+	end safety_name
+
+help_name = proc () returns (fname)
+	return(fname$create("~CLU/lib", HELP_FNAME, HELP_SUFFIX, "")) 
+	end help_name
+
+junk_name = proc () returns (fname)
+	return(fname$create("", "clu", JUNK_SUFFIX, ""))
+	end junk_name
+
+get_compiler_version = proc () returns (str)
+	return(rt_env$one().system_version)
+	end get_compiler_version

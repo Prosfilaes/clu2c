@@ -1,0 +1,107 @@
+\input texinfo   @c -*- texinfo -*-
+@c %**start of header
+@setfilename clu2c.info
+@settitle CLU2C User's Manual
+@synindex fn cp
+@synindex tp cp
+@c %**end of header
+
+@set RCS-ID $Id: clu2c.texi,v 2.4 1997/02/06 04:20:07 ushijima Exp $
+@set EDITION 1.0-draft-970206
+@set VERSION 2.0
+@set UPDATE-MONTH February 1997
+@set UPDATE-DATE  Feb/06/1997
+
+@ifinfo
+@format
+START-INFO-DIR-ENTRY
+* clu2c: (clu2c.info).  CLU2C User's Manual.
+END-INFO-DIR-ENTRY
+@end format
+
+CLU2C User's Manual, by Tetsu Ushijima.
+
+This file documents CLU2C,
+an implementation of the programming language CLU.
+     
+Copyright @copyright{} 1996, 1997
+Department of Mathematical and Computing Sciences,
+Tokyo Institute of Technology.
+All rights reserved.
+
+Permission is granted
+to make and distribute verbatim copies of this manual
+provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted
+to copy and distribute modified versions of this manual
+under the conditions for verbatim copying,
+provided that the entire resulting derived work
+is distributed
+under the terms of a permission notice identical to this one.
+@end ifinfo
+
+@titlepage
+@title CLU2C User's Manual
+@subtitle Edition @value{EDITION}, for CLU2C Version @value{VERSION}
+@subtitle @value{UPDATE-MONTH}
+@author Tetsu Ushijima
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1996, 1997
+Department of Mathematical and Computing Sciences,
+Tokyo Institute of Technology.
+All rights reserved.
+
+Permission is granted
+to make and distribute verbatim copies of this manual
+provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted
+to copy and distribute modified versions of this manual
+under the conditions for verbatim copying,
+provided that the entire resulting derived work is distributed
+under the terms of a permission notice identical to this one.
+@end titlepage
+
+
+
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+@c				Top Node
+@c %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+@node Top, Introduction, (dir), (dir)
+@ifinfo
+@top CLU2C User's Manual
+
+This manual documents CLU2C,
+an implementation of the programming language CLU.
+This is Edition @value{EDITION},
+last updated @value{UPDATE-DATE},
+for CLU2C Version @value{VERSION}.
+@end ifinfo
+
+@menu
+* Introduction::                
+* Basic Usage::                 
+* Advanced Usage::              
+* Changes to CLU::              Changes to CLU
+* Library::                     Library Abstractions
+* Installation::                How to install CLU2C
+* Copying::                     Conditions for copying CLU2C
+* Index::                       Index
+@end menu
+
+@include intro.texi
+@include basic.texi
+@include advanced.texi
+@include changes.texi
+@include library.texi
+@include install.texi
+@include copying.texi
+@include index.texi
+
+@contents
+@bye

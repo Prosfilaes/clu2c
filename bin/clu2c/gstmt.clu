@@ -1,0 +1,938 @@
+% gstmt.clu - statement generators
+%
+% Copyright (c) 1992, 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: gstmt.clu,v 2.10 1996/05/12 06:43:19 ushijima Exp $
+
+
+% This file contains code generating routines for most statements.
+% Code generators for `except', `exit', `resignal', and `signal'
+% statements are included in the file `gexcept.clu'; code generators
+% for invocation statement are included in the file `ginvoke.clu'.
+
+
+% Generates code for statement.
+
+g_stmt = proc(e: g_env, s: stmt, scope_end: int)
+    db: dbinfo := e.db
+    lv$begin_stmt()			% pushes count of temporary variable
+    tagcase s.abs
+    tag decl(d: decl):
+	g_decl(e, d, s.line, scope_end)
+    tag declinit(di: declinit):
+	dbinfo$line_info(db, s.line)
+	g_declinit(e, di, s.line, scope_end)
+    tag assn(asn: assn):
+	dbinfo$line_info(db, s.line)
+	g_assign(e, asn)
+    tag invoke(ivk: invoke):
+	dbinfo$line_info(db, s.line)
+	g_invoke_stmt(e, ivk)
+    tag while_(ws: whilestmt):
+	g_while(e, ws)
+    tag for_(fs: forstmt):
+	dbinfo$line_info(db, s.line)
+	g_for(e, fs)
+    tag if_(ifs: ifstmt):
+	dbinfo$line_info(db, s.line)
+	g_if(e, ifs)
+    tag tag_(ts: tagstmt):
+	dbinfo$line_info(db, s.line)
+	g_tagcase(e, ts)
+    tag return_(exprs: exprlist):
+	dbinfo$line_info(db, s.line)
+	g_return(e, exprs)
+    tag yield_(exprs: exprlist):
+	dbinfo$line_info(db, s.line)
+	g_yield(e, exprs)
+    tag signal_(cond: condition):
+	dbinfo$line_info(db, s.line)
+	g_signal(e, cond)
+    tag exit_(cond: condition):
+	dbinfo$line_info(db, s.line)
+	g_exit(e, cond)
+    tag break_:
+	dbinfo$line_info(db, s.line)
+	g_break(e)
+    tag continue_:
+	dbinfo$line_info(db, s.line)
+	g_continue(e)
+    tag body(b: body):
+	dbinfo$line_info(db, s.line)
+	g_body(e, b) 
+    tag except_(xs: exceptstmt):
+	g_except(e, xs, scope_end)
+    tag resignal_(rs: resignalstmt):
+	dbinfo$line_info(db, s.line)
+	g_resignal(e, rs, scope_end)
+    tag force_(fcest: forcestmt):
+	dbinfo$line_info(db, s.line)
+	g_env$err(e, "FORCE statement is not implemented")
+    others:
+    end
+    lv$end_stmt()			% pops count of temporary variable
+end g_stmt
+
+
+% Generates code for declaration.
+
+g_decl = proc(e: g_env, d: decl, decl_line: int, scope_end: int)
+    t: typespec := d.type_
+    for i: idn in idnlist$elements(d.idns) do
+	lv$decl(i, t, AUTO, e.rtype, decl_line, scope_end)
+    end
+end g_decl
+
+
+% Genetates code for declaration with initialization.
+
+g_declinit = proc(e: g_env, dlinit: declinit, decl_line: int, scope_end: int)
+
+    decls: decllist := dlinit.decls
+
+    % declare variables
+    for d: decl in decllist$elements(decls) do
+	g_decl(e, d, decl_line, scope_end)
+    end
+
+    % generate assgin code
+    nvar: int := g_nr_vars(decls)
+    if nvar = 1 then
+	g_simple_assign(e, decls[1].idns[1], dlinit.expr)
+    else
+	tagcase dlinit.expr.abs
+	tag invoke(ivk: invoke):
+	    g_inv_assign[decllist](e, decls, ivk, g_idns_in_decllist)
+	others:
+	end
+    end
+end g_declinit
+
+
+% Returns the number of variables declared in `decls'.
+
+g_nr_vars = proc(decls: decllist) returns(int)
+    res: int := 0
+    for d: decl in decllist$elements(decls) do
+	res := res + idnlist$size(d.idns)
+    end
+    return(res)
+end g_nr_vars
+
+
+% Yields each idn in `decls'.
+
+g_idns_in_decllist = iter(decls: decllist) yields(idn)
+    for d: decl in decllist$elements(decls) do
+	for i: idn in idnlist$elements(d.idns) do
+	    yield(i)
+	end
+    end
+end g_idns_in_decllist
+
+
+% Generates code for assignment.
+
+g_assign = proc(e: g_env, asn: assn)
+
+    exprs: exprlist := asn.right
+    idns: idnlist := asn.left
+
+    if idnlist$size(idns) = 1 then
+	% Simple assignment.
+	g_simple_assign(e, idns[1], exprs[1])
+    elseif exprlist$size(exprs) = 1 then
+	% Multiple assignment with RHS being an invocation.
+	g_inv_assign[idnlist](
+	    e,
+	    idns,
+	    exprabs$value_invoke(exprs[1].abs),
+	    idnlist$elements
+	)
+    else
+	% Multiple assignment with RHS being an expression list.
+	g_multi_assign(e, idns, exprs) 
+    end
+
+end g_assign
+
+
+% Generates code for simple assignment of the form "idn := expr".
+
+g_simple_assign = proc(e: g_env, left: idn, right: expr)
+    x: str
+    x := g_expr(e, right)
+	except when proctype_expr(p: proc_expr):
+	    x := p.code
+	end
+    code_man$put_assign(e.co, vname(e, left.str), x)
+end g_simple_assign
+
+
+% Generates code for muletiple assignment with invocation in RHS,
+% i.e., assignment of the form "idn, ... := invocation".
+
+g_inv_assign = proc[t: type](e: g_env, left: t, right: invoke, vars: vars_t)
+    vars_t = itertype(t) yields(idn)
+
+    % generate code for invocation.
+    g_invoke_stmt(e, right)
+
+    % assign results to variables.
+    co: code_man := e.co
+    i: int := 1
+    for id: idn in vars(left) do
+	code_man$put_assign(co, vname(e, id.str), g_name_result(i))
+	i := i + 1
+    end
+end g_inv_assign
+
+
+% Generates code for multiple assignment of the form
+% "idn, ... := expr, ...".
+
+g_multi_assign = proc(e: g_env, left: idnlist, right: exprlist)
+    tmpvars: as := as$new()
+    co: code_man := e.co
+
+    % Evaluates RHS and saves the results in temporary variables.
+    rtype: str := e.rtype
+    for x: str in as$elements(g_exprlist(e, right, true)) do
+	tvar: str := lv$new_temp(rtype)
+	as$addh(tmpvars, tvar)
+	code_man$put_assign(co, tvar, x)
+    end
+
+    % Assigns temporary variables to CLU variable.
+    i: int := 1
+    for tvar: str in as$elements(tmpvars) do
+	code_man$put_assign(co, vname(e, left[i].str), tvar)
+	i := i + 1
+    end
+
+end g_multi_assign
+
+
+% Generates code for `while' statement.
+
+g_while = proc(e: g_env, ws: whilestmt)
+    co: code_man := e.co
+    db: dbinfo := e.db
+
+    code_man$put_while(co, "TRUE")
+    code_man$begin_block(co)
+
+    % Generates the test part.  If the statement is of the form
+    % "while true do ... end", some optimization is performed.
+    is_opt : bool := false
+    tagcase ws.test.abs
+    tag bool_(bol: bool):
+	is_opt := bol
+    others:
+    end
+
+    % Generates debugging information (line number).
+    dbinfo$line_info(db, ws.start_line)
+    if is_opt then
+	% no operation for debugger
+	if cmpvar$debug() then
+	    code_man$putl(co, "nop();")
+	end
+    else
+	code_man$put_if(co, "!" || g_expr(e, ws.test))
+	code_man$begin_block(co)
+	code_man$putl(co, "break;")
+	code_man$end_block(co)
+    end
+
+    % Generates the body.
+    g_body(e, ws.body)
+
+    % No operation and line info for debugger.
+    dbinfo$line_info(db, ws.end_line)
+    if cmpvar$debug() then
+	code_man$putl(co, "nop();")
+    end
+
+    code_man$end_block(co)
+end g_while
+
+
+% Generates code for `for' statement.
+
+% Template of code for `for' statement is:
+%
+% {
+%	[declare control variables, if needed]
+%	[declare ivar and cond]
+%	[evaluate iterator and its arguments]
+%	for(cond = foo(TRUE, &ivar, ...);
+%	    cond == YIELD;
+%	    cond = foo(FALSE, &ivar, 0, ...) )
+%	{
+%	    [assign item to control variables]
+%	    [body]
+%	}
+%	free(ivar);
+%	if (cond == SIG) {
+%	    goto ...;
+%	}
+% }
+%
+% If the control variables are not declared, the outermost block is
+% not generated and declarations for ivar and cond are placed at the
+% top of the smallest surrounding block that contains the `for'
+% statement.
+
+g_for = proc(e: g_env, s: forstmt)
+    tagcase s.vars
+    tag old(idns: idnlist):
+	g_for_idns(e, s, idns)
+    tag new(decls: decllist):
+	g_for_decls(e, s, decls)
+    end
+end g_for
+
+
+% Generates code for `for' statement of the form
+% "FOR decl, ... IN invocation(...) DO ... END".
+
+g_for_decls = proc(e: g_env, s: forstmt, decls: decllist)
+    co: code_man := e.co
+    code_man$begin_block(co)
+    lv$begin_scope()
+    rtype: str := e.rtype
+    start_line: int := s.start_line
+    end_line: int := s.end_line
+    idns: idnrow := idnrow$new()
+    for d: decl in decllist$elements(decls) do
+	t: typespec := d.type_
+	for i: idn in idnlist$elements(d.idns) do
+	    lv$decl(i, t, AUTO, rtype, start_line, end_line)
+	    idnrow$addh(idns, i)
+	end
+    end
+    g_for_idns(e, s, idnlist$a2s(idns))
+    lv$put_local_decls(e)
+    lv$end_scope()
+    code_man$end_block(co)
+end g_for_decls
+
+
+% Generates code for `for' statement of the form
+% "FOR idn, ... IN invocation(...) DO ... END".
+
+g_for_idns = proc(e: g_env, s: forstmt, idns: idnlist)
+
+    co: code_man := e.co
+    db: dbinfo := e.db
+
+    % Evaluates iterator.
+    g_env$begin_invoke(e)
+    it: str := "(*((itertype) " || g_expr(e, s.call.apply) || "))"
+	except when proctype_expr(p: proc_expr):
+	    % kind is assumed to be name or inline_iter
+	    tagcase p.kind
+	    tag name:
+		it := p.code
+	    tag inline_iter(opt_proc: opt_iter_proc):
+		g_env$end_invoke(e)
+		g_for_body(e, s, idns, as$[opt_proc(e, s)])
+		return
+	    others:
+	    end	
+	end
+    g_env$end_invoke(e)
+
+    % Declares system variables.
+    rtype: str := e.rtype
+    cond: str := lv$new_temp(rtype)
+    ivar: str := lv$new_temp(rtype)
+
+    % Evaluates arguments.
+    invoke_args: str := "TRUE, &" || ivar
+    resume_args: str := "FALSE, &" || ivar
+    for x: str in as$elements(g_exprlist(e, s.call.args, true)) do
+	invoke_args := invoke_args || ", " || x
+	resume_args := resume_args || ", 0"
+    end
+
+    %
+    code_man$putl(co, "for (" || cond || " = " || it || "(" || invoke_args || ");")
+    code_man$putl(co, "     " || cond || " == YIELD;")
+    code_man$putl(co, "     " || cond || " = " || it || "(" || resume_args || "))")
+
+    item: as := as$new()
+    for i: int in idnlist$indexes(idns) do
+	as$addh(item, g_name_result(i))
+    end
+
+    g_for_body(e, s, idns, item)
+
+    % Frees iterator local vcariable area.
+    code_man$putl(co, "free(" || ivar || ");")
+
+    % Generates exception check.
+    code_man$put_if(co, cond || " == SIG")
+    code_man$begin_block(co)
+    dbinfo$invoke_info(db, e, s.call.apply, s.call.line)
+    code_man$putl(co, "goto " || e.current_handler || ";")
+    code_man$end_block(co)
+
+end g_for_idns
+
+
+% Generates the body of the `for' statement S.  Identifiers in IDNS
+% are control variables in S.  ITEM, the size of which is required to
+% be the same as IDNS, holds the code corresponding to the expression
+% that evaluates to the item for each iteration.
+
+g_for_body = proc(e: g_env, s: forstmt, idns: idnlist, item: as)
+    co: code_man := e.co
+    code_man$begin_block(co)
+    lv$begin_scope()
+    % Generates assignments to control variables
+    for i: int in idnlist$indexes(idns) do
+	code_man$put_assign(co, vname(e, idns[i].str), item[i])
+    end
+    % Generates body
+    g_body(e, s.body)
+    dbinfo$line_info(e.db, s.end_line)
+    if cmpvar$debug() then
+	code_man$putl(co, "nop();")
+    end
+    lv$put_local_decls(e)
+    lv$end_scope()
+    code_man$end_block(co)
+end g_for_body
+
+
+% Generates code for `if' statement.
+
+g_if = proc(e: g_env, ifst: ifstmt)
+    co: code_man := e.co
+    db: dbinfo := e.db
+    code_man$put_if(co, g_expr(e, ifst.arms[1].test))
+    g_body(e, ifst.arms[1].body)
+    nr_tojikakko:int := 0
+    for i:int in int$from_to(2, ifarmlist$size(ifst.arms)) do
+	code_man$putl(co, "else")
+	code_man$begin_block(co)
+	dbinfo$line_info(db, ifst.arms[i].line)
+	code_man$put_if(co, g_expr(e, ifst.arms[i].test))
+	g_body(e, ifst.arms[i].body)
+	nr_tojikakko := nr_tojikakko + 1
+    end
+    tagcase ifst.else_
+    tag body(bd: body):
+	code_man$putl(co, "else")
+	g_body(e, bd)
+    others:
+    end
+    for i:int in int$from_to(1, nr_tojikakko) do
+	code_man$end_block(co)
+    end
+end g_if
+
+
+% Generates code for `tagcase' statement.
+
+g_tagcase = proc(e: g_env, s: tagstmt)
+
+    % First check what type the tag statement is concerned about.
+    % This procedure treats only oneof's and variant's.  Code
+    % generation of tagcase statements for user-defined types is
+    % delegated to `g_tagcase_hack'.
+    specs: fieldspeclist
+    tagcase s.obj.typespec.abs
+    tag select(selt: seltype):
+	specs := selt.parms
+    others:
+	g_tagcase_hack(e, s)
+	return
+    end
+
+    co: code_man := e.co
+    db: dbinfo := e.db
+
+    % Prepare temporary variable whose value is the tag number of the
+    % object.
+    obj: str := g_exprlist(e, exprlist$[s.obj], false)[1]
+    tvar: str := lv$new_temp(e.rtype)
+    code_man$put_assign(co, tvar, "((oneof) " || obj || ")->tag")
+
+    % Generate code for each tagarm.
+    g_tagarms(e, s.arms, tvar, obj, specs)
+
+    % Generate code for `others' (if any).
+    tagcase s.others_
+    tag body(b: body):
+	if ~stmtlist$empty(b.stmts) then
+	    code_man$putl(co, "else")
+	    g_body(e, b)
+	end
+    others:
+    end
+
+end g_tagcase
+
+
+% Generates code for a list of tagarms.
+
+g_tagarms = proc(e: g_env, arms: tagarmlist, tvar, obj: str, specs: fieldspeclist)
+    co: code_man := e.co
+    db: dbinfo := e.db
+
+    first: bool := true
+    for arm: tagarm in tagarmlist$elements(arms) do
+	if first then
+	    code_man$put_if(co, g_tag_test(e, tvar, arm.tags, specs))
+	    first := false
+	else
+	    code_man$put_else_if(co, g_tag_test(e, tvar, arm.tags, specs))
+	end
+	code_man$begin_block(co)
+	lv$begin_scope()
+	dbinfo$line_info(db, arm.line)
+	if cmpvar$debug() then
+	    code_man$putl(co, "nop();")
+	end
+	scope_end:int := stmtlist$top(arm.body.stmts).line
+	    except when bounds:
+		    scope_end := arm.line
+	    end
+	g_tag_decl(e, obj, arm.var, arm.line, scope_end)
+	g_body(e, arm.body)
+	lv$put_local_decls(e)
+	lv$end_scope()
+	code_man$end_block(co)
+    end
+end g_tagarms
+
+
+% Returns the Boolean expression in C that tells whether the value of
+% `tvar' is either of `tags'.
+
+g_tag_test = proc(e: g_env, tvar: str, tags: namelist, specs: fieldspeclist)
+								returns(str)
+    code: str
+    first: bool := true
+    for tname: name in namelist$elements(tags) do
+	tnum: str := g_tag_number(tname, specs)
+	if first then
+	    code := tvar || " == " || tnum
+	    first := false
+	else
+	    code := code || " || " || tvar || " == " || tnum
+	end	
+    end
+    return(code)
+end g_tag_test
+
+
+% Signals `wrong_tag' if N is not a legal tag in SPECS; otherwise
+% returns tag number (represented by a string) for N in SPECS.
+
+g_tag_number = proc(n: name, specs: fieldspeclist) returns(str)
+						   signals(wrong_tag)
+    num: int := 1
+    for spec: fieldspec in fieldspeclist$elements(specs) do
+	if spec.sel = n then			
+	    return(int$unparse(num))
+	end
+	num := num + 1
+    end
+    signal wrong_tag
+end g_tag_number
+
+
+% Generates declaration of tagarm's local variable.
+
+g_tag_decl = proc(e: g_env, obj: str, var: mdecl, start_, end_: int)
+    tagcase var
+    tag decl(d: decl):
+	v: idn := d.idns[1]
+	lv$decl(v, d.type_, AUTO, e.rtype, start_, end_)
+	code_man$put_assign(
+	    e.co,
+	    vname(e, v.str), "((oneof) " || obj || ")->value"
+	)
+    others:
+    end
+end g_tag_decl
+
+
+% Generates `tagcase' statement in hack mode
+%
+% In hack mode (specified by the #extend directive), the tagcase
+% statement can be used for objects of user-defined types.  The
+% desugaring goes as follows:
+%
+%	tagcase E			temp: T := E
+%	   tag a:			if T$is_a(temp)
+%		body1		=>	   then body1
+%	   tag b (y: S):		elseif T$is_b(temp)
+%		body2			   then y: S := T$value_b(temp)
+%	   end					body2
+%					else signal failure("no matching tags")
+%					end
+%
+%	tagcase E			temp: T := E
+%	   tag a, b, c:			if T$is_a(temp)  cor
+%		body1		=>	   T$is_b(temp)  cor
+%	   others:			   T$is_c(temp)
+%		body2			   then body1
+%	   end				   else body2
+%					   end
+%
+%	tagcase E			temp: T := E
+%	   tag a, b (y: S):		if T$is_a(temp)  cor
+%		body1		=>	   T$is_b(temp)  cor
+%	   others:			   then y: S
+%		body2			   	if T$is_a(temp)
+%	   end					   then y := T$value_a(temp)
+%						elseif T$is_b(temp)
+%						   then y := T$value_b(temp)
+%						   end
+%						body1
+%					   else body2
+%					   end
+%
+% (It is evident that the third case can be refined more...)
+%
+
+g_tagcase_hack = proc(e: g_env, s: tagstmt)
+    compe: CE := cmpvar$stuffs().ce
+    t: typespec := s.obj.typespec
+    tagcase t.abs
+    tag select:
+	% Can't happen...
+	signal failure("g_tagcase_hack: internal error")
+    tag idn(i: idn):
+	% expression of type parameter (not implemented yet)
+	signal failure("g_tagcase_hack: internal error")
+    tag cluster_:
+	% expression of user-defined type
+	ifarmrow = array[ifarm]
+ 	tmp: str := lv$new_temp(e.rtype)
+	co: code_man := e.co
+	code_man$put_assign(co, tmp, g_expr(e, s.obj))
+	tmpexpr: expr := expr$create(exprabs$make_asis(tmp), t)
+	ifarms: ifarmrow := ifarmrow$new()
+	isoptype: typespec, old: bool := CE$get_type(
+	    compe,
+	    typeabs$make_apply(applytype${gen:  compe.proc_,
+					  args: typelist$[t],
+					  vals: typelist$[compe.bool_type],
+					  sigs: exceptionlist$new()}))
+	lastline: int := 0	% last line# of last arm
+	for arm: tagarm in tagarmlist$elements(s.arms) do
+	    test: expr := g_tagcase_test(t, arm, tmpexpr)
+	    b: body := arm.body
+	    line: int := arm.line
+	    tagcase arm.var
+	    tag decl(d: decl):
+		% Insert a declaration and an assignment at the front of
+		% arm body.  The number of variables is assumed to be 1.
+		stmtrow = array[stmt]
+		stmts: stmtrow := stmtrow$new()
+		% declaration
+		stmtrow$addh(stmts, stmt$create(stmtabs$make_decl(d), line))
+		% assignment
+		if namelist$size(arm.tags) = 1 then
+		    % value_* operation can be determined now
+		    stmtrow$addh(
+			stmts,
+			g_tagcase_assn(
+			    d, t, namelist$bottom(arm.tags), tmpexpr, line
+			)
+		    )
+		else
+		    % value_* operation cannot be determined now
+		    ifarms1: ifarmrow := ifarmrow$new()
+		    for tagname: name in namelist$elements(arm.tags) do
+			ifarmrow$addh(
+			    ifarms1,
+			    ifarm${
+			    test:
+				g_tagcase_isop(t, tagname, tmpexpr, line),
+			    body:
+				body${
+				equates:
+				    equatelist$new(),
+				stmts:
+				    stmtlist$[
+					g_tagcase_assn(
+					    d, t, tagname, tmpexpr, line)]},
+			    line:
+				line})
+		    end
+		    stmtrow$addh(
+			stmts,
+			stmt$create(
+			    stmtabs$make_if_(
+				ifstmt${
+				arms:  ifarmlist$a2s(ifarms1),
+				else_: mbody$make_none(nil)}),
+			    line))
+		end
+		b.stmts := stmtlist$a2s(stmts) || b.stmts
+	    tag none:
+	    end
+	    ifarmrow$addh(ifarms, ifarm${test: test, body: b, line: line})
+	    lastline := line
+	end
+	elsepart: mbody
+	tagcase s.others_
+	tag none:
+	    elsepart := mbody$make_body(
+		body${
+		equates:
+		    equatelist$new(),
+		stmts:
+		    stmtlist$[
+			stmt$create(
+			    stmtabs$make_signal_(
+				condition${
+				name:
+				    "failure",
+				args:
+				    exprlist$[
+					expr$create(
+					    exprabs$make_str(
+						"no matching tags"
+					    ),
+					    compe.str_type)]}),
+			    lastline)]})
+	tag body:
+	    elsepart := s.others_
+	end
+	g_if(
+	    e,
+	    ifstmt${
+		arms:  ifarmlist$a2s(ifarms),
+		else_: elsepart})
+    others:
+	signal failure("g_tagcase_hack: internal error")
+    end
+end g_tagcase_hack
+
+
+% Returns tag test expression.
+
+g_tagcase_test = proc(t: typespec, arm: tagarm, arg: expr) returns(expr)
+    compe: CE := cmpvar$stuffs().ce
+    boolt: typespec := compe.bool_type
+    tags: namelist := arm.tags
+    line: int := arm.line
+    test: expr := g_tagcase_isop(t, namelist$top(arm.tags), arg, line)
+    for i: int in int$from_to_by(namelist$size(arm.tags) - 1, 1, -1) do
+	test := expr$create(
+	    exprabs$make_cor_(
+		condop${
+		    left:  g_tagcase_isop(t, tags[i], arg, line),
+		    right: test}),
+	    boolt)
+    end
+    return(test)
+end g_tagcase_test
+
+
+% Makes an invocation of t$is_* operation.
+
+g_tagcase_isop = proc(t: typespec, tagname: str, arg: expr, line: int)
+		 returns(expr)
+    compe: CE := cmpvar$stuffs().ce
+    optype: typespec, old: bool := CE$get_type(
+	    compe, 
+	    typeabs$make_apply(applytype${gen:  compe.proc_,
+					  args: typelist$[t],
+					  vals: typelist$[compe.bool_type],
+					  sigs: exceptionlist$new()}))
+    return(
+	expr$create(
+	    exprabs$make_invoke(
+		invoke${
+		apply:
+		    expr$create(
+			exprabs$make_op(
+			    clusterop${type_: t,
+				       name:  "is_" || tagname,
+				       parms: exprlist$new()}),
+			optype),
+		args:
+		    exprlist$[arg],
+		line:
+		    line}),
+	    compe.bool_type))
+end g_tagcase_isop
+
+
+% Makes an assign statement:
+%	
+%	x := t$value_tagname(arg)
+
+g_tagcase_assn = proc(d: decl, t: typespec, tname: name, arg: expr, line: int)
+		 returns(stmt)
+    compe: CE := cmpvar$stuffs().ce
+    anys: decllist
+    if d.type_ = compe.any_type then
+	anys := decllist$[d]
+    else
+	anys := decllist$new()
+    end
+    return(
+	stmt$create(
+	    stmtabs$make_assn(
+		assn${
+		left:
+		    d.idns,
+		anys:
+		    anys,
+		right:
+		    exprlist$[
+			g_tagcase_valop(t, d.type_, tname, arg, line)]}),
+	    line))
+end g_tagcase_assn
+
+
+% Makes an invocation of t$value_* operation.
+% `res' is a result type, `arg' is an argument expression.
+
+g_tagcase_valop = proc(t, res: typespec, tagname: str, arg: expr, line: int)
+								returns(expr)
+    compe: CE := cmpvar$stuffs().ce
+    valoptype: typespec, old: bool := CE$get_type(
+	compe,
+	typeabs$make_apply(
+	    applytype${
+	    gen:
+		compe.proc_,
+	    args:
+		typelist$[t],
+	    vals:
+		typelist$[res],
+	    sigs:
+		exceptionlist$[
+		    exception${
+		    name:
+			"wrong_tag",
+		    types:
+			typelist$new()}]}))
+    return(
+	expr$create(
+	    exprabs$make_invoke(
+		invoke${
+		apply:
+		    expr$create(
+			exprabs$make_op(
+			    clusterop${type_: t,
+				       name:  "value_" || tagname,
+				       parms: exprlist$new()}),
+			valoptype),
+		args:
+		    exprlist$[arg],
+		line:
+		    line}),
+	    res
+	)
+    )
+end g_tagcase_valop
+
+
+% Generates code for `return' statement.
+
+g_return = proc(e: g_env, exprs: exprlist)
+    co: code_man := e.co
+    if exprlist$size(exprs) = 1 then
+	% Puts the result directly.
+	code_man$put_assign(co, g_name_result(1), g_expr(e, exprs[1]))
+    elseif exprlist$size(exprs) > 1 then
+	% In order for the result variable not to be messed, the
+	% evaluated results are first stored in temporary variables.
+	results: as := as$new()
+	rtype: str := e.rtype
+	for result: str in as$elements(g_exprlist(e, exprs, true)) do
+	    tmp: str := lv$new_temp(rtype)
+	    code_man$put_assign(co, tmp, result)
+	    as$addh(results, tmp)
+	end
+	for i: int in as$indexes(results) do
+	    code_man$put_assign(co, g_name_result(i), results[i])
+	end
+    end
+    code_man$putl(co, "return RET;")
+end g_return
+
+
+% Generates code for yield statement.
+
+g_yield = proc(e: g_env, exprs: exprlist)
+    co: code_man := e.co
+
+    % put return values in common area
+    if exprlist$size(exprs) = 1 then
+	code_man$put_assign(co, g_name_result(1), g_expr(e, exprs[1]))
+	    except when proctype_expr(p: proc_expr):
+		code_man$put_assign(co, g_name_result(1), p.code)
+	    end
+    else
+	% It may seem redundant that results are once saved in
+	% temporary variables and then stored in the return value
+	% area.  The fact that the results may contain the reference
+	% to the return value area gets us to do such a redundancy.
+	% Of course, a careful examination of results would make it
+	% possible to reduce the number of temporary variables.
+	results: as := g_exprlist(e, exprs, true)
+	tmpvars: as := as$new()
+	rtype: str := e.rtype
+	for res: str in as$elements(results) do    % put result to tmp
+	    tmp: str := lv$new_temp(rtype)
+	    code_man$put_assign(co, tmp, res)
+	    as$addh(tmpvars, tmp)
+	end
+	for i: int in as$indexes(tmpvars) do   % put tmp to retval_area
+	    code_man$put_assign(co, g_name_result(i), tmpvars[i])
+	end
+    end
+
+    % save resume point and return to caller.
+    pos: str := int$unparse(lb$add("yield"))
+    code_man$put_assign(co, "(*ivarp)[0]", pos)		% save current position
+    code_man$putl(co, "return YIELD;")
+    code_man$put_label(co, "yield" || pos)		% resume point
+    code_man$putl(co, "NO_OPERATION;")
+
+end g_yield
+
+
+% Generates code for `break' statement
+
+g_break = proc(e: g_env)
+    code_man$putl(e.co, "break;")
+end g_break
+
+
+% Generates code for `continue' statement
+
+g_continue = proc(e: g_env)
+    code_man$putl(e.co, "continue;")
+end g_continue
+
+
+% Generates code for body.
+
+g_body = proc(e: g_env, b: body)
+    co: code_man := e.co
+    code_man$begin_block(co)
+    lv$begin_scope()
+    for s: stmt in stmtlist$elements(b.stmts) do
+	scope_end:int := stmtlist$top(b.stmts).line
+	g_stmt(e, s, scope_end)
+    end
+    lv$put_local_decls(e)
+    lv$end_scope()
+    code_man$end_block(co)
+end g_body

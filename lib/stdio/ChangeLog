@@ -1,0 +1,637 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Wed Feb  5 11:15:08 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (all): Added `$(POUT).c' to the list of
+        prerequisites.
+
+	* stream.c: Doc fix.
+
+Tue Feb  4 11:45:50 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* LIB.xld: Removed `~CLU/lib/lowlev.lib'.
+	* date.clu (_gcd): Removed.
+
+Fri Jan 24 09:57:41 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c: Doc fix.
+
+Thu Jan 23 06:06:11 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (_open_streams): Use `object' instead of `elt'.
+
+Mon Oct 28 03:41:46 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (peekc): Fixed a bug that the line number is
+	incorrectly incremented if the next character in the stream is a
+	newline.
+
+Mon Oct  7 05:20:29 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* istream.c: Include <clu2c.h> instead of <clu2c/clu2c.h>,
+	<clu2c/type.h>, and <clu2c/glo.h>.
+	* stream.c: Ditto.
+
+Sun Oct  6 13:29:16 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* istream.c, stream.c (open): Use `object' instead of `file_name'.
+	* stream.c (set_date, print): Use `object' instead of `clus'.
+
+	* istream.c: Include <clu2c/istream.h> by itself.
+
+Tue Jun 18 13:03:21 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (putzero): Implemented.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Sun Jun  9 11:19:02 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* istream.c, stream.c (open): Use `file_name_to_string' instead of
+	`file_name_fill_directory' and `file_name$unparse' for getting the
+	actual file name.
+
+Wed May 22 09:03:01 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* set_wdir.clu (set_working_dir): Use `file_name_apply_directory'
+        instead of `file_name_fill_directory'.
+
+Thu May 16 08:06:13 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* EQU.xld: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* del_file.clu (delete_file): Invoke `_external_errname' instead
+        of `_external_errno'.
+
+Sun May 12 07:35:40 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* date.clu, del_file.clu, e_form.clu, f_form.clu, fname.clu,
+        g_form.clu, istream.c, now.clu, ren_file.clu, set_wdir.clu,
+        stream.c, username.clu, wdir.clu: Doc fix.
+
+Sun Apr 28 04:38:19 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* _fs_dos.clu, _fs_unix.clu, cur_dir.clu, de_names.clu,
+	dir_fn.clu, fn_abs.clu, fn_apply.clu, fn_asdir.clu, fn_drive.clu,
+	fn_f_dir.clu, fn_f_suf.clu, fn_isabs.clu, fn_nodir.clu,
+	fn_pdir.clu, fn_simpl.clu, fn_tostr.clu, fn_xhome.clu,
+	home_dir.clu, split_de.clu: Removed.  These files have been moved
+	to the `lib/clu2c' directory.
+	* Makefile.in: Changed accordingly.
+
+	* stdio.spc: Removed.
+	* Makefile.in: Changed accordingly.
+
+Sat Apr 27 13:09:24 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* LIB.xld: New file.
+	* SPC.xld: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* Makefile.in: Removed `remove.bat' from the list of non-source
+        files.
+
+Tue Apr 23 14:08:15 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Added `~CLU/lib/pstream'.
+
+	* set_wdir.clu (set_working_dir): Do not absolutize nor simplify.
+
+Sat Feb 17 11:51:22 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Moved `stdio.spc' from the list of miscellaneous
+        source files to the list of interface specification files.
+	(install): Changed accordingly.
+
+	* istream.c (geti, puti): Get independent of byte order.
+
+Sun Jan 14 14:21:47 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in, stream.c: Changed according to the changes to the
+        Japanese I/O library.
+
+Sat Nov 18 10:34:45 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* g_form.clu (g_form): Implemented.
+	* f_form.clu (f_form): Implemented.
+	* e_form.clu (e_form): Implemented.
+	(_real_round): New procedure.
+
+Mon Nov  6 11:11:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (puts): Cope with various combinations of char version
+        and Japanization.
+
+Sat Oct 28 13:22:07 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* istream.c: Do not include <config.h>.  This header is now
+        included from <config/*.h>.
+
+Sun Sep 24 12:54:08 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Added `~CLU/lib/lowlev'.
+
+	* date.clu (print, _gcd): Reverted.
+
+	* username.clu: Doc fix.
+
+Sun Sep 24 11:22:04 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Modification due to the changes to specification files.
+
+	* EQU.xld: New file.
+
+	* stdio.spc (stream$scripts): New operation.
+
+Mon Sep 18 14:14:03 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (puts): Use `Fnputs' if an argument string does not
+        contain any newline character.
+
+Thu Sep 14 09:27:37 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* de_names.clu (directory_entry_names): Signal `not_possible' if a
+	stream associated with the specified directory can not be opened.
+	* stdio.spc (directory_entry_names): Changed accordingly
+
+	* de_names.clu (directory_entry_names): Use a buffer in order to
+	avoid exhausting file descriptors when invoked recursively.
+
+Sat Sep  2 12:39:24 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* set_wdir.clu (set_working_dir): Fixed a bug that the working
+	directory is set incorrectly when the argument is empty.
+
+Thu Aug 24 14:16:08 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Require `all' and install `stdio.spc' to
+        `$(clu2c_libdir)'.
+
+	* stdio.spc: New file.
+	* Makefile.in: Changed accordingly.
+
+Mon Aug 21 11:28:16 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (set_output_buffered, get_output_buffered,
+        get_input_buffered, set_input_buffered): Implemented completely.
+
+Sat Aug 19 06:15:51 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c ($owninit): Receive a result from file_name$parse
+        correctly.
+
+Mon Jul  3 06:33:49 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (getc_image): Signal `end_of_file' on the appropriate
+        condition.
+	(getl, gets, gets_image): Work properly when an unexpected EOF is
+	encountered.
+
+Mon Jun 26 13:01:52 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* de_names.clu (directory_entry_names): Use file_name_to_string.
+	* del_file.clu (delete_file): Likewise.
+	* ren_file.clu (rename_file): Likewise.
+
+	* fn_tostr.clu: New file.
+	* Makefile.in: Changed accordingly.
+
+Sat May 20 12:00:14 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Make use of MK_MISC_SOURCES and MK_NON_SOURCES.
+
+	* Makefile.in: Changed treatment for _fs_*.clu.
+
+Wed May 17 08:18:04 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Refer to specification files in the ~CLU/lib directory.
+
+	* Makefile.in (dist): Use $(distname).
+	(dosdist): Use $(dos_distname).
+
+Tue May 16 12:25:57 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (cfiles): Added _fs_dos.c and _fs_unix.c to the list
+        of prerequisites.
+
+	* _fs_dos.clu (_check_directory_entry): Do not convert to lower
+	case characters as for "~CLU".
+
+Sun May  7 08:36:59 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c: Include <fcntl.h> before <config/unistd.h>.
+
+Sat May  6 12:32:39 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of miscellaneous
+        source files.
+
+Fri May  5 09:43:15 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* _fs_dos.clu (_check_directory_entry): Do not rule out `.' and
+        `..'.
+
+Thu May  4 06:24:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* _fs_dos.clu, _fs_unix.clu (_null_device_name): New procedure.
+
+Sun Apr 30 11:59:36 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Restricted the use of MK_PATH_NAME.
+	(dosdist, fakeclu.bat): Take care of _fs_dos.c and _fs_unix.c.
+
+Wed Apr 26 12:49:35 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c: Terminal streams accept both input and output
+        operations.
+	(_primary_input, _primary_output, _error_output): New own
+        variables.
+	(_putprompt): Receive a terminal stream to which a prompt is
+        put.  All callers changed.
+	(_mktbuf): Receive two file pointers for input and output.  All
+        callers changed.
+	(_std): Removed.
+	($owninit): Completely rewritten.
+	(primary_input, primary_output, error_output): Use own
+        variables.
+	(set_input_code, set_output_code, get_input_code,
+        get_output_code): New operations.
+
+Wed Apr 19 04:58:58 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: New file.
+
+	* now.clu (now): Use _external_gettime instead of
+        _external_getdate.
+
+Tue Apr 18 11:17:15 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* set_wdir.clu (set_working_dir): Simplify the specified working
+        directory.
+
+Mon Apr 17 05:17:36 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added de_names.clu to the list of CLU source files.
+
+	* de_names.clu: New file.
+
+Fri Apr 14 08:03:31 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* istream.c, stream.c (open): Apply file_name_fill_directory to
+	the file name.
+
+Thu Apr 13 06:15:58 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* del_file.clu, fname.clu, now.clu, ren_file.clu: New files.
+
+	* del_file.c, fname.c, now.c, ren_file.c: Removed.  These modules
+        have been rewritten in CLU.
+
+Wed Apr 12 06:41:36 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Removed _fs_$(FS_TYPE).clu from the list of CLU
+	source files.  Added _fs_dos.clu and _fs_unix.clu to the list of
+	miscellaneous source files.  Added del_file.clu, now.clu,
+	fname.clu, ren_file.clu to the list of CLU source files.  Removed
+	del_file.c, now.c, fname.c, ren_file.c to the list of C source
+	files.  Added a rule to create _fs.o from _fs_$(FS_TYPE).c.  Added
+	_fs.o to ALL_OBJ.  Changed the rule for dist so that _fs_dos.c and
+	_fs_unix.c will be copied.
+
+Tue Apr 11 13:36:38 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* set_wdir.clu, wdir.clu: Rewritten from scratch.
+
+	* fn_apply.clu (file_name_apply_directory): Fixed a bug that
+	accesses an uninitialized variable when proper directory of FN is
+	nonempty.
+
+	* fn_xhome.clu (file_name_expand_home_directory): Find a correct
+	value for the rest of the directory after a tilde notation.
+
+	* fn_simpl.clu (file_name_simplify): Treat `..' properly.
+
+Fri Apr  7 10:44:17 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* _workdir.clu: Removed.
+
+	* fn_nodir.clu: New file.
+
+	* Makefile.in: Changed the list of CLU source files according to
+	file name changes.
+
+	* fn_abs.clu: Renamed from abs_fn.clu.
+	(file_name_absolutize): Renamed from absolutize_file_name.
+
+	* fn_apply.clu: Renamed from applydir.clu.
+	(file_name_apply_directory): Renamed from apply_directory.
+
+	* fn_isabs.clu: Renamed from isabsfn.clu.
+	(file_name_is_absolute): Renamed from is_absolute_file_name.
+
+	* fn_f_dir.clu: Renamed from fill_dir.clu.
+	(file_name_fill_directory): Renamed from fill_directory.
+
+	* fn_f_suf.clu: Renamed from fill_suf.clu.
+	(file_name_fill_suffix): Renamed from fill_suffix.
+
+	* fn_simpl.clu: Renamed from simplefn.clu.
+	(file_name_simplify): Renamed from simplify_file_name.
+
+	* fn_xhome.clu: Renamed from xhomedir.clu.
+	(file_name_expand_home_directory): Renamed from
+        expand_home_directory.
+
+Sun Apr  2 09:23:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Mon Mar 27 06:02:28 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* abs_fn.clu, applydir.clu, cur_dir.clu, dir_fn.clu, e_form.clu,
+        f_form.clu, fill_dir.clu, fill_suf.clu, fn_asdir.clu,
+        fn_drive.clu, fn_pdir.clu, g_form.clu, home_dir.clu, isabsfn.clu,
+        simplefn.clu, xhomedir.clu: New files.
+
+	* _fs_unix.clu (max_dirent_length): New equate.
+	(_current_directory): New procedure.
+
+	* _fs_dos.clu (max_name_length, max_suffix_length): New equates.
+	(_current_directory): New procedure.
+
+	* username.clu (user_name): Call _external_getenv instead of _environ.
+
+	* username.clu: New file from SUN CLU Release 1.5 distribution
+        (sys/clu/user_name).
+
+Sun Mar 26 09:48:37 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* _workdir.clu: New file.
+
+Sat Mar 25 13:43:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* _fs_dos.clu, _fs_unix.clu, split_de.clu: New files.
+
+Fri Mar 24 13:30:10 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c: Changed configuration headers to be included.
+
+	* istream.c: Make use of configuration headers.
+	(reset): Use fseek for all platforms.
+	(get_date): Use fstat insted of stat.
+	(check_history, add_history): Use object instead of elt.
+
+Thu Jan 26 10:28:23 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (peekc): Clear beginning-of-line flag for terminal
+        stream.
+
+Wed Jan 25 13:26:18 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c: (_parsecode): Receive default coding system as the
+	third argument, which is used if the first argument is "default".
+	(_splitcode_old, _parsecode_old): New internal routines, which handle
+	old syntax for coding system specification.
+	(set_code): Try _parsecode_old when _parsecode signals the bad_format
+	exception.  If it returns, use the result.
+
+Mon Jan 16 08:15:29 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c: Support for renaming in Japanese I/O library.
+
+Wed Sep 28 04:50:04 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* istream.c: Typo fix.
+
+	* stream.c: Include "config.h" and <clu2c/stream.h>.
+
+Tue Sep 27 13:13:35 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c, istream.c: Support for J10N switching.
+
+Sat Oct 30 09:24:15 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c, istream.c: Use fseek instead of rewind.
+
+Mon Jul 12 21:19:47 1993  93M04218 mori akihito  <mori@is.titech.ac.jp>
+
+	* fname.c: Formatted in K&R style (MSDOS/X68000).
+
+	* now.c, ren_file.c, stream.c, fname.c, istream.c: Modified for
+        MSDOS/X68000.
+
+Tue Jul  6 07:58:50 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* date.clu, set_wdir.clu, wdir.clu: Doc fix.
+
+Sat Apr 17 06:36:42 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c, ren_file.c, now.c, istream.c, fname.c, del_file.c:
+	Changed the include directory conventions.
+
+Mon Dec 28 03:52:16 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c, ren_file.c, now.c, istream.c, fname.c, del_file.c:
+	Changed the naming conventions.
+
+Sat Oct 24 13:17:03 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c, ren_file.c, now.c, istream.c, fname.c, del_file.c:
+	Japanese support.
+
+Wed Sep 23 08:51:48 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* Version 1.1 released.
+
+Tue Aug 11 06:22:11 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (create_input, create_output, get_contents): New
+        operations for string I/O.
+
+Sat Jul 18 05:08:31 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (set_eof_flag): New operation (tentative version).
+
+Thu Jul 16 03:57:33 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (get_line_length): Return constant value.
+	(pending, display, get_eof_flag, print): New operations
+        (tentative version).
+	(getbuf, modify_display, get_rescan, set_rescan, _reset,
+	_open_streams, _close_all): New operations (stub version).
+
+	* fname.c (print, similar, copy): New operations.
+	(make_temp, _gcd): New operations (stub version).
+
+Mon Apr 27 18:05:49 1992  8928693 morimura takeshi  <m-takesi@is.titech.ac.jp>
+
+	* stream.c (open): Pass correct mode to fopen.
+
+Mon Mar 16 19:40:20 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* del_file.c, fname.c, istream.c, now.c, ren_file.c, stream.c: Doc
+        fix (copyright notice).
+	* date.clu: Doc fix (Modification notice).
+
+	* stream.c (getl, gets): Signal not_possible for too long line.
+
+	* date.clu (equal, similar): Modified.
+
+Tue Feb 18 19:31:20 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* date.clu: This revision is very similar to original MIT version
+	of date, except that print/_gcd operations are commented out.
+
+	* date.clu (encode, decode): New operations.
+
+Tue Feb 18 19:06:50 1992  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* set_wdir.clu: New file.
+
+Thu Feb 13 21:23:54 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (put_prompt): Resurrected.
+
+Thu Feb 13 21:01:13 1992  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* stream.c (put_prompt): Commented out.
+
+Tue Dec 24 01:14:27 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* stream.c (MAXLINE): Augmented.
+
+Thu Nov 21 19:12:13 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* istream.c (check_history): Bug fix.
+
+Tue Nov 19 22:39:07 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* istream.c: Use hash table instead of binary tree.
+
+Fri Nov 15 22:25:43 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* istream.c: Enable to encode/decode cyclic objects.
+
+Sat Nov  2 18:24:46 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* istream.c: New file.
+
+	* fname.c (encode, decode): New operations.
+
+Fri Oct 25 16:10:34 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* stream.c (gets): Bug fix.
+
+Wed Oct  2 22:23:35 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* fname.c (equal): New operation.
+
+Sat Jul 13 14:28:31 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* fname.c, stream.c: Use malloc_atomic for allocation atomic
+        objects.
+
+Tue Jul  9 17:07:36 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* date.clu (print, encode, decode): Commented out.
+
+Wed Jul  3 02:25:07 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* wdir.clu: New file.
+
+Tue Jul  2 22:30:56 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* stream.c (open, primary_input, primary_output, error_output):
+        Initialize prompt.
+
+Tue Jul  2 21:57:13 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* stream.c (get_date): Commented out.
+
+Tue Jul  2 18:11:19 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (get_date): New operation.
+
+	* stream.c: Unimplemented operations signals failure with
+	"stream$OP: not implementd".
+
+Tue Jul  2 00:15:56 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* stream.c, fname.c: Changed include file (using -I option).
+
+Sun Jun 30 13:01:19 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* date.clu (print): Uncommented out.
+
+Sat Jun 29 15:03:19 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* stream.c (get_name): New operation.
+
+Fri Jun 28 15:21:11 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* fname.c: Bug fix (= -> ==).
+
+Fri Jun 28 15:09:02 1991  Nobuyuki Tomizawa  <tomizawa@is.titech.ac.jp>
+
+	* stream.c (print_prompt): New internal routine.
+	(getc, getl, gets): Put prompt if needed.
+
+Sat Jun 22 23:30:39 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* fname.c (make_output): New operation.
+
+Sat Jun 22 19:22:14 1991  Nobuyuki Tomizawa  <tomizawa@is.titech.ac.jp>
+
+	* stream.c: Include <sys/types.h>, <sys/stat.h>, and <time.h>.
+	(get_lineno, set_lineno): New operations.
+	(is_terminal): Terminate with the normal condition.
+
+Sat Jun 22 15:59:14 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ren_file.c, now.c, del_file.c: New files.
+
+Sat Jun 22 06:58:38 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* fname.c: Small bug fix.
+
+	* fname.c (create, get_dir): Fixed to handle "/" and nil correctly
+        for dir.
+
+	* fname.c (get_dir): Return "/" if dir is "/"; otherwise the
+        result's end is not "/".
+	(get_name): Removed strange code.
+
+	* fname.c (create): Check formats.
+	(get_dir): If argument is null, we must return null.  And return
+        value must not with / on its end.
+
+Sat Jun 22 02:45:17 1991  M0125 ehara tadashi  <ehara@is.titech.ac.jp>
+
+	* stream.c (getl): Bug fix.
+
+Sat Jun 22 02:01:29 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* fname.c: This is not my work. perhaps urano's.
+
+Fri Jun 21 21:40:17 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* date.clu: New file.
+
+Fri Jun 21 12:52:45 1991  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* stream.c (open, primary_input, primary_output, error_output):
+        Use malloc instead of xmalloc.
+	(can_read, can_write): Typo fix.
+	(putl): Check return value of putc properly.
+	(puts): Check return value of fprintf.
+
+Wed Jun 19 16:22:33 1991  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* stream.c: Include "../include/type.h" instead of "type.h".
+
+	* stream.c, fname.c: New files.

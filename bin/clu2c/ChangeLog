@@ -1,0 +1,2313 @@
+Thu Feb 06 04:44:02 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.3 (2.0-beta3) released.
+
+Wed Feb  5 09:55:37 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* menv.clu, gtop.clu, gparam.clu, gown.clu, glit.clu, command.clu:
+        Doc fix.
+
+Tue Feb  4 13:02:33 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* LIB.xld: Added `~CLU/lib/file.lib'.  Removed
+        `~CLU/lib/lowlev.lib' and `~CLU/lib/useful.lib'.
+
+	* table.clu (hash): New procedure.
+
+Sun Jan 26 11:47:16 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* LIB.xld: Added `~CLU/lib/int.lib'.
+	* glit.clu (char_expr_1, char_expr_2): Use `int_hex_unparse'
+        instead of `x_form'.
+	(x_form): Removed.
+	* gparam.clu (param$get_char_lit1): Use `int_oct_unparse' instead
+        of `i_ounparse'.
+	* penv.clu (p_env$number, p_env$escape): Use `int_hex_parse' and
+        `int_oct_parse' instead of `i_hparse' and `i_oparse',
+        respectively.
+
+	* menv.clu (m_env$get_check_args): Handle the `unknown_key'
+	exception signaled by `get_refs'.
+
+Sat Jan 25 12:05:50 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* command.clu (command_line$argv_to_commands): Use `terminate'
+        instead of `quit_'.
+	* top1.clu (quit_execute): Ditto.
+
+Fri Jan 24 09:57:41 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* command.clu, gown.clu, gtop.clu, menv.clu: Doc fix.
+
+	* LIB.xld: Removed `~CLU/lib/misc.lib'.  Replaced
+        `~CLU/lib/progargs.lib' with `~CLU/lib/progenv.lib'.
+
+Thu Jan 23 12:29:11 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* pdefn1.clu (p_include): Use `file_name_fill_suffix' instead of
+        `file_name_fill'.
+	* top1.clu (make_file_name, dump_execute): Ditto.
+
+	* top2.clu (compile1): Do not show elapsed time.
+
+	* syntax.equ (applydefn, typedefn): Added a new component:
+        references.
+	* pdefn1.clu (p_applydefn): Changed accordingly.
+	* gown.clu (cluster_own$make_initializer): Changed accodingly.
+	* top2.clu (check_one1): Set the references component of the
+        module definition.
+	* gtop.clu (g_applydefn, g_typedefn): Generate module dependencies
+        in comments.
+	
+	* top2.clu (do_compile): Do not modifiy m_env.
+	(do_specs): Ditto.
+	(check_one1): Ditto.
+	* menv.clu (get_check_args): Update dependency/location table by
+	looking at generated C files.
+	(dump): Do not create `Depend' and `Location'.
+	(restore): Restore dependency/location table from generated C files,
+	rather than from the files `Depend' and `Location'.
+	(check_targets): Receive one more argument that specifies CLU files.
+	(restore_deploc): New internal routine.
+	(merge_deploc): New internal routine.
+	(dependencies): New internal routine.
+	(speclib_name): New internal routine.
+	(LOCATION_FNAME): Removed.
+	(DEPENDENCY_FNAME): Removed.
+	(dumping_files): Removed.
+	(xref_dump): Removed.
+	(xref_restore): Removed.
+	(env_fn): Removed.
+
+	* top2.clu (compile1, reset_stuff): Create an output file in the
+        current working directory.
+
+Thu Jan 16 14:09:45 1997  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* command.clu (command_line$argv_to_commands): Removed options:
+        `-D' and `-B'.
+	* init.clu (initialize_commands): Removed commands: `bindir',
+        `dir', and `escape'.
+	* top1.clu (bindir_execute): Removed.
+	(dir_execute): Removed.
+	(escape_execute): Removed.
+
+	* idn.clu (_gcd): Removed.
+
+	* top1.clu (check_file_name): Do not use `_dir_ent_size'.
+	Truncation of file name components are done by `file_name$create'
+	if necessary.
+	* top2.clu (compile1): Ditto.
+	(reset_stuff): Ditto.
+
+Thu Dec 12 13:09:34 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* glit.clu (char_expr_1): Generate an integer literal for a
+        character in the range ['\200', '\377'].
+	(char_expr_2): Ditto.
+
+Mon Oct  7 03:07:51 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* genv.clu (code_man$flush): Generate code that includes <clu2c.h>
+        only.
+
+Sat Oct  5 13:59:45 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* command.clu (command_line$argv_to_commands): Signal `bad_format'
+	if an unknown option, an option missing a required argument, or an
+	option with an unwanted argument is encountered.
+
+Fri Jun 21 12:43:38 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gexpr.clu (raising_exception): Macro versions of `int$div' and
+        `int$mod' do not need temporary variables any more.
+
+Mon Jun 10 09:54:00 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Version 1.99.2 (2.0-beta2) released.
+
+Thu May 23 05:13:57 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* penv.clu (p_env$escape): Handle escape sequences of the form
+        `\^*' correctly.
+
+Sun May 12 07:33:53 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* build.clu, cdefn1.clu, cdefn2.clu, cenv.clu, cexpr1.clu,
+        cexpr2.clu, clu2c.equ, cmpvar.clu, command.clu, config.equ,
+        coper.clu, cspecs.clu, cstmt1.clu, debug.clu, du.clu, gcons.clu,
+        genv.clu, gexcept.clu, gexpr.clu, ginvoke.clu, glit.clu,
+        gname.clu, gopt.clu, gown.clu, gparam.clu, gstmt.clu, gtop.clu,
+        idn.clu, init.clu, make.clu, menv.clu, nameconv.clu, passes.equ,
+        pdefn1.clu, penv.clu, pexpr.clu, pstmt1.clu, pstmt2.clu,
+        pttkn.clu, syntax.clu, syntax.equ, table.clu, top1.clu, top2.clu,
+        vcmp.clu, xlib.clu, xref.clu: Doc fix.
+
+	* Makefile.in (installdirs): Make sure that $(bindir) exists.
+
+Sat May 11 12:52:35 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2csh.in: New file.
+	* Makefile.in: Changed accordingly.
+	(all): Require `clu2c.sh'.
+	(install): Install `clu2c.sh' as `$(bindir)/clu2c'.
+	(clean, distclean, realclean): Remove `clu2c.sh'.
+	(clu2c.sh): New rule.
+
+Sat Apr 27 13:31:19 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* LIB.xld: Replaced `~CLU/lib/stdio.lib' with
+	`~CLU/lib/dirent.lib' and `~CLU/lib/filename.lib'.
+
+	* LIB.xld: Added `~CLU/lib/lowlev.lib', `~CLU/lib/misc.lib',
+	`~CLU/lib/runtime.lib', `~CLU/lib/stdio.lib', and
+	`~CLU/lib/useful.lib'.
+	* SPC.xld: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* top1.clu (input_file_names): Yield nothing if no matching file
+	names are found.
+
+	* Makefile.in: Removed `remove.bat' from the list of non-source
+        files.
+
+Thu Apr 25 13:29:22 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* LIB.xld: New file.
+	* Makefile.in: Changed accordingly.
+
+	* EQU.xld: Added `~CLU/lib/getopt.equ'.
+
+	* command.clu (command_line): Reimplemented.
+	(command$echo): New operation.
+
+	* top1.clu (all_input_file_names): New iterator.
+	(input_file_names): New iterator.
+	(input_probes): New iterator.
+	(direct_input_specs): New iterator.
+	(matching_file_names): New iterator.
+	(match): New procedure.
+	(all_input_names, all_derived_names): Removed.
+	(merge_execute, unmerge_execute, xfile_execute): Use
+        `all_input_file_names' instead of `all_input_names'.
+	* make.clu (make_compile): Likewise.
+	* top2.clu (compile): Likewise.
+	(setup_stuff): Changed accordingly.
+	* menv.clu (check_files, check_targets): Use `input_file_names'
+        instead of `all_derived_names'.
+
+	* top1.clu (merge_execute, unmerge_execute): Use
+        `file_name_to_string' instead of `file_name$unparse'.
+	* top2.clu (reset_stuff): Likewise.
+
+Tue Apr 23 13:52:40 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* make.clu (make): Merge interface specification library files, if
+        any.
+
+	* menv.clu (get_merge_args): New operation.
+	(rep): Added a new component `merge_arg'.
+	(create, restore, check_files): Changed accordingly.
+
+Fri Apr  5 10:22:29 1996  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* cdefn2.clu (c_typedefn): Resets up/down types in the checker
+        environment at the end.
+
+Sat Nov 18 13:44:04 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* penv.clu (p_env$reallit): Set the value of a real literal to
+        zero if parsing a literal causes an underflow.
+
+Tue Nov  7 04:39:08 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* glit.clu (string_expr1): Recognize "overflow" and "underflow" as
+        a common string constant.
+
+Fri Oct 27 12:57:35 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* genv.clu (g_env): String version defaults to 3.
+
+Tue Oct 24 11:07:47 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* genv.clu (code_man$indent_str): Use a buffer of array[char]
+        instead of a string output stream.
+
+Tue Oct 17 05:09:12 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* glit.clu (string_expr2_3): Changed according to the changes to
+        string representation.
+
+Tue Sep 26 08:57:13 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* build.clu, cdefn1.clu, cenv.clu, cexpr1.clu, cexpr2.clu,
+        cspecs.clu, cstmt1.clu, du.clu, passes.equ, pexpr.clu, pstmt1.clu,
+        pstmt2.clu, pttkn.clu, syntax.clu, syntax.equ, table.clu,
+        xlib.clu, xref.clu: Doc fix.
+
+	* cdefn2.clu, cmpvar.clu, coper.clu, idn.clu, init.clu,
+        pdefn1.clu, penv.clu, top1.clu, top2.clu: Merged the changes
+        between SUN CLU and PCLU.
+
+	* mcmp.clu: Removed.	
+	* vcmp.clu: Reverted.
+	* Makefile.in: Changed accordingly.
+
+Sun Sep 24 11:15:08 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Modification due to the changes to specification files.
+
+Sat Sep 16 10:10:35 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gstmt.clu (g_for_decls, g_for_idns, g_for_body): New procedures.
+	(g_for): Rewritten so that it uses these auxiliary routines.
+
+Fri Sep 15 07:22:58 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gstmt.clu: Merged the contents of `gctrl.clu'.
+	* gctrl.clu: Removed.
+	* Makefile.in: Changed accordingly.
+
+	* gstmt.clu (g_return): Moved from `ginvoke.clu'.
+	* ginvoke.clu (return_stmt): Removed.
+
+	* gstmt.clu (g_yield): Moved from `gexcept.clu'.
+	* gexcept.clu (yield_stmt): Removed.
+
+	* gstmt.clu (g_decl): Renamed from `decl_stmt'.
+	* gexcept.clu (g_handler, g_othersarm): Changed accordingly.
+
+	* gstmt.clu (g_declinit): Renamed from `declinit_stmt'.
+	(g_assign): Renamed from `assn_stmt'.
+
+	* gexcept.clu (g_resignal): Renamed from `resignal_stmt'.
+	(g_signal): Renamed from `signal_stmt'.
+	(g_exit): Renamed from `exit_stmt'.
+
+	* ginvoke.clu (g_invoke_stmt): Renamed from `invoke_stmt'.
+
+Tue Aug 29 11:24:11 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* debug.clu, gctrl.clu, genv.clu, gexcept.clu, gexpr.clu,
+        ginvoke.clu, gname.clu, gown.clu, gparam.clu, gstmt.clu, gtop.clu,
+        idn.clu, init.clu, make.clu, menv.clu, pdefn1.clu, syntax.clu,
+        top2.clu, xlib.clu, xref.clu: Avoided to use non-standard
+        notations.
+
+Mon Aug 28 08:02:46 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gexcept.clu, gname.clu, ginvoke.clu: Doc fix.
+
+Mon Aug 21 12:42:19 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* glit.clu (string_expr2_3): New procedure.
+	* genv.clu: Support for string version 3.
+
+Wed Aug 16 05:53:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* init.clu (initialize_commands): Added `char-version' and
+        `string-version'.
+
+	* top1.clu (char_version_execute, string_version_execute,
+	integer_argument): New procedures.
+
+	* debug.clu (type_info): Support for the interface change of
+        `char_expr'.
+	* gexpr.clu (g_expr): Likewise.
+	* gparam.clu (p_expr): Likewise.
+
+	* config.equ (char_expr, string_expr2): Removed.
+
+	* glit.clu (char_expr): New procedure.
+	(char_expr_1): Renamed from `char_expr_noj10n'.
+	(char_expr_2): Renamed from `char_expr_j10n'.
+	(string_expr1): Invoke `string_expr2_1' or `string_expr2_2' based
+        on the string version.
+	(string_expr2_1): Renamed from `string_expr2_noj10n'.
+	(string_expr2_2): Renamed from `string_expr2_j10n'.
+
+	* genv.clu (g_env): Added `char_v', `str_v', and `strings' to the
+        representation.
+	(g_env$get_char_version, g_env$set_char_version,
+        g_env$get_string_version, g_env$set_string_version,
+        g_env$lookup_string, enter_string): New operations.
+	(g_env$create, g_env$reset, g_env$flush): Changed accordingly.
+
+Thu Jul 27 13:50:22 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* penv.clu (escape): Return the character read from input if the
+	second character of an escape sequence is a backslash, a single
+	quote, or a double quote.
+
+Mon Jun 26 02:44:21 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.equ (major_ver, minor_ver): Removed.
+	* genv.clu (code_man$flush): Invoke cmpvar$version to get the
+        version.
+
+Sat Jun  3 09:42:58 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* cdefn2.clu (c_down_type): Do not complain about undefined REP in
+        specs mode.
+
+Thu May 25 09:10:31 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in (install): Locate clu2c.hlp correctly.
+
+	* gcons.clu (a_cons_expr, array_cons_expr, seq_cons_expr,
+        s_cons_expr): Removed.
+	* gcons.clu (g_arraycons, g_selectcons): New procedures.  These
+        are reimplemented versions of a_cons_expr and s_cons_expr,
+        respectively.
+	* gcons.clu (g_low, g_alloc_array, g_alloc_sequence): New
+        procedures.
+	* gexpr.clu (g_expr): Invoke g_arraycons and g_selectcons instead
+        of a_cons_expr and s_cons_expr, respectively.
+
+Sat May 20 11:30:44 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Make use of MK_MISC_SOURCES and MK_NON_SOURCES.
+
+Sat May 20 09:55:05 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Make use of MK_EQU_SOURCES.
+
+	* clu2c.hlp: New file from the lib directory.
+	* Makefile.in: Changed accordingly.
+
+	* SPC.xld: Removed _sysroot.spc.
+
+	* mcmp.clu (basic_name, safety_name, help_name): Use `~CLU'
+        instead of invoking _system_root.
+
+	* xlib.clu (dump): Signal not_possible immediately when the output
+	file can not be opened.
+
+Wed May 17 08:28:52 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Refer to specification files in the ~CLU/lib directory.
+
+Tue May  9 04:34:22 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mcmp.clu (basic_name): Changed.
+
+Mon May  8 06:07:45 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* menv.clu (m_env$check_targets): Close streams when they become
+        unused.
+
+Sat May  6 12:40:19 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Added remove.bat to the list of miscellaneous
+        source files.
+
+	* gtop.clu (g_apply): Changed the argument to noretval and
+        out_handler.
+
+Thu May  4 06:30:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Added specification file for _null_device_name.
+
+	* config.equ (NULL_DEVICE): Removed.
+
+	* mcmp.clu (null_dev): Use the result from _null_device_name.
+
+Tue Apr 18 09:45:02 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Added specification file for parse_line.
+	* menv.clu (parse_line): Removed.
+
+	* menv.clu (m_env$create): Signal none if there are no target CLU
+        files.
+	* make.clu (make): Return immediately if m_env$create signals
+        none.
+
+Mon Apr 17 14:18:56 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Added rtenv.spc
+
+	* mcmp.clu (get_compiler_version): Get version from the run-time
+        environment.
+
+	* top1.clu (start_up): Changed greeting message.
+
+Wed Apr 12 06:48:30 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Changed to use spec files under the spc directory.
+
+Wed Apr  5 17:40:54 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gtop.clu (g_apply): Do not generate redundant code at the top of
+	(g_args): Receive the scope of arguments.  All callers changed.
+        Call dbinfo$local_var_info instead of dbinfo$var_info.
+
+	* gown.clu (cluster_own$declare1, routine_own$declare1): Generate
+	type information about own variables.
+	(cluster_own$declare, cluster_own$put_init): Receive the end of
+	scope as an argument.  All callers changed.
+
+	* gctrl.clu (g_tag_decl): Receive the scope of local variable
+	being declared as arguments.  All callers changed.
+
+	* gexcept.clu (g_except, g_attached_stmt, resignal_stmt): Receive
+	the end of the current innermost scope as an argument.  All
+	callers changed.
+
+	* gstmt.clu (g_stmt, decl_stmt, declinit_stmt): Receive the end of
+	the current innermost scope as an argument.  All callers changed.
+
+	* gparam.clu (tid, p_exprlist): Generate debugging infomation
+        about types.
+
+	* genv.clu (code_man): Added rinfo and tinfo to the
+        representation.
+	(code_man$create, code_man$reset, code_man$flush): Support for
+        the new representation.
+	(code_man$tinfo, code_man$rinfo): New operations.
+	(lv): Added scope_start and scope_end to var_entry.
+	(lv$decl, lv$decl_local, lv$decl_arg, lv$decl_own): Receive the
+	scope of the variable as arguments.  All callers changed.
+	(lv$put_own_decls): Call dbinfo$own_var_info instead of
+        dbinfo$var_info.  Declare own variables with initial value zero.
+	(lv$put_local_decls): Likewise.
+
+	* debug.clu (var_info): Removed.
+	(tid_info, local_var_info, own_var_info, param_info): New operations.
+	(type_info, cluster_info): Receive generator environment as an
+	argument.  All callers changed.
+	(type_info): Added lit and formal to param_id.
+	(type_info): Treat value parameters and formal parameters properly.
+	(type_info): Generate information about type parameters before
+	generating information about type generators.
+	(type_info): Changed the format for type information.
+
+Fri Mar 31 05:41:52 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: Define MISC_SRC.
+
+Wed Mar 29 13:46:04 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* Makefile.in: New file.
+
+Mon Mar  6 04:02:21 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* build.clu, cdefn1.clu, cdefn2.clu, ce.clu, cenv.clu, cexpr1.clu,
+        cexpr2.clu, cmpvar.clu, cspecs.clu, cstmt1.clu, idn.clu, mcmp.clu,
+        passes.equ, pdefn1.clu, pexpr.clu, pstmt1.clu, pstmt2.clu,
+        pttkn.clu, syntax.clu, syntax.equ, table.clu, xref.clu: Doc fix.
+
+Sat Mar  4 21:03:47 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* du.clu (keepmax): Removed.
+	(protected): New own variable.  All operations that used to
+        access keepmax now utilize this variable instead.
+
+Thu Feb 23 06:30:40 1995  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* init.clu (initialize_specs): Put message to standard output and
+        signal the failure exception if an error occurs.
+
+	* init.clu (initialize_specs): Typo fix.
+	* top1.clu (xfile_execute): Typo fix.
+
+Thu Nov 10 13:10:31 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* penv.clu: Support for non-Japanized system.
+
+	* passes.equ (char_entry): Removed.
+	(klist): Element type is now char_kind.
+	(char_kind): Some values have additional information.
+        (funny_char, mtoken): New equates.
+
+Thu Nov  3 12:08:49 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* nameconv.clu (conv_opfun): Do not make special treatment for
+        built-in cluster operations.
+
+Wed Oct 26 12:21:58 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* top2.clu (compile): Return true on success; otherwise return
+        false.
+
+	* top1.clu (start_up): Signal the failure exception if at least
+        one invocation of the process_commands procedure raise the
+        unsuccessful exception.  (process_commands): Signal the
+        unsuccessful exception if at least one commands signal the
+        unsucessful exception.  (ce_execute, check_execute,
+        compile_execute, make_execute, parse_execute, scompile_execute,
+        specs_execute, xce_execute: Signal the unsuccessful exception if
+        the compile procedure returns false.  (xfile_execute): Resignal
+        the unsuccessful exception when invoking the process_commands
+        procecure.
+
+	* menv.clu (dump, restore): Support for the interface changes of
+        the process_commands procedure.
+
+	* make.clu (make): Return true on success; otherwise return false.
+									  
+	* init.clu (initialize_specs): Support for the interface changes
+        of the process_commands procedure.
+
+Tue Sep 27 14:10:34 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* glit.clu, nameconv.clu, passes.equ, penv.clu: Support for J10N
+        switching.
+
+	* clu2c.equ (opt_iter_proc): Changed interface.
+
+	* gexpr.clu (raising_exception): Rearranged.
+	* gopt.clu: rearranged code.
+
+	* gname.clu (g_name_type): Always return "object".
+
+	* genv.clu, gctrl.clu, menv.clu, gstmt.clu, gparam.clu, xlib.clu,
+        top2.clu: Doc fix.
+
+Wed Aug 10 06:03:28 1994  Akihito Mori  <mori@is.titech.ac.jp>
+
+	* gname.clu (g_name_tid_var): Typo fix.
+
+Thu Jul 14 04:36:10 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* command.clu: New file.
+
+	* top1.clu: Modified about command line processing.
+
+	* passes.equ (command, command_list): Removed.
+	Equates about `process_commands' have been removed.
+
+	* menv.clu: Modified about command line.
+
+	* init.clu (initialize_commands): New procedure.
+
+Sat Jun 25 07:39:03 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gexcept.clu: Changed code generation strategy for exception
+	handling.  Now handlers are generated at the point that
+	corresponds to the point where handlers are placed in source
+	files.
+	* genv.clu (g_env$begin_except, g_env$end_except,
+        g_env$get_current_handler): New operations.
+	* gctrl.clu, ginvoke.clu, gtop.clu: Changed accordingly.
+
+Wed Jun  1 09:19:01 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* genv.clu (lv$new_temp): New operation.
+	(lv$new_inv, lv$new_ivar, lv$icond): Removed.
+	* gctrl.clu: Changed accordingly.
+	* gcons.clu: Likewise.
+	* gexcept.clu: Likewise.
+	* gexpr.clu: Likewise.
+	* ginvoke.clu: Likewise.
+	* gopt.clu: Likewise.
+	* gstmt.clu: Likewise.
+
+Tue Jan 25 04:16:46 1994  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* cdefn2.clu (c_setup_opers): Detect redeclaration of operations.
+
+Fri Dec 24 08:43:50 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gparam.clu (param$new_apply): Changed comment information for
+	parameterized modules, so that `%' at the top of the name of an
+	internal routine of a cluster does not appear.
+	(param$entryp_op): Likewise.
+
+Wed Dec 22 13:40:34 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.equ (cvt_direction, cvt_up, cvt_down): New constants.
+
+	* debug.clu (dbinfo): New cluster.
+	(dbinfo_type, dbinfo_var): Removed.
+
+	* gctrl.clu (tag_stmt): Rewritten.
+	(g_tag_arms, g_tag_test, g_tag_number, g_tag_decl): New procedures.
+
+	* genv.clu (g_env, code_man): New clusters.  These are
+        replacements for `env' and `co', respectively.  Most generator
+        routines receive `g_env' as an argument; `code_man' can be got
+        from `g_env' through `g_env$get_co'.
+	(error): Removed.
+	* clu2c.equ (opt_iter_proc): Changed accordingly.
+	* passes.equ (stuff): Added a new field `genv'; renamed
+        `basic_modules' as `basic_mods'.
+	(maybe_g_env): New constant.
+
+	* genv.clu (g_clu_routine): Removed.
+
+	* gexcept.clu (sig_env$end_of_scope): Signal `no_scope' if there
+        is no scope to end.
+
+	* gexcept.clu (sig_env$put_sighandler): No special treatment for
+        `start_up' is performed.
+
+	* gexcept.clu (g_except, g_handler, g_except_others): New
+        procedures.
+	(except_stmt): Removed.
+
+	* gexcept.clu (resignal_stmt, yield_stmt): Rewritten.
+
+	* gexcept.clu (signal_stmt, exit_stmt): Rewritten.
+	(g_condition): New procedure.
+
+	* ginvoke.clu (invoke_stmt, invoke_expr): Simplified.
+	(g_invoke): New procedure.
+
+	* ginvoke.clu (g_invoke_macro, g_fold_as): New procedures.
+	(make_arg_str): Removed.
+
+	* gname.clu (g_cluname_routine): Signal `no_name' if the
+        expression is an identifier, an invocation, or `down'.
+
+	* gown.clu: New file.
+	* genv.clu (clus_own): Removed
+
+	* gparam.clu (param$nth_idn): Exposed.
+
+	* gstmt.clu (g_stmt): Receive one statement.
+	(g_body): New procedure.
+
+	* gstmt.clu (decl_stmt, declinit_stmt, assn_stmt): Rewritten.
+	(g_nr_vars, g_idns_in_decllist, g_simple_assign, g_inv_assign,
+	g_multi_assign): New procedures.
+
+	* gtop.clu (g_definition): New procedure.
+	(one_def): Removed.
+	(g_applydefn): New procedure.
+	(one_proc): Removed.
+	(g_typedefn): New procedure.
+	(g_clus): Removed.
+	(g_args, g_iter_prologue): New procedures.
+	(g_init_own): Removed.
+
+	* gtop.clu (g_apply): Removed code that signals `failure("no
+        return values")' if it is sure that return valus exist.
+
+	* mcmp.clu (binary_suffix): Return "c".
+
+	* nameconv.clu (conv_appfun): Do not treat `start_up' as a special
+        case.
+
+	* nameconv.clu (conv_ownvar_app): Fixed a bug that discriminater
+        is appended if nonparameterized, not if parameterized.
+	(conv_ownvar_op): Likewise.
+
+	* vcmp.clu: Removed.
+
+
+
+Mon Dec 20 08:30:06 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* gexpr.clu (g_force_expr): Fixed a bug that a function name that
+        corresponds to `force' is not generated properly.
+
+Thu Nov 18 12:31:41 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xld: Changed according to the new directory hierarchy.
+
+Sat Oct 30 07:45:59 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gtop.clu (g_apply): Generate code that calls `GC_init' instead
+        of `gc_init' at the top of the `main' function, according to the
+        new naming convention of recent GC library.
+
+Thu Jul 15 13:13:40 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* cexpr1.clu (c_expr): Removed an unused local variable from a tag
+        arm.
+
+	* penv.clu: Doc fix.
+
+Thu Jul  8 07:15:04 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* table.clu, xref.clu: Doc fix.
+
+Tue Jul  6 05:22:47 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* build.clu, cconst.clu, cdefn1.clu, cdefn2.clu, ce.clu,
+        cexpr2.clu, cmpvar.clu, coper.clu, cspecs.clu, cstmt1.clu,
+        cstmt2.clu, du.clu, eval1.clu, eval2.clu, idn.clu, init.clu,
+        mcmp.clu, passes.equ, pconst.clu, pdefn1.clu, pdefn2.clu,
+        pexpr.clu, plist.clu, pstmt1.clu, pstmt2.clu, pttkn.clu,
+        syntax.clu, syntax.equ, tkntab.clu, top1.clu, top2.clu, xlib.clu:
+        Doc fix.
+
+Thu Jun 17 22:02:04 1993  Akihito Mori  <mori@is.titech.ac.jp>
+
+	* config.equ: New file.  This file contains constant definitions
+        for `SYSTEM_NAME', `NULL_DEVICE', `XLOAD_SUFFIX', `XFILE_SUFFIX',
+        `JUNK_SUFFIX', `BASIC_SUFFIX', `SAFETY_FNAME', `SAFETY_SUFFIX',
+        `HELP_FNAME', and `HELP_SUFFIX'.
+	* EQU.xld: Changed accordingly.
+	* init.clu (initialize_specs): Changed to use these names.
+	* mcmp.clu (op_sys_name): Likewise.
+	(basic_name): Likewise.
+	(nul_dev): Likewise.
+	(safety_name): Likewise.
+	(help_name): Likewise.
+	(junk_name): Likewise.
+	* menv.clu (m_env): Likewise.
+	* top1.clu (xfile_execute, all_derived_names): Likewise.
+
+Mon Jun 14 13:25:26 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gopt.clu: Renamed from goptimize.clu.
+
+	* dusimilar.clu: Removed.
+	* du.clu (DUsimilar): Moved from dusimilar.clu.
+
+Sun Jun 13 13:49:09 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xload: Changed according to the changes to locations of
+        interface specification files.
+
+Tue Jun  8 12:13:02 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* genv.clu (co): Changed the type of the `file_name' field of rep
+        from `string' to `fname'.
+	(co$reset, co$out_code): Changed accordingly.
+
+	* genv.clu (co$reset): Receive `fname' instead of `string'.
+	* top2.clu (compile1): Changed accordingly.
+
+	* genv.clu (co$reset): Use a directory returned from `cmpvar$dir'
+        if a directory for output file is not specified.
+	* menv.clu (m_env$check_targets): Changed accordingly.
+
+	* genv.clu (co$get_file_name): Return `fname' instead of `string'.
+
+	* menv.clu (m_env): Changed file name for module dependency from
+        "Dependency" to "Depend".  This is primarily for MS-DOS
+        environments.
+
+	* menv.clu (m_env$dump): Call `env_fn' to get actual file names.
+	(m_env$restore, m_env$dumping_files): Likewise.
+	(m_env$env_fn): New internal routine.
+
+	* top1.clu (execute_command): Enabled the `bindir' command.
+
+Fri May 28 08:02:44 1993  Akihito Mori  <mori@is.titech.ac.jp>
+
+	* gexpr.clu (g_exprlist): Fixed a bug that a value of an
+        expression is not saved to a temporary variable if the expression
+        is not an invocation but contains an invocation at some lower
+        level.
+
+Fri Apr 23 03:57:02 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* SPC.xload: New file.
+
+Thu Apr 22 14:02:01 1993  Akihito Mori  <mori@is.titech.ac.jp>
+
+	* debug.clu (dbinfo_type): Typo fix.
+
+	* debug.clu (dbinfo_var): Receive a variable name in C but put in
+        comment a variable name in CLU, using `decode_var'.
+	* genv.clu (lv$put_decls, lv$add_var_info): Changed accordingly.
+	* gtop.clu (g_apply): Likewise.
+	* nameconv.clu (decode_var, decode_idn, hex2int): New procedures.
+
+Sat Apr 17 09:50:39 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* genv.clu (co$out_code): Changed the include directory
+        convention: from <xxx.h> to <clu2c/xxx.h>.
+
+Mon Feb 22 06:04:09 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* penv.clu (p_env$get_char_kind2): Allow some JIS X 0208 special
+        characters in identifiers.
+	(schars): New constant.
+
+Wed Feb 17 12:29:35 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gtop.clu (g_apply): Do not generate code that constructs a
+        `failure("no return value in ...")' exception directly.  Instead,
+        generate code that calls the `noretval' run-time support function.
+        This change saves a little bit of memory.
+
+	* pdefn1.clu (p_identification): Complain if the given ID string
+        contains a character other than printing ASCII characters.  This
+        restriction may be canceled in a future version.
+
+	* penv.clu (p_env$scanline): Pass the "canonical" character for
+        the digit instead of a character read from a file when calling
+        `number'.
+
+	* penv.clu (p_env$get_char_kind2): Initialize an internal table
+        using `uchars' instead of `chrmap'; rule out special characters
+        and "keisen sohen" from identifiers.
+	(kmap, kmlist, chrmap): Removed.
+	(uchars): New constant.
+	(z_space, z_comma, z_period, z_colon, z_semi, z_exclm, z_overline,
+        z_underline, z_div, z_backslash, z_or, z_quote1, z_quote2,
+        z_l_paren, z_r_paren, z_l_bkt, z_r_bkt, z_l_curly, z_r_curly,
+        z_add, z_sub, z_equal, z_lt, z_gt, z_yen, z_dollar, z_comment,
+        z_sharp, z_and, z_mul): Removed.
+
+	* penv.clu (p_env$number, p_env$reallit, p_env$escape): Do more on
+	the unification between ASCII and JIS X 0208 characters.
+
+	* penv.clu (p_env$escap): Recognize an escape sequence of the form
+        `\x****'.
+
+	* pttkn.clu (pt_charseq): Put JIS X 0208 characters correctly.
+
+Tue Feb 16 13:22:36 1993  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* clu2c.equ (opt_iter_proc): A procedure of this type returns an
+        addtional integer result that specifies the number of temporary
+        variables needed.
+	* goptimize.clu (opt_for_stmt): Changed accordingly.
+	(opt_int_from_to): Likewise.
+	(opt_int_from_to_by): Likewise.
+	(opt_string_chars): Likewise.
+	(opt_array_indexes): Likewise.
+	(opt_array_elements): Likewise.
+	(opt_sequence_indexes): Likewise.
+	(opt_sequence_elements): Likewise.
+
+	* gctrl.clu (for_stmt): Changed the code to check for an
+        termination of an iterator: do not look at the `iter_end' global
+        variable but look at a return value from a function that
+        corresponds to the iterator.
+	* gexcept.clu (yield_stmt): Generate code that returns `YIELD'.
+	* ginvoke.clu (return_stmt): Removed code that assigns `TRUE' to
+        `iter_end'.
+	* gtop.clu (g_apply): Removed code that assigns `TRUE' to
+        `iter_end' at the end of an iterator.
+
+	* genv.clu (lv): Added two new fields `ivar_max' and `icond' to rep.
+	(lv$reset): Changed accordingly.
+	(lv$put_decls): Generate declarations of `icond' and `ivar*'.
+	(lv$icond): New operation.
+	(lv$new_ivar): Maintain the `ivar_max' field.
+	(lv$max_inv): Removed.
+	(lv$nr_ivar): Removed.
+	(lv$free_ivar): New operation.
+	(lv$add_pos_info): Take care of `icond' and `ivar*' variables.
+	* goptimize.clu (opt_for_stmt): Call `lv$free_ivar' at the end of
+        `for' statement.
+
+	* ginvoke.clu (iter_invoke): Removed.
+
+Wed Jan 27 14:27:50 1993  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ginvoke.clu (invoke_body): Fixed a bug that optimization of
+        `string$concat' does not take place.
+
+Mon Dec 28 06:49:02 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* nameconv.clu: Changed the naming conventions.
+
+Sat Dec 26 14:12:00 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ce.clu (typeabs_similar): Removed.
+	(ce$create): Use `typeabs$similar' instead.
+	* idn.clu (rep): Defined without using `idnrep'.
+	* misc.equ: Removed
+	* EQU.xld: Changed accordingly.
+	* pconst.clu (fieldspec_get_sel): Removed.
+	(p_fieldspeclist): Use `fieldspec$get_sel' instead.
+	(p_exceptionlist_get_name): Removed.
+	(p_exceptionlist): Use `exception$get_name' instead.
+	* pdefn1.clu (idn_get_str): Removed.
+	(p_typedefn): Use `idn$get_str' instead.
+	* tkntab.clu (dummy_token_is_idn): Removed.
+	(reset): Use `token$is_idn' instead.
+	* xref.clu (entry_get_key): Removed.
+	(add_ref, add_refs, rem_refs): Use `entry$get_key' instead.
+
+	* gctrl.clu (tag_stmt): Fixed a bug that an expression in a
+        `tagcase' statement is evaluated more than once.
+
+	* gexcept.clu (sig_env$put_sighandler): Changed to call
+        `conv_opfun' and `conv_opmac'.
+	* goptimize.clu (opt_string_chars): Likewise.
+	* glit.clu (char_expr, real_expr): Likewise.
+
+	* top1.clu (process_commands, fake_stream): Use string I/O.
+
+Fri Dec 18 10:08:09 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* genv.clu (clus_own$make_init_code): Changed the name of the
+        initilization routine of the cluster own variable(s) from
+        `_initown' to `#initown', in order to guarantee that the name
+        never conflicts with any user-defined operation name.
+	* gtop.clu (g_init_own): Changed accordingly.
+
+	* gname.clu (g_cluname_op): New procedure.
+
+	* gname.clu (g_name_apply): Removed.
+	* ginvoke.clu (invoke_body): Use `conv_appfun' instead.
+	* gparam.clu (param$new_apply, param$entryp_generic): Do not use.
+
+	* gname.clu (g_name_op_func): Removed.
+	* gexpr.clu (g_op_expr): Use `conv_opfun' instead.
+	(g_cluop_expr, g_array_op_expr, g_selop_expr): Likewise.
+	* goptimize.clu (opt_strcat): Likewise.
+	* gparam.clu (param$entryp_generic): Use `g_cluname_op' instead.
+
+	* gname.clu (g_name_op_macro): Removed.
+	* gexcept.clu (sig_env$put_sighandler): Use `conv_opmac' instead.
+	* gexpr.clu (raising_exception, g_try_inline1): Likewise.
+	* goptimize.clu (opt_array_indexes): Likewise.
+	(opt_array_elements): Likewise.
+	(opt_sequence_indexes): Likewise.
+	(opt_sequence_elements): Likewise.
+	(opt_strcat): Likewise.
+
+	* gname.clu (g_cluname_split): New procedure.
+
+	* gname.clu (g_name_op_oppart): Removed.
+	* gparam.clu (param$new_apply): Do not use.
+
+	* gname.clu (g_name_routine): Use `conv_opfun' and `conv_appfun'
+        instead of `g_name_op_func' and `g_name_apply', respectively.
+	(g_name_entryp): Use `conv_entptr_op' and `conv_entptr_app'
+        instead of `g_name_routine'.
+	(g_name_own_flag): Use `conv_initvar_op' and `conv_initvar_app'
+        instead of `g_name_routine'.
+	(g_name_own_var_apply): Use `conv_ownvar_op' and `conv_ownvar_app'
+        instead of `g_name_routine'.
+	* gparam.clu (param$entryp_generic): Do not use.
+
+	* gname.clu (g_discard_sel): Removed.
+
+	* gname.clu (g_name_clu_type): Removed.
+
+	* gname.clu (g_name_cluster): Removed.
+	(g_name_own_flag_clu): Use `conv_initvar_clu' instead.
+	(g_name_own_var_clu): Use `conv_ownvar_clu' instead.
+	* genv.clu (clus_own$declare): Do not use.
+	* gparam.clu (param$begin_cluster, param$new_apply, param$entryp_generic): Do not use.
+	(param$entryp_generic): Do not use, or use `g_name_type'.
+
+	* gname.clu (g_name_tid_var): New procedure.
+
+	* gname.clu (g_name_local_var): Removed.
+	* genv.clu (lv$decl): Use `conv_localvar' instead.
+	* gtop.clu (g_apply): Likewise.
+
+	* gparam.clu (param$entryp_op): Do not cut off the initial `%' of internal routines.
+
+	* gparam.clu (param$entryp_selop): New operation.
+	* gexpr.clu (g_selop_expr): Changed accordingly.
+
+	* gtop.clu (g_apply): Changed comment format so that it does not
+        depend on naming convention.
+	(g_clus): Likewise.
+
+	* gtop.clu (g_apply): Do not generate code that checks if the
+        cluster own variables are initialized in the intialization routine
+        itself.
+	(g_init_own): Fixed a bug in an initialization of cluster own
+        variables when the cluster has value parameters.
+
+	* penv.clu (kmap, kmlist, ktable): New equates.
+	(z_space, z_comma, z_period, z_colon, z_semi, z_exclm, z_overline,
+        z_div, z_backslash, z_or, z_quote1, z_quote2, z_l_paren,
+        z_r_paren, z_l_bkt, z_r_bkt, z_l_curly, z_r_curly, z_add, z_sub,
+        z_equal, z_lt, z_gt, z_yen, z_dollar, z_comment, z_and, z_mul):
+        New equates.
+	(chrmap): New equate that maps `z_*' to `char_kind'.
+	(p_env$get_char_kind2): Changed accordingly.
+
+	* penv.clu (p_env$strlit: Do more about unification between ASCII
+        and JIS X 0208.
+	(p_env$charlit, p_env$mcharop, p_env$comment): Likewise.
+
+	* penv.clu (cprint_form): Handle JIS X 0208 characters properly.
+
+
+Thu Dec 17 07:55:39 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* nameconv.clu: New file.
+
+Fri Dec  4 02:58:35 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* clu2c.equ (inline_without_exception): Added `int$abs',
+        `int$max', `int$min', `array$addl', and `array$addh'.
+
+Sun Nov 29 05:35:57 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* gcons.clu (array_cons_expr): Changed according to the changes to
+        the array representation.
+	* goptimize.clu (opt_array_indexes, opt_array_elements): Likewise.
+
+	* gexpr.clu (raising_exception): Allow invocations of `array$reml'
+	to be inline-expanded; forbid invocations of `int$abs', `int$max',
+	and `int$min' to be inline-expanded.
+	(inline_iter): Allow invocations of `array$indexes' to be inline-
+	expanded.
+
+Sun Nov 15 11:55:06 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.equ (proc_kind): Added a new field `inline_iter'.
+	(opt_iter_proc): New equate.
+	(proc_expr): Added a new field `check'.
+	* gctrl.clu (for_stmt): Changed accordingly.
+	* gexpr.clu (g_apply_expr): Likewise.
+	* ginvoke.clu (invoke_body): Likewise.
+
+	* clu2c.equ (inline_without_exception, oplist, oper): New equates.
+	* gexpr.clu (inline_expandable): Changed accordingly.
+
+	* clu2c.equ (exception_ops): New equate.
+	* ginvoke.clu (no_exception_op): New procedure.
+	* gexpr.clu (g_op_expr): Changed accordingly.
+	(g_cluop_expr): Likewise.
+	(g_array_op_expr): Likewise.
+	(g_selop_expr): Likewise.
+	* ginvoke.clu (no_exception_module): Removed.
+
+	* deubg.clu (dbinfo_type, dbinfo_var): New procedures.
+	(get_type_info, get_type_info1, get_typeinfo2): Removed.
+	* genv.clu (lv$put_decls, lv$add_var_info): Changed accordingly.
+	* gtop.clu (g_apply, g_clus): Likewise.
+
+	* gctrl.clu (for_stmt): Generate debugging information even if the
+        invocation of the iterator is inline-expanded.
+
+	* gctrl.clu (inline_iter): Removed.
+	* gexpr.clu (inline_iter): New procedure.
+
+	* genv.clu (env): Integrated two fields `clus_name' and
+        `clus_parm' into `cluinfo' in rep; Added definitions of `mcluinfo'
+        and `cluinfo'.
+	(env$reset, env$is_clus_parm): Changed accordingly.
+	(env$begin_cluster): New operation.
+	(env$end_cluster): New operation.
+	(env$cur_cluster): New operation.
+	(env$in_cluster): New operation.
+	(env$set_clus_name): Removed.
+	(env$get_clus_name): Removed.
+	(env$clear_clus_name): Removed.
+	(env$set_clus_parm): Removed.
+	(env$reset_clus_parm): Removed.
+	* gtop.clu (g_apply, g_clus): Changed accordingly.
+
+	* genv.clu (env): Changed rep: renamed a field `rtn_name' as
+        `cur_routine'; added a new field `in_start_up'; removed a field
+        `crtn_name'.
+	(env$reset): Changed accordingly.
+	(env$cur_routine): New operation.
+	(env$cur_clu_routine): New operation.
+	(env$begin_apply): New operation.
+	(env$in_start_up): New operation.
+	(env$set_rtn_name): Removed.
+	(env$get_rtn_name): Removed.
+	(env$set_crtn_name): Removed.
+	(env$get_crtn_name): Removed.
+	* gtop.clu (one_proc): Changed accordingly.
+	* gexcept.clu (sig_env$put_sighandler): Changed accordingly.
+	* ginvoke.clu (return_stmt): Changed accordingly.
+	* gtop.clu (g_apply): Likewise.
+
+	* genv.clu (co): Changed `func': integrated two fields `func_name'
+        and `clu_name' into `apply'.
+	(co$out_code): Changed accordingly.
+	(co$begin_apply): New operation.
+	(co$new_mod): Removed.
+
+	* genv.clu (co$is_start_up): New operation.
+
+	* genv.clu (lv): Changed `entry': integrated two fields `type_'
+        and `mb_ts' into `type_'.
+	(lv$decl, lv$put, lv$put_decls): Changed accordingly.
+	* gctrl.clu (for_stmt, tag_stmt): Changed according to the changes
+        to `lv$decl'.
+	* gexcept.clu (except_stmt): Likewise.
+	* goptimize.clu (opt_for_stmt): Likewise.
+	* gstmt.clu (decl_stmt, declinit_stmt): Likewise.
+	* gtop.clu (g_apply): Likewise.
+
+	* genv.clu (lv$decl_sys): Removed.
+
+	* genv.clu (g_clu_routine): New procedure.
+	(co$out_code): Changed accordingly.
+
+	* gexpr.clu (g_exprlist): Receive an addtional boolean argument
+        that specifies whether or not the arguments are evaluated only
+        once.  If this is false, code that saves all results in temporary
+        variables is generated.
+	* gcons.clu (array_cons_expr, seq_cons_expr, s_cons_expr): Changed
+        accordingly.
+	* gctrl.clu (for_stmt): Likewise
+	* gexcept.clu (yield_stmt): Likewise.
+	* ginvoke.clu (invoke_body, return_stmt, make_arg_str): Likewise.
+	* goptimize.clu (opt_int_from_to): Likewise.
+	(opt_int_from_to_by): Likewise.
+	(opt_string_chars): Likewise.
+	(opt_array_indexes): Likewise.
+	(opt_array_elements): Likewise.
+	(opt_sequence_indexes): Likewise.
+	(opt_sequence_elements): Likewise.
+	(opt_strcat): Likewise.
+	* gstmt.clu (assn_stmt): Likewise.
+
+	* gexpr.clu (g_apply_expr): Receive only one argument of the type
+        `expr'.  All callers changed.
+
+	* gexpr.clu (g_op_expr): Receive only one argument of the type
+        `expr'.  All callers changed.
+
+	* gexpr.clu (g_has_where): Receive `DU' and `string' istead of
+        `clusterop'.  All callers changed.
+
+	* gexpr.clu (inline_expandable): Receive type specification and
+        operation name as separate arguments.  All callers changed.
+	(inline_expandable_and_signal): Likewise.
+	(raising_exception): Likewise.
+
+	* gexpr.clu (hash_key): New procedure.
+
+	* gexpr.clu (g_try_inline, g_try_inline_selop, g_try_inline1): New
+        procedures.
+	(g_op_expr, g_cluop_expr, g_array_op_expr, g_selop_expr):
+        Changed accordingly.
+
+	* gexpr.clu (g_sel_id): New procedure.
+	(g_selop_expr): Changed accordingly.
+
+	* ginvoke.clu (invoke_body): Receive an additional result that
+        specifies whether the invocation may raise any exceptions
+	(invoke_stmt, invoke_expr): Changed accordingly.
+
+	* ginvoke.clu (op_with_tag_info): Removed.
+
+	* gname.clu (get_module_name): Removed.
+	(get_apply_name): Removed.
+	(get_cop_name): Removed.
+	(get_type_name): Removed.
+
+	* gname.clu (g_cluname_routine): New procedure.
+	* gctrl.clu (for_stmt): Changed accordingly.
+
+	* gname.clu (g_name_routine): New procedure.
+	* genv.clu (co$out_code): Changed accordingly.
+	* gexpr.clu (g_apply_expr): Changed accordingly.
+	* gtop.clu (one_proc, g_apply): Likewise.
+
+	* gname.clu (g_name_apply): New procedure.
+	* ginvoke.clu (invoke_body): Changed accordingly.
+
+	* gname.clu (g_name_op_func): New procedure.
+	* gexpr.clu (g_op_expr, g_cluop_expr, g_selop_expr): Changed
+        accordingly.
+	* goptimize.clu (opt_strcat): Likewise.
+
+	* gname.clu (g_name_op_macro): New procedure.
+	* gexcept.clu (sig_env$put_sighandler): Changed accordingly.
+	* goptimize.clu (opt_array_indexes): Likewise.
+	(opt_array_elements): Likewise.
+	(opt_sequence_indexes): Likewise.
+	(opt_sequence_elements): Likewise.
+	(opt_strcat): Likewise.
+
+	* gname.clu (g_name_op_oppart): New procedure.
+	(g_discard_sel): New procedure.
+	(g_name_clu_type): New procedure.
+	(g_name_entryp): New procedure.
+	(g_name_oplistref): New procedure.
+
+	* gname.clu (g_name_cluster): New procedure.
+	* genv.clu (clus_own$declare): Changed accordingly.
+
+	* gname.clu (g_name_own_flag): New procedure.
+	* gtop.clu (g_apply): Changed accordingly.
+
+	* gname.clu (g_name_own_flag_clu): New procedure.
+	* gtop.clu (g_apply, g_clus): Changed accordingly.
+
+	* gname.clu (g_name_own_var_apply): New procedure.
+	* genv.clu (vname): Changed accordingly.
+	* gtop.clu (g_apply): Likewise.
+
+	* gname.clu (g_name_own_var_clu): New procedure.
+	* genv.clu (clus_own$declare, vname): Changed accordingly.
+	* gstmt.clu (declinit_stmt): Likewise.
+
+	* gname.clu (g_name_result): New procedure.
+	* gctrl.clu (for_stmt): Changed accordingly.
+	* gexcept.clu (sig_env$put_sighandler, yield_stmt): Likewise.
+	* ginvoke.clu (invoke_expr, return_stmt): Likewise.
+	* gstmt.clu (declinit_stmt, assn_stmt): Likewise.
+
+	* gname.clu (g_name_xresult): New procedure.
+	* gexcept.clu (sig_env$put_sighandler): Changed accordingly.
+	(except_stmt, signal_stmt, exit_stmt): Likewise.
+	* gtop.clu (g_apply): Likewise.
+
+	* gname.clu (g_cluname_type): New procedure.
+	* genv.clu (clus_own$declare, lv$put_decls): Changed accordingly.
+	* gtop.clu (g_apply): Likewise.
+
+	* gname.clu (g_name_type): New procedure.
+	* genv.clu (clus_own$declare, lv$put_decls): Changed accordingly.
+	* gtop.clu (g_apply): Likewise.
+
+	* gname.clu (g_name_local_var): New procedure.
+	* genv.clu (lv$name, lv$decl): Changed accordingly.
+	* gtop.clu (g_apply): Changed accordingly.
+
+	* goptimize.clu (opt_for_stmt): Receive an argument of the type
+        `opt_iter_proc'.  All callers changed.
+
+	* goptimize.clu (get_cated_str): Rewritten.
+	(is_string_concat): New procedure.
+
+	* gparam.clu (param): Rewritten considerably.  This cluster now
+        manages comment information and pointer to entry functions as
+        well.
+	* gexpr.clu (idn_expr): Changed accordingly.
+	(g_apply_expr): Likewise.
+	(g_op_expr): Likewise.
+	(g_cluop_expr): Likewise.
+	(g_array_op_expr): Likewise.
+	(g_selop_expr): Likewise.
+	(g_anyize_expr): Likewise.
+	(g_force_expr): Likewise.
+	* gtop.clu (g_apply, g_clus): Likewise.
+
+	* gparam.clu (get_formal_index): Removed.
+
+	* gtop.clu (g_nr_idns): New procedure.
+
+Fri Nov 13 13:24:22 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* goptimize.clu (get_cated_str): Fixed a bug that cause a problem
+        when an argument to an inline-expanded invocation of
+        `string$concat' is an inline-expanded invocation that may raise an
+        exception.
+
+Mon Nov  9 10:31:03 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* givoke.clu (invoke_body): Fixed a bug that cause a problem when
+        an argument to an inline-expanded invocation is an inline-expanded
+        invocation that may raise an exception.
+
+Sun Nov  8 04:12:29 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* gexpr.clu (raising_exception): Insist that `int$div' and
+	`int$mod' requires two temporay variables, not one; allow
+	invocations of `string$fetch' and `char$i2c' to be
+	inline-expanded.
+
+	* ginvoke.clu (invoke_body): Save arguments of inline-expanded
+        invocations to temporary variables if they would otherwise be
+        messed during evaluation.
+	* goptimize.clu (get_cated_str): Likewise.
+
+	* goptimize.clu (opt_select): Removed.
+
+	* goptimize.clu (opt_int_from_to, opt_int_from_to_by,
+        opt_string_chars, opt_array_elements, opt_sequence_indexes,
+        opt_sequence_elements): Return one result that specifies the code
+        corresponding to an item for each iteration.  Header for `for'
+        statement (`for(INIT;COND;STEP)' part) is now generated in these
+        procedures.
+
+Wed Nov  4 09:12:46 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gexcept.clu (sig_env$put_sighandler): Fixed a bug that the
+        outermost exception handler in the start-up routine attempts to
+        convert string that are already in CLU string format.
+
+Tue Oct 27 11:23:11 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* genv.clu (lv): Added a new field `cntstack' to rep.
+	(lv$reset): Changed accordingly.
+	(lv$recount_inv): Removed.
+	(lv$push_count, lv$pop_count): New operations.
+	* gstmt.clu (g_stmt): Changed accordingly.
+
+	* gexcept.clu (sig_env$put_sighandler): Generate code that invokes
+        stream operations instead of `fprintf'.  This is necessary for
+        printing Japanese exception names properly.
+
+Sat Oct 24 14:28:37 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* genv.clu (co): Added a new field `strlit' to `func'.
+	(co$new_mod): Changed accordingly.
+	(co$strlit): New operation.
+	(co$out_code): Generate definitions for string literals before
+        each function definition.
+
+	* genv.clu (glb): Added a new field `strlit' to rep.
+	(glb$reset, glb$get, glb$add): Changed accordingly.
+
+	* gexcept.clu (sig_env$put_sighandler): Generate code that invokes
+        `string$equal' instead of `strcmp', for checking exception names;
+	call `string_expr' to get code for string constants.
+
+	* gexcept.clu (signal_stmt, exit_stmt): Call `string_expr' to get
+        code for exception names.
+	* ginvoke.clu (invoke_body): Likewise.
+	* gtop.clu (g_apply): Likewise.
+
+	* glit.clu (char_expr): Support for JIS X 0208 characters.
+	(string_expr): Likewise.
+	(st2lit): Rewritten using `g_char_unparse'.
+	(string_expr1): New procedure.
+	(g_char_unparse): New iterator.
+
+	* gname.clu (g_type_name): Return "char_" for char.
+
+	* goptimize.clu (opt_strcat): Generate code that invokes
+        `string$_concat' (hidden operation) instead of `strcat'.
+
+	* gparam.clu (param$p_expr): Get code for value parameters by
+        calling `null_expr', `bool_expr', `int_expr', `real_expr',
+        `char_expr', and `string_expr1', for the types null, bool, int,
+        real, char, string, respectively.
+
+	* penv.clu (char_kind): Removed `esc'.
+	(me, ESC, DOL, LBR): Removed.
+	(chrvec): Mark as `funny' at the place that corresponds to ESC.
+	(p_env${scanline,number,reallit,strlit,charlit,escape,comment}):
+        Support for JIS X 0208 characters.
+	(p_env${idn_or_key,strlit,charlit}): Do not handle escape
+        sequences, which are now handled by stream.
+	(p_env$get_char_kind2, p_env$hash_int): New internal routines.
+
+Sat Oct 17 11:22:18 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gcons.clu (s_cons_expr): Fixed a bug in code generation for
+        record and struct constructors: only one evaluation is performed
+        per field, which causes a problem when a field has more than one
+        name.
+
+Tue Oct  6 13:30:03 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* ginvoke.clu (invoke_body): Generate better code for successive
+        invocations of `string$concat' in optimizing time mode.
+	* goptimize.clu (opt_strcat, get_cated_str): New procedures.
+
+Wed Sep 23 09:13:38 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* Version 1.1 released.
+
+Tue Sep  8 11:00:11 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gtop.clu, genv.clu: Function definitions in generated C codes
+        are now in K&R style.
+
+Tue Sep  8 07:13:22 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* genv.clu (lv$sys_name): Do not accept "iter_signaled".
+	(lv$add_pos_info): Do not generate code that defines `ISIG_TOP'.
+
+Fri Sep  4 08:55:31 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* clu2c.equ (LIBDIR): Removed.
+
+Thu Aug 20 08:46:57 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* clu2c.equ (minor_ver): Changed from 0 to 1 for version 1.1.
+
+Mon Aug 10 07:12:52 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+	
+	* gexpr.clu (g_op_expr, g_cluop_expr, g_array_op_expr,
+        g_selop_expr): Inline-expand some invocations of operations that
+        may signal an exception.
+	(inline_expandable_and_signal, raising_exception): New procedures.
+	* ginvoke.clu (invoke_body): Likewise.
+
+	* clu2c.equ (proc_expr): Added a new field `expt'.
+	(expt, except_info, rexp): New equates.
+	* gexpr.clu (g_apply_expr, g_force_expr): Changed accordingly.
+
+Tue Jul 21 07:17:33 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gctrl.clu (if_stmt): Do not generate debug information when not
+        in debugging mode.
+
+	* genv.clu (clus_own$make_init_code): Do not directly generate
+        code.  Instead, call `g_apply' with a hand-made syntax tree.
+	* gtop.clu (g_clus): Changed accordingly.
+
+	* gtop.clu (g_init_own): New procedure.
+	(g_apply): Changed accordingly.
+
+Fri Jul 17 13:07:34 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gtop.clu (g_apply, g_clus): Fixed a bug that generates code that
+	wrongly assumes cluster own variables are represented by arrays if
+	a cluster is nonparameterized but an operation of the cluster is
+	parameterized.
+	* genv.clu (vname): Likewise.
+
+	* gparam.clu (param$p_fieldspec): Include a selector or tag name
+        in type information.  This is needed to allow a record, struct,
+        oneof, or variant type to be given to a formal type parameter that
+        requires an operation such as `get_a'.
+
+	* gparam.clu (builtin_param): Return true for `print' and `_gcd'
+        operations as well.
+
+Fri Jul 10 10:51:52 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gctrl.clu (tag_stmt1, g_tagcase_test, g_tagcase_isop,
+	g_tagcase_assn, g_tagcase_valop): New procedures.  These
+	procedures are used to generate code for `tagcase' statement on
+	objects of user-defined types.
+
+	* syntax.equ (exprabs): Added a new field `asis', which will be
+        used internally by the code generator only.
+	* ginvoke.clu (has_invoke): Changed accordingly.
+	* gexpr.clu (g_expr): Likewise.
+
+Thu Jul  9 13:18:16 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* goptimize.clu (opt_for_stmt): Do not deal with an invocation of
+        an iterator that can not be inline-expanded (this is totally
+        unnecessary); merged the contents of `opt_for_stmt_inline'.
+	(opt_int_from_to, opt_int_from_to_by, opt_string_chars,
+        opt_array_elements, opt_sequence_indexes, opt_sequence_elements):
+        Return header code (`for(INIT;COND;STEP)' part) and item for each
+        iteration insted of calling `opt_for_stmt_inline'.
+	(opt_for_stmt_inline): Removed.
+
+	* goptimize.clu (opt_invoke_bool, opt_invoke_int, opt_invoke_char,
+        opt_invoke_string, opt_invoke_array, opt_invoke_sequence):
+        Removed.  These procedures are no longer used.
+
+Wed Jul  1 13:30:24 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* cspecs.clu (f_idnkinds): Check a type of a value parameter
+        unconditionally.
+
+Thu Jun  4 05:09:52 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* gexcept.clu (sig_env): Added a new field `stack_of_ecpts' to
+        rep.
+	(reset): Changed accordingly.
+	(sig_env$put_current_scope, sig_env$pop_current_scope): New
+        operations.
+	(except_stmt): Changed accordingly.
+
+Wed Jun  3 07:45:04 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* glit.clu (real_expr): Generate an invocation of `real_lit'
+        instead of `f2i' because `f2i' does not work for complicated
+        expressions.
+
+Fri May  1 21:25:05 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gexpr.clu (g_force_expr): Allow an instatiation of `force' to be
+        evaluated by itself as an expression of a procedure type.
+
+Wed Apr 22 13:06:44 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* cexpr2.clu (c_force): Fixed a bug that it expects `illegal_type'
+        as an exception that `force' may signal, but actually
+        `wrong_type'.
+
+Mon Apr 20 12:09:07 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.equ (proc_expr): Changed the type for the `parg' field
+        from `int' to `mparg'.
+	(mparg): New equate.
+	* gexpr.clu (g_apply_expr, g_op_expr, g_cluop_expr,
+        g_array_op_expr, g_selop_expr): Changed accordingly.
+	* ginvoek.clu (invoke_body): Likewise.
+
+	* genv.clu (lb): Accept "tid" as a label.
+
+	* gexpr.clu (g_expr): Call g_anyize_expr for the tag `any_'; call
+        g_force_expr for the tag `force_'.
+	(g_anyize_expr, g_force_expr): New procedures.
+
+	* ginvoke.clu (has_invoke): Return false for `force'; call itself
+        recursively for `any'.
+
+	* gname.clu (get_module_name): accept `force' as a procedure
+        generator.
+	(get_type_name): Accept `any' as a type.
+
+	* gparam.clu (param$get_tparm): New operation.
+
+	* gparam.clu (param$get_apply_param, param$get_cop_param): Return
+        an additional result that specifies the parameter list has any
+        formal parameter.
+	(has_formal): Commented out.
+	* gexpr.clu (g_apply, g_op_expr, g_cluop_expr, g_array_op_expr,
+        g_selop_expr): Changed accordingly.
+
+Thu Apr 16 16:20:20 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gctrl.clu (for_stmt): Call `lv$new_ivar' instead of
+        `lv$sys_name("iter_signaled")' to get a temporary variable name of
+        the iterator condition so that nest of `for' statements will work.
+        * gtop.clu (g_apply): Do not generate code that declares
+        `iter_signaled'.
+
+Wed Apr 15 16:27:41 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gname.clu (get_module_name): Signal `proctype_' if the apply is
+        a result of the `down' operator.
+
+	* gname.clu (g_apply_name): Return "main" for the `start_up'
+        procedure.
+
+Tue Apr 14 21:18:32 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.equ (proc_kind, proc_expr): New equates.
+
+	* gctrl.clu (for_stmt): Modified so that an iterator is processed
+        using g_expr.
+	(inline_iter): New procedure.
+
+	* genv.clu (co$glo, co$ext_proc): Removed.
+	(co$external_var, co$external_array, co$external_func,
+        co$static_var, co$static_var_init): New operations.
+	(lv$sys_name): Allow `iter_signaled' even in non-optimizing mode.
+	* gtop.clu (g_apply, g_clus): Changed accordingly.
+
+	* gexpr.clu (g_expr): Signal `proctype_expr' if the expression
+        evaluates to a procedure or iterator.  In this case the result
+        cannot be represented in a string.
+	(g_exprlist): Changed accordingly.
+	* gexcept.clu (yield_stmt, signal_stmt, exit_stmt): Changed
+        accordingly.
+	* gstmt.clu (declinit_stmt, assn_stmt): Changed accordingly.
+
+	* ginvoke.clu (invoke_body): Stripped.  Almost all works it has
+	used to do is now done by the `g_expr' procedure.
+
+	* gexpr.clu (g_apply_expr, g_op_expr, g_cluop_expr,
+        g_array_op_expr, g_selop_expr, g_has_where, inline_expandable):
+        New procedures.
+
+	* ginvoke.clu (invoke_expr): Save the result in a temporary
+        variable if the invocation evaluates to a procedure that returns a
+        procedure being invoked, so that it will not be messed during an
+        evaluation of the arguments.
+
+	* gname.clu (get_cop_name): Return a name of an operation on
+        procedure and iterator types as well.
+	(get_type_name): Return the names of procedure and iterator types
+        as well.
+
+Wed Apr  1 21:31:09 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* build.clu, cenv.clu: Doc fix (modification notice).
+
+	* build.clu, cdefn1.clu, cdefn2.clu, ce.clu, cenv.clu, cexpr1.clu,
+        cmpvar.clu, cstmt1.clu, debug.clu, du.clu, gcons.clu, gctrl.clu,
+        genv.clu, gexcept.clu, gexpr.clu, ginvoke.clu, glit.clu,
+        gname.clu, goptimize.clu, gparam.clu, gstmt.clu, gtop.clu,
+        idn.clu, init.clu, make.clu, mcmp.clu, menv.clu, pconst.clu,
+        pdefn1.clu, penv.clu, pexpr.clu, pstmt1.clu, pstmt2.clu,
+        pttkn.clu, syntax.clu, table.clu, tkntab.clu, top1.clu, top2.clu,
+        xlib.clu, xref.clu: Use the #id directive.
+
+Tue Mar 31 20:45:26 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* passes.equ (stuff): Added a new component `id'.
+	* init.clu (initialize_compiler): Changed accordingly.
+	* top2.clu (reset_stuff): Likewise.
+	* pdefn1.clu (p_directive): Recognize `id' as a directive name.
+	(p_identification): New procedure.
+	* genv.clu (co$out_code): Embed ID string as static data.
+
+Sat Mar 28 12:50:50 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* cmpvar.clu (optimize, optimize_time, not_optimize,
+        set_optimize_space, set_optimize_time, set_not_optimize): New
+        operations.
+	(optimize_mode): New own variable of cmpvar.
+	* genv.clu (env): Removed components `space' and `time' from rep.
+	(env$reset): Changed accordingly.
+	(env$set_space, env$get_space, env$set_time, env$get_time):
+        Removed.
+	* ginvoke.clu (invoke_body): Changed accordingly.
+	* top1.clu (execute_command): Likewise.
+	* top2.clu (reset_stuff): Likewise.
+
+	* gctrl.clu (for_stmt): Allow iterators other than iterator names
+        (instances of parameterized iterators, operations of formal type
+        parameters, results of invocations, and variables); try inline
+        expansion of iterator invacation by calling opt_for_stmt in
+        optimizing mode; generate `for' statement instead of `while'
+        statement.
+	* ginvoke.clu (iter_invoke): Changed accordingly.
+
+	* gtop.clu (g_apply): Generate declaration for the system variable
+        `iter_signaled'.
+	* genv.clu (lv$sys_name): Recognize `iter_signaled' as system variable.
+	(lv$add_pos_info): Changed accordingly.
+
+	* goptimize.clu (opt_for_stmt, opt_for_stmt_inline): New
+        procedures.
+	(opt_int_from_to, opt_int_from_to_by, opt_string_chars,
+        opt_array_indexes, opt_array_elements, opt_sequence_indexes,
+        opt_sequence_elements): Call opt_for_stmt_inline instead of
+        returning results.
+
+Mon Mar 23 21:01:43 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ginvoke.clu (return_stmt): Generate `exit(0);' in the function
+        main.
+
+Mon Mar 23 17:23:34 1992  Masahiro Jibiki  <jibiki@is.titech.ac.jp>
+
+	* syntax.equ (invoke): Added a new component `line'.
+	(whilestmt, forstmt): Added new components `start_line' and
+        `end_line'.
+	* build.clu, cenv.clu, cexpr1.clu, cstmt1.clu, pexpr.clu,
+        pstmt1.clu, pstmt2.clu: Changed accordingly.
+
+	* gexcept.clu (sig_env$put_sighandler): Generate code that calls
+        catch_failure in debug mode.
+	(except_stmt): Generate code that calls nop in debug mode.
+	(resignal_stmt): Do not receive line number as the second
+        argument, which is unnecessary.  All callers changed.
+
+	* ginvoke.clu (invoke_stmt, invoke_expr, iter_invoke): Generate
+        code that sets `ivk_name' and `ivk_line' when an exception is
+        signaled.
+
+	* gstmt.clu (g_stmt): Generate comment about line number for
+        resignal statement.
+
+	* gtop.clu (one_proc): Generate definition of catch_failure in
+        debug mode.
+
+Sat Mar 21 16:07:38 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gexpr.clu (idn_expr): Handle value parameters properly.
+	* gparam.clu (param$put_op_fp, param$put_clus_fp, param$p_expr):
+        Handle value parameters properly.
+	(clus_vparms, op_vparms): New own variables of param.
+	(param$vparm_id): New operation.
+	(get_char_lit, get_char_lit1, get_str_lit): New internal routines
+        of param.
+
+Tue Mar 17 13:50:38 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* menv.clu (m_env$get_check_args): Do not put verbose messages.
+
+	* make.clu (make): Dump information even if there are compiling
+        errors.
+	(put_undefs): New procedure.
+
+Mon Mar 16 17:19:44 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* make.clu (make_compile): Simplified messages.
+
+	* menv.clu (get_compile_args): Renamed from get_comp_args; 
+	(get_compile_args, check_targets): Refer to CLU.xload if it
+        exists.
+	(CLULIST_FNAME): New equate.
+	(check_files): Recognize "clu".
+	(fname2str): Removed.
+	(restore): If *.equ files are modified, then all files are to be
+        compiled.
+
+	* xref.clu (peek_refs): New operation.
+
+Wed Mar 11 19:49:51 1992  Masahiro Jibiki  <jibiki@is.titech.ac.jp>
+
+	* gctrl.clu (for_stmt, while_stmt): Do not receive line number as
+        the second argument, which is unnecessary.  All callers changed.
+
+	* gctrl.clu (for_stmt, while_stmt, tag_stmt): Generate comment
+        about line number only in debug mode.
+	* gstmt.clu (g_stmt): Likewise.
+
+	* gctrl.clu (for_stmt, while_stmt, tag_stmt): Generate code that
+        calls nop in debug mode.
+	* gtop.clu (one_proc, g_apply): Likewise.
+
+	* genv.clu (lv$put_decls): Generate comment about types only in
+        debug mode.
+	* gtop.clu (g_apply, g_clus): Likewise.
+
+Mon Mar  9 16:33:17 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.equ, menv.clu, make.clu, gtop.clu, gstmt.clu, gparam.clu,
+        goptimize.clu, gname.clu, glit.clu, ginvoke.clu, gexpr.clu,
+        gexcept.clu, genv.clu, gctrl.clu, gcons.clu, debug.clu: Doc fix
+        (copyright notice).
+
+	* syntax.equ, passes.equ, xref.clu, table.clu, xlib.clu, top2.clu,
+	top1.clu, tkntab.clu, syntax.clu, pttkn.clu, pstmt2.clu,
+	pstmt1.clu, pexpr.clu, penv.clu, pdefn1.clu, pconst.clu, mcmp.clu,
+	init.clu, idn.clu, du.clu, cstmt1.clu, cmpvar.clu, cexpr1.clu,
+	ce.clu, cdefn2.clu, cdefn1.clu: Doc fix (modification notice).
+
+	* du.clu, passes.equ, syntax.equ, table.clu, xref.clu: Reformatted.
+
+Sat Mar  7 22:17:18 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* syntax.clu (expr$copy): Reimplemented using rep$copy.
+
+	* top2.clu, top1.clu, syntax.clu, pstmt2.clu, pexpr.clu, penv.clu:
+        Reformatted.
+
+Fri Mar  6 20:50:39 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* init.clu: Reformatted.
+
+Thu Mar  5 03:56:04 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* idn.clu: Reformatted.
+
+Mon Mar  2 19:23:53 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* cexpr1.clu: Reformatted.
+
+	* ce.clu (CE): Put back the definition of entry.
+
+	* cenv.clu: Removed RCS header.  Now this file is exactly same as
+        the corresponding file in SUN CLU.
+
+Thu Feb 27 17:01:59 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* ginvoke.clu: Moved optimization-related routines to
+	`goptimize.clu'.
+	* goptimize.clu: New file.
+
+Thu Feb 27 16:26:08 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* gtop.clu (g_apply): Call exit(0) to return from the start_up
+        procedure.
+
+Wed Feb 19 15:35:57 1992  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* Version 1.0 released.
+
+	* gtop.clu (g_clus): Typo fix.
+
+Wed Feb 19 12:06:58 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* mcmp.clu (basic_name): Modified. 
+
+Tue Feb 18 21:17:26 1992  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* table.clu: New file.
+
+	* ginvoke.clu (iter_invoke): Evaluate iterator other than iterator
+        name properly.
+
+	* xlib.clu, tkntab.clu, idn.clu, gparam.clu, ce.clu: Restored the
+        use of parameterized modules.
+
+Tue Feb 18 20:21:37 1992  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* EQU.xld: New file.
+
+Mon Feb 17 14:44:20 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* gtop.clu (g_apply): Do not declare `except_level' and
+        `except_nth'.  These variables are completely obsolete.
+
+Mon Feb 17 08:31:10 1992  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* ginvoke.clu (iter_invoke): Handle invocations of parameterized
+        iterator properly.
+	* gtop.clu (g_apply): Likewise.
+
+Sun Feb 16 22:48:15 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* gexcept.clu (sig_env$get_cur_case): Return a label to the
+        nearest handler, whether in optimizing mode or not.
+	(sig_env$put_sighandler): Likewise.
+	(except_stmt, resignal_stmt): Do not use `except_level' and
+        `except_nth'.
+	* gtop.clu (g_clus): Changed accordingly.
+	* genv.clu (lv$sys_name, lv$add_pos_info): Likewise.
+
+	* gexcept.clu (except_stmt, yield_stmt): Use `NO_OPERATION'
+        instead of `(0)'.
+
+Sun Feb 16 15:14:12 1992  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* xref.clu, pstmt2.clu, pstmt1.clu, pexpr.clu, pdefn2.clu,
+        pdefn1.clu, pconst.clu: Restored the use of parameterized modules.
+
+	* genv.clu (env): Changed the type of the `isparm' component of
+        rep to `bool'.
+	(env$reset, env$set_is_parm, env$is_parm, env$clear_is_parm):
+        Changed accordingly.
+
+	* genv.clu (co$out_code): Do not generate declarations for
+        instantiations of parameterized routines: now this is done by
+        `invoke_body'.
+	* ginvoke.clu (invoke_body): Handle invocations of user-defined
+        parameterized routines properly.
+
+	* genv.clu (lb): Added new components `ap_ivk_lb' and `fp_ivk_lb'
+        to rep.
+	(lb$reset, lb$get, lb$add): Changed accordingly.
+
+	* genv.clu (clus_own): Changed rep.
+	(clus_own$reset, clus_own$make_init_code, clus_own$has_init):
+        Changed accordingly.
+
+	* genv.clu (clus_own$is_): New operation.
+
+	* genv.clu (vname): Handle own variables of parameterized modules
+        properly.
+	(clus_own$declare): Likewise.
+	* gstmt.clu (declinit_stmt): Changed accordingly.
+
+	* gname.clu (get_module_name, get_cop_name): Signal `no_name' if
+        the corresponding C construct does not have a name.  All callers
+        changed.
+
+	* gname.clu (get_type_name): Do not complain about formal type
+        parameters.
+
+	* gparam.clu (param$get_cop_param): Changed for user-defined
+        parameterized modules.
+	* gtop.clu (g_apply, g_clus): Likewise.
+
+	* gparam.clu (has_formal, get_formal_index): New procedures.
+
+Sun Feb 16 14:12:23 1992  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* plist.clu: New file.
+
+Thu Feb 13 11:19:46 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* cmpvar.clu: Do not list external modules by default.
+
+Mon Feb 10 20:08:10 1992  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* idn.clu (get_val, set_val): Removed.
+
+	* init.clu (initialize_compiler): Do not append `X' to the
+        compiler version.
+	* top1.clu (start_up): Set the compiler version to 1.*.
+
+	* pttkn.clu, pstmt1.clu, passes.equ, cstmt1.clu, cdefn2.clu,
+	syntax.equ, xlib.clu, pdefn1.clu, tkntab.clu, cenv.clu, ce.clu:
+	Removed the `monitor' feature.
+
+Mon Feb 10 09:48:40 1992  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* genv.clu (env): Added a new component `crtn_name' to rep.
+	(env$reset): Changed accordingly.
+	(env$set_crtn_name, env$get_crtn_name): New operations.
+	* gtop.clu (g_apply): Changed accordingly.
+
+	* genv.clu (co$out_code): Generate comment that specifies the
+        version of the compiler at the top of generated files; generate
+        declarations for instantiations of parameterized routines.
+
+	* ginvoke.clu (invoke_body): Make sure that a pointer to a
+        function is dereferenced.
+
+	* gparam.clu (param$p_idn): Append an underscore to a
+        specification for formal parameters.
+	
+Sat Feb  8 05:38:46 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* genv.clu (env): Do not set optimizing mode by default.
+
+	* ginvoke.clu (invoke_body): Do not inline-expand operations on
+        `int' in non-optimizing mode.
+
+Thu Jan 23 21:17:06 1992  Masahiro Jibiki  <jibiki@is.titech.ac.jp>
+
+	* gtop.clu (g_apply): Do not generate comment about the line
+        numbers at the beginning and end of routine bodies.
+
+Thu Jan 23 19:40:25 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* ginvoke.clu (opt_string_chars): Save the value of the argument
+        to a temporary variable, so that any expression can be used.
+
+Wed Jan 22 14:13:27 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* genv.clu (env): Added new components `space' and `time' to rep.
+	(env$reset): Changed accordingly.
+	(env$set_space, env$get_space, env$set_time, env$get_time): New
+        operations.
+
+	* gexcept.clu (sig_env$get_cur_case): New operation.
+	* ginvoke.clu (invoke_stmt, invoke_expr): Changed accordingly.
+
+	* gexcept.clu (sig_env$put_sighandler, except_stmt,
+        resignal_stmt): Do not use `except_level' and `except_nth' in
+        optimize mode.
+	* gtop.clu (g_apply): Likewise.
+
+	* ginvoke.clu (invoke_body, iter_invoke): Do inline expansion only
+        in optimize mode, except for `int' operations.
+
+	* top1.clu (execute_command): Enabled the `optimize' command.
+
+Wed Jan 15 12:08:22 1992  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* ginvoke.clu (opt_int_from_to, opt_int_from_to_by,
+        opt_string_chars, opt_array_indexes, opt_array_elements,
+        opt_sequence_indexes, opt_sequence_elements): New procedures.
+	(iter_invoke): Inline-expand invacations of int$from_to,
+	int$from_to_by, string$chars, array$indexes, array$elements,
+	sequence$indexes, and sequence$elements.
+	* gctrl.clu (for_stmt): Changed accordingly.
+
+Mon Jan  6 15:42:10 1992  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* ginvoke.clu (invoke_body): Changed comment format for an
+        invocation of built-in, parameterized operations.
+
+	* ginvoke.clu (opt_invoke_bool, opt_invoke_int, opt_invoke_char,
+        opt_invoke_string, opt_invoke_array, opt_invoke_sequence,
+        opt_select): Receive `invoke' instead of argument string.
+
+	* ginvoke.clu (opt_invoke_int): Do not inline-expand int$abs,
+        int$copy, and int$similar.
+
+	* ginvoke.clu (make_arg_str): Fixed a bug that causes an unhandled
+        exception `bounds' if an argument is empty.
+
+Fri Dec 27 08:21:00 1991  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* gexcept.clu (put_sighandler): Generate handler such that an
+        exception raised during initialization of cluster own variables is
+        handled properly.
+	* gtop.clu (g_apply): Changed accordingly.
+
+	* gtop.clu (g_apply): Generate code that returns RET (i.e., 1) at
+        the end of the `main' function.
+
+Mon Dec 23 02:59:10 1991  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* genv.clu (co): Added a new component `file_name' to rep.
+	(co$reset): Changed accordingly.
+	(co$out_code): Open output stream by itself instead of receiving
+        it as an argument.
+	(co$get_file_name): New operation.
+	* top2.clu (compile1): Changed accordingly.
+
+	* genv.clu (glb): New cluster.
+
+	* gparam.clu (get_cop_param): Typo fix.
+
+Fri Dec 20 13:32:35 1991  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* ginvoke.clu (invoke_body): Be more accurate about routine names
+        when determining whether the routine is to be inline expanded or
+        not.
+
+Sat Dec 14 21:17:56 1991  Hirofumi TOUHEI  <toh-hei@is.titech.ac.jp>
+
+	* ginvoke.clu (invoke_body): Call optimization routines for
+        operations on bool, char, string, array, and sequence, in addition
+        to int.
+	(opt_invoke_bool, opt_invoke_char, opt_invoke_string,
+        opt_invoke_array, opt_invoke_sequence): New procedures.
+
+Sat Dec 14 19:25:21 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* menv.clu (m_env$get_specs_args): Fixed a bug that causes an
+        empty string in the result.
+
+Fri Dec 13 17:09:07 1991  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* ginvoke.clu (invoke_body): Significantly modified for
+        parameterized modules.
+	* gparam.clu (param): Likewise.
+	* gtop.clu (g_apply, g_clus): Changed accordingly.
+
+	* ginvoke.clu (iter_invoke): Call error instead of putting
+        directly to the error output stream.
+
+	* ginvoke.clu (opt_invoke_int, opt_select): Receive arguments as a
+        string.  All callers changed.
+
+	* ginvoke.clu (op_with_tag_info): New procedure.
+	* gexpr.clu (g_expr): Changed accordingly.
+
+	* gname.clu (get_type_name): Return "type_parm" for type
+        parameters.
+
+	* gtop.clu (one_proc, g_clus): Call co$tail at the end of module.
+
+Tue Dec  3 21:24:12 1991  Masahiro Jibiki  <jibiki@is.titech.ac.jp>
+
+	* debug.clu: New file.
+
+	* gname.clu (get_type_name): Treat `char' and `sequence' right.
+
+	* genv.clu (lv$add_var_info): New operation.
+	* gtop.clu (g_apply): Call lv$add_var_info for iterators.
+
+	* gstmt.clu (g_stmt): Do not generate comment about the line
+        number for declaration statement.
+
+	* gtop.clu (g_clus): Generated comment about the relation between
+        abstract data types and representation types.
+
+	* gctrl.clu (tag_stmt): Changed format of comment generated at the
+        point where a particular tag is selected.
+	* gexcpet.clu (except_stmt): Changed format of comment generated
+        at the point where control is transferred to a particular handler.
+	(resignal_stmt): Likewise.
+
+	* genv.clu (co): Added a new component `id_table' to rep.
+	(co$reset): Changed accordingly
+	(co$enroll): New operation.
+
+	* genv.clu (lv$decl): Receive one more argument that specifies the
+        type to be of which a variable is declared.  All callers changed.
+
+	* genv.clu (lv$decl_sys): Cause error message if the same system
+        variable is declared more than once.
+
+	* genv.clu (lv): Added a new component `mb_ts' to `entry'; added a
+        new equate `mtspec'.
+	* genv.clu (lv$put): Receive one more argument that may specify
+        the type for a variable.  All callers changed.
+
+	* genv.clu (lv$put_decls): Generate comment about the type for
+        variables.
+	* gtop.clu (g_apply): Generate comment about the type for
+        arguments.
+	* genv.clu (co$rm_funclast): Remove just an exstra comma after the
+        last argument declaration, so that comment about argument type
+        will not be removed.
+
+Fri Nov 29 20:22:08 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* top2.clu: Changes for putting reference tables per one command
+        instead of per one input file.
+	(compile): Call output_refs after all the input files have been
+        processed.
+	(fixup_refs): Do not output reference tables.
+	(output_refs): New procedure.
+
+	* menv.clu, make.clu: New files.
+	* passes.equ (stuff): Added components `menv' and `basic_modules'.
+	(maybe_m_env): New equate.
+	* init.clu (initialize_compiler, initialize_specs): Changed
+        accordingly.
+	* top2.clu (do_compile, do_specs, check_one1): Maintain module
+        dependencies and locations when in `make' mode.
+	(module_name): New procedure.
+
+Tue Nov 19 18:25:21 1991  Masahiro Jibiki  <jibiki@is.titech.ac.jp>
+
+	* syntax.equ (applydefn, typedefn): Renamed `line' as
+        `start_line'; added `end_line'.
+	* cdefn1.clu (c_applydefn, c_apply_main): Changed accordingly.
+	* cdefn2.clu (c_typedefn, c_setup_opers, c_type_main,
+        c_oper_specs, c_apply_main1): Likewise.
+	* pdefn1.clu (p_applydefn, p_typedefn): Likewise.
+
+	* gctrl.clu (if_stmt, for_stmt, while_stmt, tag_stmt): Generate
+        comment that indicates line numbers.
+
+	* gexcept.clu (except_stmt): Generate comment about exceptions.
+	(resignal_stmt): Receive a line number as the second argument;
+        generate comment about line number and exceptions.
+
+	* ginvoke.clu (invoke_stmt, invoke_expr): Genarate goto statement
+        on a separate line.
+
+	* gstmt.clu (g_stmt): Do not generate comment about the line
+        number for `except' and `resignal' statements.
+
+	* gtop.clu (g_apply): Generate comment about the line numbers at
+        the beginning and end of routine bodies.
+
+Sat Nov 16 15:30:40 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* init.clu (initialize_specs): Use the `dump' and `merge'
+        commands.
+
+Fri Nov 15 23:21:57 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* top1.clu (execute_command): Enabled the `dump', `merge', and
+        `unmerge' commands are enabled.
+	* xlib.clu (dump, merge, unmerge): New operations.
+	* syntax.clu (typespec$encode, typespec$decode, expr$encode,
+        expr$decode): New operations.
+	* idn.clu, du.clu (encode, decode): New operations.
+
+Thu Nov 14 12:24:28 1991  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* genv.clu (env$set_optimize, env$is_optimize): Removed.
+	(env): Removed the `optimize' component from rep.
+	(co$head_create, co$add_header, co$set_mod_strm): Removed.
+	(co$const, co$tail): New operations.
+	* top2.clu (compile1): Changed accordingly.
+
+	* top2.clu (compile1): Return false if output file cannot be
+        opened.
+
+Fri Nov  8 15:30:49 1991  Masahiro Jibiki  <jibiki@is.titech.ac.jp>
+
+	* gstmt.clu (g_stmt): Insert debug information (line number).
+
+Sat Nov  2 18:28:41 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* ginvoke.clu (no_exception_module): Return false for encode and
+        decode operations.
+
+	* gname.clu (get_cop_name): Recognize `istream' as a built-in
+        type.
+
+	* gparam.clu (builtin_parm): Recognize encode and decode
+        operations.
+
+Tue Oct  1 22:09:36 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* top1.clu (get_command_mode): Recognize the `make' command.
+	* top2.clu (compile): Likewise.
+
+Thu Sep 26 16:29:34 1991  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* gtop.clu (one_def): Handle all the exceptions signalled by the
+        lower routines.
+	* top2.clu (generate_one): Return false if code generation fails.
+
+	* gtop.clu (g_apply): Generate code that signals
+	failure("no return values") at the end of valued procedure.
+
+Tue Sep 17 20:17:51 1991  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* gparam.clu (p_fieldspec): Do not include selector/tag name in
+	type information.  For exmple, type information so far is like:
+	"reocord[s:string, i:int]"; after chage, this becomes
+	"record[string int]".
+
+Wed Aug 14 05:09:27 1991  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* top2.clu (compile1): Call co$reset and co$head_create before
+        calling do_compile; generate C file after returning from
+        do_compile.
+
+	* clu2c.equ (vkind, AUTO, LOCAL_OWN, ARG): New constants.
+
+	* gtop.clu, gstmt.clu, gparam.clu, gname.clu, glit.clu,
+        ginvoke.clu, gexpr.clu, gexcept.clu, genv.clu, gctrl.clu,
+        gcons.clu: New files.
+
+Wed Jul  3 22:19:12 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* top1.clu (execute_command): Disabled the `bindir', `binsuf',
+        `dump', `merge', and `unmerge' commands.
+
+	* top2.clu (compile1): Do not rename generated file.
+	(reset_stuff): Put message for the `compile' command.
+	(generate_one): Implemented.
+
+Wed Jul  3 03:35:57 1991  Tadashi Ehara  <ehara@is.titech.ac.jp>
+
+	* tkntab.clu (reset): Use dummy_token_is_idn instead of token$is_idn.
+	(dummy_token_is_idn): New internal routine.
+
+Tue Jul  2 21:26:33 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* clu2c.equ: New file.
+
+	* xref.clu (add_ref, add_refs, rem_refs): Use entry_get_key istead
+        of entry$get_key.
+	(entry_get_key): New internal routine.
+
+	* pdefn1.clu (p_typedefn): Use idn_get_str instead of idn$get_str.
+	(idn_get_str): New procedure.
+
+	* ce.clu (create): Use typeabs_similar instead of typeabs$similar.
+	(typeabs_similar): New procedure.
+
+	* pconst.clu (p_fieldspeclist): Use fieldspec_get_sel instead of
+        fieldspec$get_sel.
+	(fieldspec_get_sel): New procedure.
+
+Tue Jul  2 04:52:59 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* pconst.clu (p_exceptionlist): Use p_exceptionlist_get_name
+        instead of exception$get_name.
+	(p_exceptionlist_get_name): New procedure.
+
+Sun Jun 30 20:19:18 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* penv.clu (char_table): New own variable.
+
+Sat Jun 29 08:12:21 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* top1.clu (prefix): Bug fix.
+
+Tue Jun 25 23:12:08 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* top1.clu (fake_stream): Return output stream to null device
+        instead of string stream, for string I/O is not implemented.
+	(start_up): Changed accordingly.
+
+Mon Jun 24 17:24:58 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* syntax.clu (expr$copy): Modified so that rep$copy is not called.
+
+Fri Jun 21 23:03:27 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* top1.clu (execute_command): Removed code for the `unmerge'
+        command.
+
+	* passes.equ (maybe_g_env): Removed.
+
+	* xlib.clu (dump, merge, new_merge, unmerge, all_names, import,
+        old_import): Removed.
+
+	* top2.clu (compile1): Do not call do_tree.
+
+	* xref.clu (_gcd): Removed.
+
+	* syntax.clu (expr): Typo fix.
+
+	* du.clu (dump, restore, _gcd): Removed.
+
+Thu Jun 20 15:11:00 1991  Seiji Kihara  <kihara@is.titech.ac.jp>
+
+	* syntax.clu (typespec$_gcd, equate$_gcd, stmt$_gcd, expr$_gcd):
+        Removed.
+	* idn.clu (_gcd): Removed.
+
+	* idn.clu (idn_hasher): Implemented without hash_obj.
+
+	* top2.clu (compile): Removed code for the `make' command.
+	(setup_stuff): Likewise.
+
+	* top2.clu (do_tree): Removed.
+
+	* top1.clu (start_up): Do not call get_jcl.
+	(get_command_mode): Do not check for `make' and `tree' commands. 
+	(prefix): Implemented without _bytevec.
+	(execute_command): Removed code for `dump' and `merge' commands.
+
+	* mcmp.clu (restore_compiler, dump_compiler): Removed.
+	* top1.clu (start_up): Do not call restore_compiler.
+
+	* init.clu (save_compiler): Removed.
+
+Wed Jun 19 13:02:24 1991  Tetsu Ushijima  <ushijima@is.titech.ac.jp>
+
+	* du.clu (_gcd): Return the constant 0.
+
+	* xlib.clu (new_dump): Signal not_possible("not implemented").
+
+	* ce.clu (CE): Use table_str_entry, table_typeabs_typespec,
+	table_DU_bool instead of table[str, entry], table[typeabs,
+	typespec], table[DU, bool], respectively.
+	* idn.clu (rep): The rep of idn is now global equate named 'triple'. 
+	(That's a sorry thing.)  The idn cluster uses table_triple_atriple
+	instead of table[rep, array[rep]].
+	* tkntab.clu (tokentab): Use table_str_token instead of
+	table[str, token].
+	* xlib.clu (XLIB): Use table_pathname_DU instead of
+        table[pathname, DU].
+
+Wed Jun 12 20:41:54 1991  Common Area for Kimura-lab  <kimlab@is.titech.ac.jp>
+
+	* syntax.equ, passes.equ, xref.clu, xlib.clu, top2.clu, top1.clu,
+        tkntab.clu, syntax.clu, pttkn.clu, pstmt2.clu, pstmt1.clu,
+        pexpr.clu, penv.clu, pdefn2.clu, pdefn1.clu, pconst.clu, mcmp.clu,
+        init.clu, idn.clu, eval2.clu, eval1.clu, du.clu, cstmt2.clu,
+        cstmt1.clu, cspecs.clu, coper.clu, cmpvar.clu, cexpr2.clu,
+        cexpr1.clu, cenv.clu, ce.clu, cdefn2.clu, cdefn1.clu, cconst.clu,
+        build.clu: New files.

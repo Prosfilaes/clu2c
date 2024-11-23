@@ -1,0 +1,145 @@
+% rtenv.clu - system run-time environment
+%
+% Copyright (c) 1996
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: rtenv.clu,v 2.0 1996/06/10 09:02:19 ushijima Exp $
+
+
+% RT_ENV is part of system run-time environment that is visible to the
+% user.  In the environment, there are system version specification,
+% system root directory, working directory for I/O operations, argument
+% vector and program name associated with the current executing process.
+% Among these components, you can modify system root directory and
+% working directory.  Usually there is exactly one object or RT_ENV that
+% can be got by the ONE operation.
+
+rt_env = cluster is create, one, get_system_version,
+		get_system_root_directory, set_system_root_directory,
+		get_working_directory, set_working_directory,
+		unset_working_directory, get_argument_vector,
+		get_program_name
+		
+
+    % Representation.
+
+    rep = record[
+	root_dir: maybe_file_name,	% system root directory
+	work_dir: maybe_file_name	% working directory
+    ]
+
+    maybe_file_name = oneof[
+	none: null,
+	one:  file_name
+    ]
+
+
+    % An rt_env object returned by the one operation.
+
+    own rte: rt_env := create()
+
+
+    % Creates an runtime object.
+
+    create = proc() returns(cvt)
+	return(rep${root_dir, work_dir: maybe_file_name$make_none(nil)})
+    end create
+
+
+    % Returns the run-time environment that this type hold by itself.
+
+    one = proc() returns(rt_env)
+	return(rte)
+    end one
+    
+
+    % Returns the system version.
+
+    get_system_version = proc(e: cvt) returns(string)
+	return(version)
+    end get_system_version
+    
+
+    % Returns the system root directory.
+
+    get_system_root_directory = proc(e: cvt) returns(file_name)
+	getenv = _external_getenv
+	tagcase e.root_dir
+	tag none:
+	    clu2c_root: string := getenv("CLU2CROOT")
+		except when not_found:
+		    clu2c_root := default_root_directory()
+		end
+	    root_dir: file_name := file_name$create(clu2c_root, "", "", "")
+	    e.root_dir := maybe_file_name$make_one(root_dir)
+	    return(root_dir)
+	tag one(root_dir: file_name):
+	    return(root_dir)
+	end
+    end get_system_root_directory
+
+
+    % Modifies E so that the get_system_root_directory returns FN.
+
+    set_system_root_directory = proc(e: cvt, root_dir: file_name)
+	root_dir := file_name_as_directory(root_dir)
+	e.root_dir := maybe_file_name$make_one(root_dir)
+    end set_system_root_directory
+    
+
+    % Returns the current working directory if it is defined by the
+    % set_working_directory operation; otherwise signals UNDEFINED.
+ 
+    get_working_directory = proc(e: cvt) returns(file_name) signals(undefined)
+	tagcase e.work_dir
+	tag none:
+	    signal undefined
+	tag one(work_dir: file_name):
+	    return(work_dir)
+	end
+    end get_working_directory
+
+
+    % Modifies E so that the get_working_directory operation returns
+    % WORK_DIR.
+
+    set_working_directory = proc(e: cvt, work_dir: file_name)
+	work_dir := file_name_as_directory(work_dir)
+	e.work_dir := maybe_file_name$make_one(work_dir)
+    end set_working_directory
+
+
+    % Modifies E so that the get_working_directory signals UNDEFINED.
+
+    unset_working_directory = proc(e: cvt)
+	e.work_dir := maybe_file_name$make_none(nil)
+    end unset_working_directory
+
+
+    % Returns the argument vector associated with the current
+    % executing process.
+
+    get_argument_vector = proc(e: cvt) returns(ss)
+	argc = _external_argc
+	argv = _external_argv
+	as = array[string]
+	ss = sequence[string]
+	res: as := as$new()
+	for i: int in int$from_to(1, argc() - 1) do
+	    as$addh(res, argv(i))
+	end
+	return(ss$a2s(res))
+    end get_argument_vector
+
+
+    % Returns the program name associated with the current executing
+    % process.
+
+    get_program_name = proc(e: cvt) returns(string)
+	argv = _external_argv
+	return(argv(0))
+    end get_program_name
+
+
+end rt_env

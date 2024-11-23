@@ -1,0 +1,13 @@
+% terminat.clu - terminate current process
+%
+% Copyright (c) 1997
+%	Department of Mathematical and Computing Sciences,
+%	Tokyo Institute of Technology.  All rights reserved.
+%
+% $Id: terminat.clu,v 1.2 1997/02/05 09:55:58 ushijima Exp $
+
+
+terminate = proc(status: int)
+    stream$_close_all()
+    _external_exit(status)
+end terminate

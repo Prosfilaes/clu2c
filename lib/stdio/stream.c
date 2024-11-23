@@ -104,6 +104,7 @@ static stream WVstream_D__primary__input = NULL;
 static stream WVstream_D__primary__output = NULL;
 static stream WVstream_D__error__output = NULL;
 
+static int OFstream_D_Downinit(void);
 
 /********************************************************************
  *								    *

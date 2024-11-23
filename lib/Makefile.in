@@ -1,7 +1,7 @@
 dnl $Id: Makefile.in,v 2.10 1997/02/05 08:53:56 ushijima Exp $
 include(`mk.m4')
 MK_CURRENT_DIRECTORY(`lib')
-MK_SUBDIRECTORIES(`gc jaio external built-in stdio clu2c')
+MK_SUBDIRECTORIES(`jaio external built-in stdio clu2c')
 MK_DEFINE_VARIABLE(`ARCHIVE', `libclu2c.a')
 MK_MISC_SOURCES(`Index basic.spc makelib sysnames')
 MK_NON_SOURCES(`dirent.lib external.lib file.lib filename.lib int.lib math.lib progenv.lib pstream.lib runtime.lib uint.lib')

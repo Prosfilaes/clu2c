@@ -1,0 +1,158 @@
+
+
+######################################################################
+#
+# Makefile.dos.  Generated automatically from Makefile.in by m4.
+#
+
+
+#### Variables specific to this directory ####
+
+# Current directory relative to the top-level build directory
+curdir = lib\gc
+
+# Top-level build directory
+topdir = ../..
+
+# Default flags to the C compiler
+DEFAULT_CFLAGS = -I$(topdir) -DALL_INTERIOR_POINTERS -DNO_SIGNALS -DSILENT
+
+# All the flags to the C compiler
+ALL_CFLAGS = $(DEFAULT_CFLAGS) $(CFLAGS)
+
+# Archive file
+ARCHIVE = ../libclu2c.a
+
+
+#### Source files ####
+
+# C source files
+C_SRC = $(C_SRC_1) $(C_SRC_2) $(C_SRC_3) $(C_SRC_4)
+C_SRC_1 = allchblk.c alloc.c blacklst.c checksums.c dbg_mlc.c dyn_load.c
+C_SRC_2 = finalize.c headers.c mach_dep.c malloc.c mark.c mark_rts.c
+C_SRC_3 = misc.c new_hblk.c obj_map.c os_dep.c ptr_chck.c reclaim.c
+C_SRC_4 = sol_threads.c stubborn.c typd_mlc.c
+
+# Miscellaneous source files
+MISC_SRC = ChangeLog Makefile.in README BCC_MAKEFILE EMX_MAKEFILE MacOS.c MacProjects.sit.hqx Makefile.gc NT_MAKEFILE OS2_MAKEFILE PCR-Makefile README.Mac README.OS2 README.QUICK README.amiga README.debugging README.gc README.win32 SCoptions.amiga SMakefile.amiga add_gc_prefix.c alpha_mach_dep.s barrett_diagram callprocs gc.h gc.man gc_conf.h gc_cpp.cc gc_cpp.h gc_hdrs.h gc_mark.h gc_priv.h gc_private.h gc_typed.h gcc_support.c if_mach.c if_not_there.c makefile.depend mips_mach_dep.s pc_excludes pcr_interface.c real_malloc.c rs6000_mach_dep.s setjmp_t.c sparc_mach_dep.s test.c test_cpp.cc weakpointer.h
+
+# All the source files
+ALL_SRC = $(C_SRC) $(MISC_SRC)
+
+
+#### Created files ####
+
+# Object files compiled from C source files
+C_OBJ = $(C_OBJ_1) $(C_OBJ_2) $(C_OBJ_3) $(C_OBJ_4)
+C_OBJ_1 = allchblk.o alloc.o blacklst.o checksums.o dbg_mlc.o dyn_load.o
+C_OBJ_2 = finalize.o headers.o mach_dep.o malloc.o mark.o mark_rts.o
+C_OBJ_3 = misc.o new_hblk.o obj_map.o os_dep.o ptr_chck.o reclaim.o
+C_OBJ_4 = sol_threads.o stubborn.o typd_mlc.o
+
+# All the object files
+ALL_OBJ = $(C_OBJ)
+
+
+#### Rules for standard targets ####
+
+# Compiles the entire program
+all: archive
+
+# Copies all the products
+install:
+
+# Removes installed files
+uninstall:
+
+# Makes mostly clean
+mostlyclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove archive
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove gctest gctest.exe setjmp_t setjmp_t.exe test.o
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_4)
+
+# Makes clean
+clean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove archive
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove gctest gctest.exe setjmp_t setjmp_t.exe test.o
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_4)
+
+# Makes clean as disributed
+distclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove Makefile Makefile.top
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove archive
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove gctest gctest.exe setjmp_t setjmp_t.exe test.o
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_4)
+
+# Makes really clean
+realclean:
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove Makefile Makefile.top
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove archive
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove gctest gctest.exe setjmp_t setjmp_t.exe test.o
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_1)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_2)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_3)
+	$(COMMAND) $(COMMANDFLAGS) /c ..\..\config\remove $(C_OBJ_4)
+
+# Creates tag file
+TAGS:
+
+# Creates info file
+info:
+
+# Creates distribution
+dist: $(DIST)
+	@$(top_srcdir)/config/makedist $(distname) $(curdir) $(DIST)
+
+# Does some check
+check: setjmp_t.exe gctest.exe
+	setjmp_t
+	gctest
+
+
+#### Rules specific to this directory ####
+
+# Executes test program
+test: check
+
+# Creates gctest
+gctest.exe: archive test.o
+	$(CC) $(ALL_CFLAGS) -o gctest test.o $(ARCHIVE)
+
+# Creates setjmp_test
+setjmp_t.exe: 
+	$(CC) $(ALL_CFLAGS) -o setjmp_t $(srcdir)/setjmp_t.c
+
+# Archives object files in this directory
+archive: $(ALL_OBJ)
+	$(AR) $(ARFLAGS) $(ARCHIVE) $(C_OBJ_1)
+	$(AR) $(ARFLAGS) $(ARCHIVE) $(C_OBJ_2)
+	$(AR) $(ARFLAGS) $(ARCHIVE) $(C_OBJ_3)
+	$(AR) $(ARFLAGS) $(ARCHIVE) $(C_OBJ_4)
+	$(RANLIB) $(ARCHIVE)
+	echo archive > archive
+
+# Creates makefiles for this directory and all the subdirectories
+mkfiles:
+	copy Makefile.top+$(config_mk)+$(srcdir)\Makefile.dos Makefile
+
+# Forces a particular target to be made
+always:
+
+
+#### Suffix rules ####
+
+.SUFFIXES:
+.SUFFIXES: .o .c
+
+# Compiles C file to get object file
+.c.o:
+	$(CC) $(ALL_CFLAGS) -c $<

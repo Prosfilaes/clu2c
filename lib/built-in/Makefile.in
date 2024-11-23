@@ -14,7 +14,7 @@ MK_APPEND_ACTION(`install',
 	`MK_INSTALL_SOURCE_DATA(`built-in.spc', `$(clu2c_libdir)')')
 MK_DEFINE_RULE(`string_o', `string.o',
 	`$(srcdir)/string.c',
-	`$(CC) $(ALL_CFLAGS) -I$(top_srcdir)/lib/jaio -c $(srcdir)/string.c')
+	`$(CC) $(ALL_CFLAGS) -c $(srcdir)/string.c')
 MK_SPECIFIC_RULES
 MK_RULE_DEFINITION(`string_o', `string.c requires additional header directory')
 MK_END

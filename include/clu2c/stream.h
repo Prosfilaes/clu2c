@@ -14,7 +14,7 @@
 /* Support for Japanization */
 
 #ifdef J10N
-#   include <jaio.h>
+#   error
 #   define FILE_T		ja_FILE
 #   define IOFBF		ja_IOFBF
 #   define IOLBF		ja_IOLBF

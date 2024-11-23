@@ -163,7 +163,7 @@ check:
 
 # Creates stream.o
 stream.o: $(srcdir)/stream.c
-	$(CC) $(ALL_CFLAGS) -I$(top_srcdir)/lib/jaio -c $(srcdir)/stream.c
+	$(CC) $(ALL_CFLAGS) -c $(srcdir)/stream.c
 
 # Creates all the C files
 cfiles: clu2c.time $(POUT).c

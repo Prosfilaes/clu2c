@@ -15,7 +15,7 @@ curdir = lib
 topdir = ..
 
 # Subdirectories
-subdirs = jaio external built-in stdio clu2c
+subdirs = external built-in stdio clu2c
 
 
 #### Source files ####

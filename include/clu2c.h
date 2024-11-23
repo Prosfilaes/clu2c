@@ -11,7 +11,7 @@
 #ifndef CLU2C_H
 #define CLU2C_H
 
-
+#include <gc.h>
 /* Return values of C functions that corresponds to CLU routines.  */
 /* XXX: Taking compatibility with `SIG' and `RET' into account, `YLD'
    may be more appropriate than `YIELD'.  -- TU */
@@ -78,12 +78,6 @@
 #define YIELD1(res1)\
 	retval_area[0] = (object) (res1);\
 	return YIELD
-
-/* Japanization is turned on by default.  */
-/* XXX: Should Japanization default to off?  -- TU */
-#ifndef NOJ10N
-#define J10N	1
-#endif
 
 /* Generic CLU object descriptor.  */
 typedef int object;

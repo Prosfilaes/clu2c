@@ -13,7 +13,5 @@ lib
 lib/built-in
 lib/clu2c
 lib/external
-lib/gc
-lib/jaio
 lib/stdio
 mk

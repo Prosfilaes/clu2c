@@ -17,7 +17,7 @@ MK_APPEND_PREREQ(`install', `all')
 MK_DEFINE_RULE(`stream_o',
 	`stream.o',
 	`$(srcdir)/stream.c',
-	`$(CC) $(ALL_CFLAGS) -I$(top_srcdir)/lib/jaio -c $(srcdir)/stream.c')
+	`$(CC) $(ALL_CFLAGS) -c $(srcdir)/stream.c')
 MK_SPECIFIC_RULES
 MK_RULE_DEFINITION(`stream_o', `Creates stream.o')
 MK_END

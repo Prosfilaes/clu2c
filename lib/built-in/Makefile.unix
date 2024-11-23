@@ -118,7 +118,7 @@ check:
 
 # string.c requires additional header directory
 string.o: $(srcdir)/string.c
-	$(CC) $(ALL_CFLAGS) -I$(top_srcdir)/lib/jaio -c $(srcdir)/string.c
+	$(CC) $(ALL_CFLAGS) -c $(srcdir)/string.c
 
 # Archives object files in this directory
 archive: $(ALL_OBJ)

@@ -13,7 +13,7 @@
 #include <clu2c.h>
 
 #ifdef J10N
-#   include <jaio.h>
+#   error
 #endif
 
 

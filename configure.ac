@@ -7,9 +7,10 @@ dnl
 dnl $Id: configure.in,v 2.0 1996/06/10 08:58:01 ushijima Exp $
 dnl
 AC_REVISION($Revision: 2.0 $)
-AC_INIT(configure)
+AC_INIT
+AC_CONFIG_SRCDIR([configure])
 AC_CONFIG_AUX_DIR(config)
-AC_CONFIG_HEADER(config.h:configh.in)
+AC_CONFIG_HEADERS([config.h:configh.in])
 # Initialize variables specific to this package
 SHELL='/bin/sh'
 bindir='$(exec_prefix)/bin'
@@ -133,12 +134,38 @@ AC_PROG_LN_S
 AC_PROG_RANLIB
 AC_CHECK_LIB(sun, getpwnam)
 AC_CHECK_LIB(m, main)
-AC_HEADER_STDC
+AC_CHECK_LIB(gc, GC_malloc)
+
 AC_HEADER_DIRENT
-AC_HEADER_TIME
+m4_warn([obsolete],
+[Update your code to rely only on HAVE_SYS_TIME_H,
+then remove this warning and the obsolete code below it.
+All current systems provide time.h; it need not be checked for.
+Not all systems provide sys/time.h, but those that do, all allow
+you to include it and time.h simultaneously.])dnl
+AC_CHECK_HEADERS_ONCE([sys/time.h])
+# Obsolete code to be removed.
+if test $ac_cv_header_sys_time_h = yes; then
+  AC_DEFINE([TIME_WITH_SYS_TIME],[1],[Define to 1 if you can safely include both <sys/time.h>
+	     and <time.h>.  This macro is obsolete.])
+fi
+# End of obsolete code.
+
 AC_CHECK_HEADERS(errno.h error.h float.h pwd.h signal.h stat.h stdarg.h unistd.h values.h)
 AC_CHECK_HEADERS(sys/param.h sys/stat.h sys/time.h sys/types.h)
-AC_TYPE_SIGNAL
+m4_warn([obsolete],
+[your code may safely assume C89 semantics that RETSIGTYPE is void.
+Remove this warning and the `AC_CACHE_CHECK' when you adjust the code.])dnl
+AC_CACHE_CHECK([return type of signal handlers],[ac_cv_type_signal],[AC_COMPILE_IFELSE(
+[AC_LANG_PROGRAM([#include <sys/types.h>
+#include <signal.h>
+],
+		 [return *(signal (0, 0)) (0) == 1;])],
+		   [ac_cv_type_signal=int],
+		   [ac_cv_type_signal=void])])
+AC_DEFINE_UNQUOTED([RETSIGTYPE],[$ac_cv_type_signal],[Define as the return type of signal handlers
+		    (`int' or `void').])
+
 AC_TYPE_SIZE_T
 AC_CHECK_TYPE(time_t, long)
 AC_MSG_CHECKING(whether time.h defines clock_t)
@@ -149,10 +176,13 @@ if test $ac_cv_type_clock_t = no; then
   AC_DEFINE(clock_t, long)
 fi
 AC_CHECK_FUNCS(atexit clock getcwd memcpy on_exit setvbuf sighold strchr strerror)
-AC_C_LONG_DOUBLE
-if false; then
-  AC_DEFINE(MSDOS_TEXT)
-  AC_DEFINE(DJGPP_EMU387_BROKEN)
-fi
-AC_OUTPUT(config.mk:config/configmk.in fakeclu.sh:config/fakeclush.in,
-[sh $srcdir/config/mkmf.sh $srcdir])
+AC_TYPE_LONG_DOUBLE_WIDER
+ac_cv_c_long_double=$ac_cv_type_long_double_wider
+if test $ac_cv_c_long_double = yes; then
+  AC_DEFINE([HAVE_LONG_DOUBLE],[1],[Define to 1 if the type `long double' works and has more range or
+  precision than `double'.])
+ fi
+  
+AC_CONFIG_FILES([config.mk:config/configmk.in fakeclu.sh:config/fakeclush.in])
+AC_CONFIG_COMMANDS([default],[sh $srcdir/config/mkmf.sh $srcdir],[])
+AC_OUTPUT

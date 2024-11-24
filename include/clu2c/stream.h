@@ -44,7 +44,7 @@
 #   define Ferror(p)		ferror(p)
 #   define Fflush(p)		fflush(p)
 #   define Fileno(p)		fileno(p)
-#   define Fnputs(s, n, p)	fnputs(s, n, p)
+#   define Fnputs(s, n, p)	fwrite((s), 1, (n), (p))
 #   define Fopen(f, m)		fopen(f, m)
 #   define Fseek(p, o, w)	fseek(p, o, w)
 #   define Getc(p)		getc(p)

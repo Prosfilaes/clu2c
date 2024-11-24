@@ -1,3 +1,21 @@
+CLU2C Version 1.99.4                                  November 24, 2024
+
+This version of CLU2C has been tested on the following platform:
+Linux/x86 with gcc-11. It is known not to work on Linux/AMD64 because
+of the assumption that integer size is the same as pointer size. I am
+mainly concerned about Linux on x86-64, ARM32, ARM64 (Raspberry Pis),
+and RISC-V 64. In theory, I'd like it to run on Mac OS X and various
+BSDs, but am unlikely to work on that myself. DOS support is being
+removed, unless there's active demand, and I'm not in any rush to
+support Windows or work around bugs in proprietary Unixes.
+
+Changes to this release include updating autoconfig, requiring
+external libgc, and removing support for legacy Japanese encodings
+that wasn't compiling for modern glibc. Immediate work is going
+to be aimed at making it work on AMD64, which I hope will bring along
+support for all 64 bit Linux architectures.
+
+
 CLU2C Version 1.99.3 (2.0-beta3)		      February 6, 1997
 
 CLU2C is a portable implementation of the programming language CLU.

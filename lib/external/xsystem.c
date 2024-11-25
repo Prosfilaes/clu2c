@@ -9,7 +9,7 @@
  */
 
 #include <clu2c.h>
-
+#include <stdlib.h>
 
 /*
  * _external_system = proc(comand: string) returns(int)

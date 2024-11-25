@@ -12,7 +12,6 @@
 #define CLU2C_H
 
 #include <gc.h>
-#include <stdio.h>
 
 /* Return values of C functions that corresponds to CLU routines.  */
 /* XXX: Taking compatibility with `SIG' and `RET' into account, `YLD'

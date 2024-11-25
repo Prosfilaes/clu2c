@@ -13,6 +13,7 @@
 #include <config/unistd.h>
 
 #include <clu2c.h>
+#include <string.h>
 
 
 /*

@@ -9,6 +9,7 @@
  */
 
 #include <clu2c.h>
+#include <unistd.h>
 
 #ifdef X68000
 #   include <process.h>

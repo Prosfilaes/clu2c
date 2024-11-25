@@ -10,6 +10,7 @@
 
 #include <config/limits.h>
 #include <clu2c.h>
+#include <stdio.h>
 
 #define UINT_BIT (sizeof(unsigned) * CHAR_BIT)
 

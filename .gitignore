@@ -383,3 +383,6 @@ Makefile.top
 mk/Makefile
 mk/Makefile.top
 *.o
+a.out
+test/*.c
+test/*/*.c

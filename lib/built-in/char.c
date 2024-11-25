@@ -9,7 +9,7 @@
  */
 
 #include <clu2c.h>
-
+#include <stdio.h>
 
 /*
  * Operations

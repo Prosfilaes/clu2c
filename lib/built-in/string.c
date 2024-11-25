@@ -11,6 +11,7 @@
 #include <config/string.h>
 
 #include <clu2c.h>
+#include <stdio.h>
 
 #ifdef J10N
 #   error

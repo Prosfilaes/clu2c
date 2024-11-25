@@ -9,7 +9,7 @@
  */
 
 #include <clu2c.h>
-
+#include <stdio.h>
 
 #define INT_MAX 2147483647	/* maximum integer: 2^31 - 1 */
 #define INT_MIN (-INT_MAX - 1)	/* minimum integer: -(2^31) */

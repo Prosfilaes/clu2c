@@ -7,6 +7,9 @@
  *
  */
 
+int OFint_D__div(int i1, int i2);
+int OFint_D__mod(int i1, int i2);
+
 /* Macros for inline expansion */
 
 /* Bodies of Macro for inline expansion */

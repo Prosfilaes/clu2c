@@ -23,10 +23,10 @@ thirdline = proc (n: int) returns (string)
 end thirdline
 
 verse = proc (n: int) returns (string)
-    v: string := bottles(n) || " bottles of beer on the wall,\n"
-    v := v || bottles(n) || " bottles of beer,\n"
+    v: string := bottles(n) || " of beer on the wall,\n"
+    v := v || bottles(n) || " of beer,\n"
     v := v || thirdline(n)
-    v := v || bottles(n-1) || " bottles of beer on the wall.\n\n"
+    v := v || bottles(n-1) || " of beer on the wall.\n\n"
     return(v)
 end verse
 

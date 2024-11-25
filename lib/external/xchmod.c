@@ -9,7 +9,7 @@
  */
 
 #include <config/unistd.h>
-
+#include <sys/stat.h>
 #include <clu2c.h>
 
 

@@ -206,3 +206,5 @@ extern string OFstring_D__predict();
 #   define SLZERO_DIVIDE	  ((string) (&Strings.zero_divide))
 #   define SLOUT_OF_MEMORY	  ((string) (&Strings.out_of_memory))
 #endif /* CLU2C_STRING_VERSION == 3 */
+
+    int OFstring_D__equal (string s1, string s2);

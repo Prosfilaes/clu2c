@@ -22,8 +22,7 @@
  *	radians.
  */
 
-AFacos(r)
-real r;
+real AFacos(real r)
 {
     double d;
 

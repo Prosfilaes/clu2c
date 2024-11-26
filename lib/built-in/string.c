@@ -12,6 +12,7 @@
 
 #include <clu2c.h>
 #include <stdio.h>
+#include "array.h"
 
 #ifdef J10N
 #   error

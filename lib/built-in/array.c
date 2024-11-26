@@ -11,6 +11,7 @@
 #include <config/string.h>
 
 #include <clu2c.h>
+#include "array.h"
 
 
 /*
@@ -108,8 +109,8 @@ static int OFarray_D__shrink();
  * create = proc(low: int) returns(array[T])
  */
 
-int OFarray_Dcreate(low)
-int low;			/* low bound of the result */
+int OFarray_Dcreate(int low)
+// int low;			low bound of the result 
 {
     RETURN1(OFarray_D__alloc(low, 0));
 }
@@ -119,7 +120,7 @@ int low;			/* low bound of the result */
  * new = proc() returns(array[T])
  */
 
-int OFarray_Dnew()
+int OFarray_Dnew(void)
 {
     return OFarray_Dcreate(1);
 }
@@ -129,9 +130,9 @@ int OFarray_Dnew()
  * predict = proc(low, count: int) returns(array[T]) 
  */
 
-int OFarray_Dpredict(low, count)
-int low;			/* low bound of the result*/
-int count;			/* count prediction */
+int OFarray_Dpredict(int low, int count)
+// int low;			low bound of the result
+// int count;			count prediction 
 {
     int predicted_low;		/* predicted low bound */
     int predicted_size;		/* predicted size */
@@ -155,10 +156,10 @@ int count;			/* count prediction */
  *        signals(negative_size)
  */
 
-int OFarray_Dfill(low, size, elem)
-int low;			/* low bound of the result */
-int size;			/* size of the result */
-object elem;			/* element to be filled */
+int OFarray_Dfill(int low, int size, object elem)
+// int low;			low bound of the result 
+// int size;			size of the result 
+// object elem;			element to be filled 
 {
     array res;			/* result */
     int i;			/* index for each element of the result */
@@ -179,8 +180,8 @@ object elem;			/* element to be filled */
  * low = proc(a: array[T]) returns(int)
  */
 
-int OFarray_Dlow(a)
-array a;			/* target array */
+int OFarray_Dlow(array a)
+// array a;			/* target array 
 {
     RETURN1(LOW(a));
 }
@@ -190,8 +191,8 @@ array a;			/* target array */
  * high = proc(a: array[T]) returns(int)
  */
 
-int OFarray_Dhigh(a)
-array a;			/* target array */
+int OFarray_Dhigh(array a)
+// array a;			/* target array 
 {
     RETURN1(HIGH(a));
 }
@@ -201,8 +202,8 @@ array a;			/* target array */
  * size = proc(a: array[T]) returns(int)
  */
 
-int OFarray_Dsize(a)
-array a;			/* target array */
+int OFarray_Dsize(array a)
+// array a;			/* target array
 {
     RETURN1(SIZE(a));
 }
@@ -212,8 +213,8 @@ array a;			/* target array */
  * empty = proc(a: array[T]) returns(bool)
  */
 
-int OFarray_Dempty(a)
-array a;			/* target array */
+int OFarray_Dempty(array a)
+// array a;			/* target array
 {
     RETURN1(EMPTY(a));
 }
@@ -223,9 +224,9 @@ array a;			/* target array */
  * set_low = proc(a: array[T], low: int)
  */
 
-int OFarray_Dset__low(a, low)
-array a;			/* target array */
-int low;			/* low bound to be set */
+int OFarray_Dset__low(array a, int low)
+// array a;			/* target array
+// int low;			/* low bound to be set
 {
     SET_LOW(a, low);
     RETURN0;
@@ -236,10 +237,10 @@ int low;			/* low bound to be set */
  * trim = proc(a: array[T], nlow, nsize: int) signals(bounds, negative_size)
  */
 
-int OFarray_Dtrim(a, nlow, nsize)
-array a;			/* target array */
-int nlow;			/* new low bound of A */
-int nsize;			/* max of new size of A */
+int OFarray_Dtrim(array a, int nlow, int nsize)
+//array a;			/* target array 
+//int nlow;			/* new low bound of A 
+//int nsize;			/* max of new size of A 
 {
     int low_incr;		/* increment of low bound */
     int high_decr;		/* decrement of high bound */
@@ -271,9 +272,9 @@ int nsize;			/* max of new size of A */
  * fetch = proc(a: array[T], i: int) returns(T) signals(bounds) 
  */
 
-int OFarray_Dfetch(a, i)
-array a;			/* target array */
-int i;				/* index of the to-be-fetched element */
+int OFarray_Dfetch(array a, int i)
+// array a;			target array 
+// int i;			index of the to-be-fetched element
 {
     if (BOUNDS(a, i)) {
 	SIGNAL0(SLBOUNDS);
@@ -286,10 +287,10 @@ int i;				/* index of the to-be-fetched element */
  * store = proc(a: array[T], i: int, elem: T) signals(bounds)
  */
 
-int OFarray_Dstore(a, i, elem)
-array a;			/* target array */
-int i;				/* index for the to-be-stored object */
-object elem;			/* element to be stored */
+int OFarray_Dstore(array a, int i, object elem)
+// array a;			/* target array
+// int i;			/* index for the to-be-stored object
+// object elem;			/* element to be stored
 {
     if (BOUNDS(a, i)) {
 	SIGNAL0(SLBOUNDS);
@@ -303,8 +304,8 @@ object elem;			/* element to be stored */
  * bottom = proc(a: array[T]) returns(T) signals(bounds)
  */
 
-int OFarray_Dbottom(a)
-array a;			/* target array */
+int OFarray_Dbottom(array a)
+// array a;			/* target array
 {
     if (EMPTY(a)) {
 	SIGNAL0(SLBOUNDS);
@@ -317,8 +318,8 @@ array a;			/* target array */
  * top = proc(a: array[T]) returns(T) signals(bounds)
  */
 
-int OFarray_Dtop(a)
-array a;			/* target array */
+int OFarray_Dtop(array a)
+// array a;			/* target array
 {
     if (EMPTY(a)) {
 	SIGNAL0(SLBOUNDS);
@@ -331,9 +332,9 @@ array a;			/* target array */
  * addh = proc(a: array[T], elem: T)
  */
 
-int OFarray_Daddh(a, elem)
-array a;			/* target array */
-object elem;			/* element to be added */
+int OFarray_Daddh(array a, object elem)
+// array a;			/* target array
+// object elem;			/* element to be added
 {
     if (a->high >= a->buf_top) {
 
@@ -363,9 +364,9 @@ object elem;			/* element to be added */
  * addl = proc(a: array[T], elem: T) signals(overflow)
  */
 
-int OFarray_Daddl(a, elem)
-array a;			/* target array */
-object elem;			/* element to be added */
+int OFarray_Daddl(array a, object elem)
+// array a;			/* target array
+// object elem;			/* element to be added
 {
     if (a->low <= a->buf_bottom) {
 
@@ -395,8 +396,8 @@ object elem;			/* element to be added */
  * remh = proc(a: array[T]) returns(T) signals(bounds)
  */
 
-int OFarray_Dremh(a)
-array a;			/* target array */
+int OFarray_Dremh(array a)
+//array a;			/* target array
 {
     if (EMPTY(a)) {
 	SIGNAL0(SLBOUNDS);
@@ -409,8 +410,8 @@ array a;			/* target array */
  * reml = proc(a: array[T]) returns(T) signals(bounds)
  */
 
-int OFarray_Dreml(a)
-array a;			/* target array */
+int OFarray_Dreml(array a)
+//array a;			/* target array
 {
     if (EMPTY(a)) {
 	SIGNAL0(SLBOUNDS);
@@ -428,10 +429,10 @@ array a;			/* target array */
 #define LMi      ((*ivarp)[1])
 #define LMhigh   ((*ivarp)[2])
 
-int OFarray_Delements(init, ivarp, a)
-bool init;			/* initialization flag */
-object **ivarp;			/* (pointer to the)^2 activation record */
-array a;			/* target array */
+int OFarray_Delements(bool init, object **ivarp, array a)
+// bool init;			/* initialization flag
+// object **ivarp;			/* (pointer to the)^2 activation record
+// array a;			/* target array
 {
     if (init) {
 	*ivarp = (object *) malloc(ARSIZE * sizeof(object));
@@ -465,10 +466,10 @@ array a;			/* target array */
 #define LMhigh	((*ivarp)[1])
 #define LMi	((*ivarp)[2])
 
-int OFarray_Dindexes(init, ivarp, a)
-bool init;			/* initialization flag */
-object **ivarp;			/* (pointer to the)^2 activation record */
-array a;			/* target array */
+int OFarray_Dindexes(bool init, object **ivarp, array a)
+//bool init;			/* initialization flag
+//object **ivarp;			/* (pointer to the)^2 activation record
+//array a;			/* target array
 {
     if (init) {
 	*ivarp = (object *) malloc(ARSIZE * sizeof(object));
@@ -497,9 +498,9 @@ array a;			/* target array */
  * equal = proc(a1, a2: array[T]) returns(bool) 
  */
 
-int OFarray_Dequal(a1, a2)
-array a1;			/* left hand side */
-array a2;			/* right hand side */
+int OFarray_Dequal(array a1, array a2)
+// array a1;			/* left hand side
+// array a2;			/* right hand side
 {
     RETURN1(EQUAL(a1, a2));
 }
@@ -510,10 +511,10 @@ array a2;			/* right hand side */
  *           where T has similar: proctype(T, T) returns(bool)
  */
 
-int OFarray_Dsimilar(op_list, a1, a2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-array a1;			/* left hand side */
-array a2;			/* right hand side */
+int OFarray_Dsimilar(oplist_t op_list, array a1, array a2)
+// oplist_t op_list;		/* list of parameter-dependent operations
+// array a1;			/* left hand side 
+// array a2;			/* right hand side
 {
     return(OFarray_D__similar(op_list, a1, a2));
 }
@@ -524,10 +525,10 @@ array a2;			/* right hand side */
  *            where T has similar: proctype(T, T) returns(bool)
  */
 
-int OFarray_Dsimilar1(op_list, a1, a2)
-oplist_t op_list;		/* list of parameter-dependent operatinos */
-array a1;			/* left hand side */
-array a2;			/* right hand side */
+int OFarray_Dsimilar1(oplist_t op_list, array a1, array a2)
+// oplist_t op_list;		/* list of parameter-dependent operatinos 
+// array a1;			/* left hand side 
+// array a2;			/* right hand side 
 {
     return(OFarray_D__similar(op_list, a1, a2));
 }
@@ -538,9 +539,9 @@ array a2;			/* right hand side */
  *        where T has copy: proctype(T) returns(T)
  */
 
-int OFarray_Dcopy(op_list, a)
-oplist_t op_list;		/* list of parameter-dependent operations */
-array a;			/* target array */
+int OFarray_Dcopy(oplist_t op_list, array a)
+// oplist_t op_list;		/* list of parameter-dependent operations 
+// array a;			/* target array 
 {
     int low;			/* low bound common to A and the result */
     int size;			/* size common to A and the result */
@@ -565,8 +566,8 @@ array a;			/* target array */
  * copy1 = proc(a: array[T]) returns(array[T]) 
  */
 
-int OFarray_Dcopy1(a)
-array a;			/* target array */
+int OFarray_Dcopy1(array a)
+//array a;			/* target array
 {
     int size;			/* size common to A and the result */
     array res;			/* result */
@@ -584,11 +585,11 @@ array a;			/* target array */
  *             where T has copy: proctype(T) returns(T)
  */
 
-int OFarray_Dfill__copy(op_list, low, size, elem)
-oplist_t op_list;		/* list of parameter-dependent operations */
-int low;			/* low bound of the result*/
-int size;			/* size of the result */
-object elem;			/* element to be copied */
+int OFarray_Dfill__copy(oplist_t op_list, int low, int size, object elem)
+// oplist_t op_list;		/* list of parameter-dependent operations
+// int low;			/* low bound of the result
+// int size;			/* size of the result
+// object elem;			/* element to be copied
 {
     array res;			/* result */
     int i;			/* index for each element of the result */
@@ -615,10 +616,10 @@ object elem;			/* element to be copied */
  *                              signals(not_possible(stirng))
  */
 
-int OFarray_Dencode(op_list, a, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-array a;			/* target array */
-object ist;			/* istream */
+int OFarray_Dencode(oplist_t op_list, array a, object ist)
+// oplist_t op_list;		/* list of parameter-dependent operations
+// array a;			/* target array
+// object ist;			/* istream
 {
     int id;			/* identification number for A */
     int low;			/* low bound of A */
@@ -665,9 +666,9 @@ object ist;			/* istream */
  *                              signals(end_of_file, not_possible(string))
  */
 
-int OFarray_Ddecode(op_list, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-object ist;			/* istream */
+int OFarray_Ddecode(oplist_t op_list, object ist)
+//oplist_t op_list;		list of parameter-dependent operations
+//object ist;			istream
 {
     int id;			/* identification number for the result */
     int low;			/* low bound of the result */
@@ -739,10 +740,10 @@ object ist;			/* istream */
  *         where T has print: proctype(T, pstream)
  */
 
-int OFarray_Dprint(op_list, a, pst)
-oplist_t op_list;		/* list of parameter-dependent operations */
-array a;			/* target object */
-object pst;			/* pstream */
+int OFarray_Dprint(oplist_t op_list, array a, object pst)
+// oplist_t op_list;		list of parameter-dependent operations 
+// array a;			target object 
+// object pst;			pstream 
 {
     static string lbkt = 0;
     static string rbkt = 0;
@@ -829,10 +830,10 @@ object pst;			/* pstream */
  *        where T has _gcd: proctype(T, gcd_tab) returns(int)
  */
 
-int OFarray_D__gcd(op_list, a, tab)
-oplist_t op_list;		/* list of parameter-dependent operations */
-array a;			/* target array */
-object tab;			/* gcd_tab */
+int OFarray_D__gcd(oplist_t op_list, array a, object tab)
+// oplist_t op_list;		list of parameter-dependent operations
+// array a;			target array
+// object tab;			gcd_tab
 {
     /* stub version */
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("array$_gcd: not implemented"));
@@ -843,8 +844,8 @@ object tab;			/* gcd_tab */
  * cons = proc(s: sequence[T]) returns(array[T])
  */
 
-int OFarray_Dcons(s)
-sequence s;			/* sequence of elements */
+int OFarray_Dcons(sequence s)
+// sequence s;			sequence of elements
 {
     return OFarray_Dcons2(1, s);
 }
@@ -854,9 +855,9 @@ sequence s;			/* sequence of elements */
  * cons2 = proc (low: int, s: sequence[T]) returns(array[T])
  */
 
-int OFarray_Dcons2(low, s)
-int low;			/* low bound of the result */
-sequence s;			/* sequence of elements */
+int OFarray_Dcons2(int low, sequence s)
+// int low;			low bound of the result
+// sequence s;			sequence of elements
 {
     int size;			/* size of the result */
     array res;			/* result */
@@ -899,9 +900,9 @@ sequence s;			/* sequence of elements */
  *	caller.
  */
 
-array OFarray_D__alloc(low, size)
-int low;			/* low bound of the result */
-int size;			/* size of the result */
+array OFarray_D__alloc(int low, int size)
+//int low;			low bound of the result
+//int size;			size of the result
 {
     int bsize;			/* buffer size of the result */
     int offset;			/* offset for the 1st element in the buffer */
@@ -955,9 +956,7 @@ int size;			/* size of the result */
  *	effects if N = 0.
  */
 
-static int OFarray_D__shift(a, n)
-array a;
-int n;
+static int OFarray_D__shift(array a, int n)
 {
     object *low;		/* pointer to the bottom element */
     object *high;		/* pointer to the top element */
@@ -993,9 +992,7 @@ int n;
  *	DIRECTION is positive; otherwise extends the both side.
  */
 
-static int OFarray_D__extend__buffer(a, direction)
-array a;
-int direction;
+static int OFarray_D__extend__buffer(array a, int direction)
 {
     int bsize;			/* size of the new buffer */
     object *buf;		/* new buffer */
@@ -1047,10 +1044,10 @@ int direction;
  * _similar - common task for similar/similar1
  */
 
-static int OFarray_D__similar(op_list, a1, a2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-array a1;			/* left hand side */
-array a2;			/* right hand side */
+static int OFarray_D__similar(oplist_t op_list, array a1, array a2)
+// oplist_t op_list;		list of parameter-dependent operations
+// array a1;			left hand side
+// array a2;			right hand side
 {
     int low;			/* low bound of A1 */
     int high;			/* high bound of A1 */
@@ -1097,10 +1094,10 @@ array a2;			/* right hand side */
  *	bound, in this order.
  */
 
-static int OFarray_D__shrink(a, nlow, nsize)
-array a;			/* target array */
-int nlow;			/* new low bound */
-int nsize;			/* new size */
+static int OFarray_D__shrink(array a, int nlow, int nsize)
+// array a;			target array
+// int nlow;			new low bound
+// int nsize;			new size
 {
     int max_size;		/* max size after shrinked */
     int low_incr;		/* increment of low bound */

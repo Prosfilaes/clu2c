@@ -21,19 +21,6 @@
 
 
 /*
- * Own variables
- */
-
-#ifdef J10N
-
-static ja_decoder WVstring_Ddecoder = NULL;
-static ja_char *WVstring_Dbuf = NULL;
-static int WVstring_Dbufsize = ja_BUFSIZ;
-
-#endif /* J10N */
-
-
-/*
  * Internal routines implemented as macros
  */
 
@@ -142,31 +129,6 @@ static string OFstring_D__alloc(int size)
     OMstring_D__setsize(result, size);
     return result;
 }
-
-
-#ifdef J10N
-
-/*
- */
-
-static OFstring_D__setupbuf(int size)
-{
-    if (WVstring_Dbuf && WVstring_Dbufsize >= size) {
-	return;
-    }
-    if (WVstring_Dbufsize < size) {
-	WVstring_Dbufsize = size;
-    }
-    if (WVstring_Dbuf) {
-	WVstring_Dbuf = (ja_char *)
-	    realloc(WVstring_Dbuf, WVstring_Dbufsize * sizeof(ja_char));
-    } else {
-	WVstring_Dbuf = (ja_char *)
-	    malloc_atomic(WVstring_Dbufsize * sizeof(ja_char));
-    }
-}
-
-#endif /* J10N */
 
 
 /*
@@ -914,35 +876,12 @@ char *OFstring_D__s2cs(string s)
 #if CLU2C_STRING_VERSION != 1
     int size;			/* size of S */
     int i;			/* index */
-#ifdef J10N
-    char *output;		/* output from decoder */
-#endif
 #endif
 
 #if CLU2C_STRING_VERSION == 1
     result = s;
 #else  /* CLU2C_STRING_VERSION != 1 */
     size = OMstring_Dsize(s);
-#ifdef J10N
-#if CLU2C_CHAR_VERSION == 2
-#   define INPUT OMstring_D__chars(s)
-#else  /* CLU2C_CHAR_VERSION != 2 */
-#   define INPUT WVstring_Dbuf
-    OFstring_D__setupbuf(size);
-    for (i = 0; i < size; i++) {
-	WVstring_Dbuf[i] = OMstring_Dfetch(s, i + 1);
-    }
-#endif /* CLU2C_CHAR_VERSION != 2 */
-    output = ja_encode(DEFAULT_OUTPUT_CODING_SYSTEM, INPUT, size);
-    if (!output) {
-	result = 0;
-    } else {
-	result = (char *) malloc_atomic(strlen(output) + 1);
-	if (result) {
-	    strcpy(result, output);
-	}
-    }
-#else  /* not J10N */
     result = (char *) malloc_atomic(size + 1);
     if (result) {
 #if CLU2C_CHAR_VERSION == 1
@@ -954,7 +893,6 @@ char *OFstring_D__s2cs(string s)
 #endif /* CLU2C_CHAR_VERSION != 1 */
 	result[size] = '\0';
     }
-#endif /* not J10N */
 #endif /* CLU2C_STRING_VERSION != 1 */
     return result;
 }
@@ -972,9 +910,6 @@ string OFstring_D__cs2s(char *s)
 {
     string result;
 #if CLU2C_STRING_VERSION != 1
-#ifdef J10N
-    int len;			/* length of S */
-#endif
     int size;			/* size of the result */
     int i;
 #endif
@@ -985,30 +920,6 @@ string OFstring_D__cs2s(char *s)
 #if CLU2C_STRING_VERSION == 1
     result = s;
 #else  /* CLU2C_STRING_VERSION != 1 */
-#ifdef J10N
-    if (!WVstring_Ddecoder) {
-	WVstring_Ddecoder = ja_create_decoder(DEFAULT_INPUT_CODING_SYSTEM);
-    }
-    len = strlen(s);
-    OFstring_D__setupbuf(len + 1);
-    size = ja_decode(WVstring_Ddecoder,
-		       s,
-		       len,
-		       WVstring_Dbuf,
-		       WVstring_Dbufsize,
-		       NULL);
-    size += ja_flush_decoder(WVstring_Ddecoder, WVstring_Dbuf + size);
-    result = OFstring_D__alloc(size);
-#if CLU2C_CHAR_VERSION == 2
-    memcpy((char *) OMstring_D__chars(result),
-	   (char *) WVstring_Dbuf,
-	   size * sizeof(char_t));
-#else  /* CLU2C_CHAR_VERSION != 2 */
-    for (i = 0; i < size; i++) {
-	OMstring_D__store(result, i + 1, WVstring_Dbuf[i]);
-    }
-#endif /* CLU2C_CHAR_VERSION != 2 */
-#else  /* not J10N */
     size = strlen(s);
     result = OFstring_D__alloc(size);
 #if CLU2C_CHAR_VERSION == 1
@@ -1018,7 +929,6 @@ string OFstring_D__cs2s(char *s)
 	OMstring_D__store(result, i + 1, s[i]);
     }
 #endif /* CLU2C_CHAR_VERSION != 1 */
-#endif /* not J10N */
 #endif /* CLU2C_STRING_VERSION != 1 */
     return result;
 }

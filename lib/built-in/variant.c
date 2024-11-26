@@ -9,6 +9,8 @@
  */
 
 #include <clu2c.h>
+#include "int.h"
+#include "variant.h"
 
 static int OFvariant_D__similar();
 
@@ -21,9 +23,7 @@ static int OFvariant_D__similar();
  * make_Ni = proc(value: Ti) returns(variant[N1: T1, ..., Nn: Tn])
  */
 
-int OFvariant_Dmake(tag, value)
-int tag;			/* tag number */
-object value;			/* value */
+int OFvariant_Dmake(int tag, object value)
 {
     variant res;		/* result */
     
@@ -38,10 +38,7 @@ object value;			/* value */
  * change_Ni = proc(v: variant[N1: T1, ..., Nn: Tn], value: Ti)
  */
 
-int OFvariant_Dchange(tag, v, value)
-int tag;			/* tag number */
-variant v;			/* target */
-object value;			/* value after changed */
+int OFvariant_Dchange(int tag, variant v, object value)
 {
     v->tag = tag;
     v->value = value;
@@ -53,9 +50,7 @@ object value;			/* value after changed */
  * is_Ni = proc(v: variant[N1: T1, ..., Nn: Tn]) returns(bool)
  */
 
-int OFvariant_Dis(tag, v)
-int tag;			/* tag number */
-variant v;			/* target */
+int OFvariant_Dis(int tag, variant v)
 {
     RETURN1(v->tag == tag);
 }
@@ -66,9 +61,7 @@ variant v;			/* target */
  *            signals(wrong_tag)
  */
 
-int OFvariant_Dvalue(tag, v)
-int tag;			/* tag number */
-variant v;			/* target */
+int OFvariant_Dvalue(int tag, variant v)
 {
     if (v->tag == tag) {
 	RETURN1(v->value);
@@ -82,9 +75,7 @@ variant v;			/* target */
  * v_gets_v = proc(v1, v2: variant[N1: T1, ..., Nn: Tn])
  */
 
-int OFvariant_Dv__gets__v(v1, v2)
-variant v1;
-variant v2;
+int OFvariant_Dv__gets__v(variant v1, variant v2)
 {
     v1->tag = v2->tag;
     v1->value = v2->value;
@@ -97,9 +88,7 @@ variant v2;
  *                 o: oneof[N1: T1, ..., Nn: Tn])
  */
 
-int OFvariant_Dv__gets__o(v, o)
-variant v;			/* target */
-oneof o;
+int OFvariant_Dv__gets__o(variant v, oneof o)
 {
     v->tag = OMoneof_D__tag(o);
     v->value = OMoneof_D__value(o);
@@ -111,9 +100,7 @@ oneof o;
  * equal = proc(v1, v2: variant[N1: T1, ..., Nn: Tn]) returns(bool)
  */
 
-int OFvariant_Dequal(v1, v2)
-variant v1;			/* left hand side */
-variant v2;			/* right hand side */
+int OFvariant_Dequal(variant v1, variant v2)
 {
     RETURN1(OMvariant_Dequal(v1, v2));
 }
@@ -124,10 +111,7 @@ variant v2;			/* right hand side */
  *           where each Ti has similar: proctype(Ti, Ti) returns(bool)
  */
 
-int OFvariant_Dsimilar(op_list, v1, v2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-variant v1;			/* left hand side */
-variant v2;			/* right hand side */
+int OFvariant_Dsimilar(oplist_t op_list, variant v1, variant v2)
 {
     return OFvariant_D__similar(op_list, v1, v2);
 }
@@ -138,10 +122,7 @@ variant v2;			/* right hand side */
  *            where each Ti has equal: proctype(Ti, Ti) returns(bool)
  */
 
-int OFvariant_Dsimilar1(op_list, v1, v2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-variant v1;			/* left hand side */
-variant v2;			/* right hand side */
+int OFvariant_Dsimilar1(oplist_t op_list, variant v1, variant v2)
 {
     return OFvariant_D__similar(op_list, v1, v2);
 }
@@ -153,9 +134,7 @@ variant v2;			/* right hand side */
  *	  where each Ti has copy: proctype(Ti) returns(Ti)
  */
 
-int OFvariant_Dcopy(op_list, v)
-oplist_t op_list;		/* list of parameter-dependent operations */
-variant v;			/* target */
+int OFvariant_Dcopy(oplist_t op_list, variant v)
 {
     if ((*op_list[v->tag - 1])(v->value) == SIG) {
 	out_handler();
@@ -170,8 +149,7 @@ variant v;			/* target */
  *         returns(variant[N1: T1, ..., Nn: Tn)
  */
 
-int OFvariant_Dcopy1(v)
-variant v;			/* target */
+int OFvariant_Dcopy1(variant v)
 {
     return OFvariant_Dmake(v->tag, v->value);
 }
@@ -184,10 +162,7 @@ variant v;			/* target */
  *                                    signals(not_possible(stirng))
  */
 
-int OFvariant_Dencode(op_list, v, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-variant v;			/* target */
-object ist;			/* istream */
+int OFvariant_Dencode(oplist_t op_list, variant v, object ist)
 {
     int id;			/* identification number for V */
   
@@ -229,9 +204,7 @@ object ist;			/* istream */
  *                                            not_possible(string))
  */
 
-int OFvariant_Ddecode(op_list, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-object ist;			/* istream */
+int OFvariant_Ddecode(oplist_t op_list, object ist)
 {
     int id;			/* identification number for the result */
     int tag;			/* tag number of the result */
@@ -289,10 +262,7 @@ object ist;			/* istream */
  *         where each Ti has print: proctype(Ti, pstream)
  */
 
-int OFvariant_Dprint(op_list, v, pst)
-oplist_t op_list;		/* list of parameter-dependent operations */
-variant v;			/* target */
-object pst;			/* pstream */
+int OFvariant_Dprint(oplist_t op_list, variant v, object pst)
 {
     static string langle = 0;
     static string rangle = 0;
@@ -333,10 +303,7 @@ object pst;			/* pstream */
  *        where each Ti has _gcd: proctype(Ti, gcd_tab) returns(int)
  */
 
-int OFvariant_D__gcd(op_list, v, tab)
-oplist_t op_list;		/* list of parameter-dependent operations */
-variant v;			/* target */
-object tab;			/* gcd_tab */
+int OFvariant_D__gcd(oplist_t op_list, variant v, object tab)
 {
     /* Stub version. */
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("variant$_gcd: not implemented"));
@@ -352,10 +319,7 @@ object tab;			/* gcd_tab */
  * _similar - common task for similar/similar1
  */
 
-static int OFvariant_D__similar(op_list, v1, v2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-variant v1;			/* left hand side */
-variant v2;			/* right hand side */
+static int OFvariant_D__similar(oplist_t op_list, variant v1, variant v2)
 {
     /*
      * Compares tags.

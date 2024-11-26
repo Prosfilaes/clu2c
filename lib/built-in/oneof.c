@@ -9,6 +9,7 @@
  */
 
 #include <clu2c.h>
+#include "int.h"
 
 static int OFoneof_D__equal();
 
@@ -22,9 +23,7 @@ static int OFoneof_D__equal();
  * make_Ni = proc(value: Ti) returns(oneof[N1: T1, ..., Nn: Tn])
  */
 
-int OFoneof_Dmake(tag, value)
-int tag;			/* tag number */
-object value;			/* value */
+int OFoneof_Dmake(int tag, object value)
 {
     oneof res;
     
@@ -39,9 +38,7 @@ object value;			/* value */
  * is_Ni = proc(o: oneof[N1: T1, ..., Nn: Tn]) returns(bool)
  */
 
-int OFoneof_Dis(tag, o)
-int tag;			/* tag number */
-oneof o;			/* target */
+int OFoneof_Dis(int tag, oneof o)
 {
     RETURN1(o->tag == tag);
 }
@@ -52,9 +49,7 @@ oneof o;			/* target */
  *            signals(wrong_tag)
  */
 
-int OFoneof_Dvalue(tag, o)
-int tag;			/* tag number */
-oneof o;			/* target */
+int OFoneof_Dvalue(int tag, oneof o)
 {
     if (o->tag == tag) {
 	RETURN1(o->value);
@@ -69,8 +64,7 @@ oneof o;			/* target */
  *       returns(variant[N1: T1, ..., Nn: Tn])
  */
 
-int OFoneof_Do2v(o)
-oneof o;
+int OFoneof_Do2v(oneof o)
 {
     return OFvariant_Dmake(o->tag, o->value);
 }
@@ -81,8 +75,7 @@ oneof o;
  *       returns(oneof[N1: T1, ..., Nn: Tn])
  */
 
-int OFoneof_Dv2o(v)
-variant v;
+int OFoneof_Dv2o(variant v)
 {
     return OFoneof_Dmake(OMvariant_D__tag(v), OMvariant_D__value(v));
 }
@@ -93,10 +86,7 @@ variant v;
  *	   where each Ti has equal: proctype(Ti, Ti) returns(bool)
  */
 
-int OFoneof_Dequal(op_list, o1, o2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-oneof o1;			/* left hand side */
-oneof o2;			/* right hand side */
+int OFoneof_Dequal(oplist_t op_list, oneof o1, oneof o2)
 {
     return OFoneof_D__equal(op_list, o1, o2);
 }
@@ -107,10 +97,7 @@ oneof o2;			/* right hand side */
  *	     where each Ti has similar: proctype(Ti, Ti) returns(bool)	
  */
 
-int OFoneof_Dsimilar(op_list, o1, o2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-oneof o1;			/* left hand side */
-oneof o2;			/* right hand side */
+int OFoneof_Dsimilar(oplist_t op_list, oneof o1, oneof o2) 
 {
     return OFoneof_D__equal(op_list, o1, o2);
 }
@@ -122,9 +109,7 @@ oneof o2;			/* right hand side */
  *        where each Ti has copy: proctype(Ti) returns(Ti)
  */
 
-int OFoneof_Dcopy(op_list, o)
-oplist_t op_list;		/* list of parameter-dependent operations */
-oneof o;			/* target */
+int OFoneof_Dcopy(oplist_t op_list, oneof o)
 {
     if ((*op_list[o->tag - 1])(o->value) == SIG) {
 	out_handler();
@@ -142,10 +127,7 @@ oneof o;			/* target */
  *                                    signals(not_possible(stirng))
  */
 
-int OFoneof_Dencode(op_list, o, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-oneof o;			/* target */
-object ist;			/* istream */
+int OFoneof_Dencode(oplist_t op_list, oneof o, object ist)
 {
     int id;			/* identification number for O */
   
@@ -179,9 +161,7 @@ object ist;			/* istream */
  *                                            not_possible(string))
  */
 
-int OFoneof_Ddecode(op_list, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-object ist;			/* istream */
+int OFoneof_Ddecode(oplist_t op_list, object ist)
 {
     int id;			/* identification number for the result */
     int tag;			/* tag of the result */
@@ -239,10 +219,7 @@ object ist;			/* istream */
  *         where each Ti has print: proctype(Ti, pstream)
  */
 
-int OFoneof_Dprint(op_list, o, pst)
-oplist_t op_list;		/* list of parameter-dependent operations */
-oneof o;			/* target */
-object pst;			/* pstream */
+int OFoneof_Dprint(oplist_t op_list, oneof o, object pst)
 {
     static string langle = 0;
     static string rangle = 0;
@@ -283,10 +260,7 @@ object pst;			/* pstream */
  *        where each Ti has _gcd: proctype(Ti, gcd_tab) returns(int)
  */
 
-int OFoneof_D__gcd(op_list, o, tab)
-oplist_t op_list;		/* list of parameter-dependent operations */
-oneof o;			/* target */
-object tab;			/* gcd_tab */
+int OFoneof_D__gcd(oplist_t op_list, oneof o, object tab)
 {
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("oneof$_gcd: not implemented"));
 }
@@ -301,10 +275,7 @@ object tab;			/* gcd_tab */
  * _equal - common task for equal/similar
  */
 
-static int OFoneof_D__equal(op_list, o1, o2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-oneof o1;			/* left hand side */
-oneof o2;			/* right hand side */
+static int OFoneof_D__equal(oplist_t op_list, oneof o1, oneof o2)
 {
     /*
      * Compares tags.

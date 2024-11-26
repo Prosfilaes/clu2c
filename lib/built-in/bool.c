@@ -9,7 +9,7 @@
  */
 
 #include <clu2c.h>
-
+#include "bool.h"
 
 /*
  * Operations
@@ -20,9 +20,7 @@
  * and = proc(b1, b2: bool) returns(bool)
  */
 
-int OFbool_Dand(b1, b2)
-bool b1;
-bool b2;
+int OFbool_Dand(bool b1, bool b2)
 {
     RETURN1(OMbool_Dand(b1, b2));
 }
@@ -32,9 +30,7 @@ bool b2;
  * or = proc(b1, b2: bool) returns(bool)
  */
 
-int OFbool_Dor(b1, b2)
-bool b1;
-bool b2;
+int OFbool_Dor(bool b1, bool b2)
 {
     RETURN1(OMbool_Dor(b1, b2));
 }
@@ -44,8 +40,7 @@ bool b2;
  * not = proc(b: bool) returns(bool)
  */
 
-int OFbool_Dnot(b)
-bool b;
+int OFbool_Dnot(bool b)
 {
     RETURN1(OMbool_Dnot(b));
 }
@@ -55,9 +50,7 @@ bool b;
  * equal = proc(b1, b2: bool) returns(bool)
  */
 
-int OFbool_Dequal(b1, b2)
-bool b1;
-bool b2;
+int OFbool_Dequal(bool b1, bool b2)
 {
     RETURN1(OMbool_Dequal(b1, b2));
 }
@@ -67,9 +60,7 @@ bool b2;
  * similar = proc(b1, b2: bool) returns(bool)
  */
 
-int OFbool_Dsimilar(b1, b2)
-bool b1;
-bool b2;
+int OFbool_Dsimilar(bool b1, bool b2)
 {
     RETURN1(OMbool_Dsimilar(b1, b2));
 }
@@ -79,8 +70,7 @@ bool b2;
  * copy = proc(b: bool) returns(bool)
  */
 
-int OFbool_Dcopy(b)
-bool b;
+int OFbool_Dcopy(bool b)
 {
     RETURN1(OMbool_Dcopy(b));
 }
@@ -90,9 +80,7 @@ bool b;
  * print = proc(b: bool, pst: pstream)
  */
 
-int OFbool_Dprint(b, pst)
-bool b;
-object pst;			/* pstream */
+int OFbool_Dprint(bool b, object pst)
 {
     static string false = 0;
     static string true = 0;
@@ -116,9 +104,7 @@ object pst;			/* pstream */
  * encode = proc(b: bool, ist: istream) signals(not_possible(string))
  */
 
-int OFbool_Dencode(b, ist)
-bool b;
-object ist;			/* istream */
+int OFbool_Dencode(bool b, object ist)
 {
     return OFistream_Dputi(ist, (int) b);
 }
@@ -129,8 +115,7 @@ object ist;			/* istream */
  *          signals(end_of_file, not_possible(string))
  */
 
-int OFbool_Ddecode(ist)
-object ist;			/* istream */
+int OFbool_Ddecode(object ist)
 {
     bool b;
 
@@ -149,9 +134,7 @@ object ist;			/* istream */
  * _gcd = proc(b: bool, tab: gcd_tab) returns(int)
  */
 
-int OFbool_D__gcd(b, tab)
-bool b;
-object tab;			/* gcd_tab */
+int OFbool_D__gcd(bool b, object tab)
 {
     /* stub version */
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("bool$_gcd: not implemented"));

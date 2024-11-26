@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
-
+#include "real.h"
 /*
  * Tricks for converting float into int and vice versa
  */
@@ -93,9 +93,7 @@ static char *unparse_buffer = 0;
  * add = proc(r1, r2: real) returns(real) signals(overflow, underflow)
  */
 
-int OFreal_Dadd(r1, r2)
-int r1;
-int r2;
+int OFreal_Dadd(int r1, int r2)
 {
     double d1, d2;
 
@@ -109,9 +107,7 @@ int r2;
  * sub = proc(r1, r2: real) returns(real) signals(overflow, underflow)
  */
 
-int OFreal_Dsub(r1, r2)
-int r1;
-int r2;
+int OFreal_Dsub(int r1, int r2)
 {
     double d1, d2;
 
@@ -125,9 +121,7 @@ int r2;
  * mul = proc(r1, r2: real) returns(real) signals(overflow, underflow)
  */
 
-int OFreal_Dmul(r1, r2)
-int r1;
-int r2;
+int OFreal_Dmul(int r1, int r2)
 {
     double d1, d2;
 
@@ -141,8 +135,7 @@ int r2;
  * minus = proc(r: real) returns(real)
  */
 
-int OFreal_Dminus(r)
-int r;
+int OFreal_Dminus(int r)
 {
     float f;
 
@@ -156,9 +149,7 @@ int r;
  *       signals(zero_divide, overflow, underflow)
  */
 
-int OFreal_Ddiv(r1, r2)
-int r1;
-int r2;
+int OFreal_Ddiv(int r1, int r2)
 {
     double d1, d2;
 
@@ -176,9 +167,7 @@ int r2;
  *         signals(zero_divide, complex_result, overflow, underflow)
  */
 
-int OFreal_Dpower(r1, r2)
-int r1;
-int r2;
+int OFreal_Dpower(int r1, int r2)
 {
     double d1, d2;
     double i;
@@ -211,8 +200,7 @@ int r2;
  * abs = proc(r: real) returns(real)
  */
 
-int OFreal_Dabs(r)
-int r;
+int OFreal_Dabs(int r)
 {
     double d;
 
@@ -225,9 +213,7 @@ int r;
  * max = proc(r1, r2: real) returns(real)
  */
 
-int OFreal_Dmax(r1, r2)
-int r1;
-int r2;
+int OFreal_Dmax(int r1, int r2)
 {
     float f1, f2;
 
@@ -241,9 +227,7 @@ int r2;
  * min = proc(r1, r2: real) returns(real)
  */
 
-int OFreal_Dmin(r1, r2)
-int r1;
-int r2;
+int OFreal_Dmin(int r1, int r2)
 {
     float f1, f2;
 
@@ -257,8 +241,7 @@ int r2;
  * i2r = proc(i: int) returns(real) signals(overflow)
  */
 
-int OFreal_Di2r(i)
-int i;
+int OFreal_Di2r(int i)
 {
     return OFreal_D__approx((double) i);
 }
@@ -268,8 +251,7 @@ int i;
  * r2i = proc(r: real) returns(int) signals(overflow)
  */
 
-int OFreal_Dr2i(r)
-int r;
+int OFreal_Dr2i(int r)
 {
     double d;
     double i;
@@ -295,8 +277,7 @@ int r;
  * trunc = proc(r: real) returns(int) signals(overflow)
  */
 
-int OFreal_Dtrunc(r)
-int r;
+int OFreal_Dtrunc(int r)
 {
     double d;
 
@@ -312,8 +293,7 @@ int r;
  * exponent = proc(r: real) returns(int) signals(undefined)
  */
 
-int OFreal_Dexponent(r)
-int r;
+int OFreal_Dexponent(int r)
 {
     double d;
     int exponent;
@@ -334,8 +314,7 @@ int r;
  * mantissa = proc(r: real) returns(real)
  */
 
-int OFreal_Dmantissa(r)
-int r;
+int OFreal_Dmantissa(int r)
 {
     double d;
     int sign;
@@ -372,8 +351,7 @@ int r;
  *         signals(bad_format, overflow, underflow)
  */
 
-int OFreal_Dparse(s)
-string s;
+int OFreal_Dparse(string s)
 {
     char *p, *endp;
     double result;
@@ -403,8 +381,7 @@ string s;
  * unparse = proc(r: real) returns(string)
  */
 
-int OFreal_Dunparse(r)
-int r;
+int OFreal_Dunparse(int r)
 {
     char *p, *q;
     double d;
@@ -442,9 +419,7 @@ int r;
  * lt = proc(r1, r2: real) returns(bool)
  */
 
-int OFreal_Dlt(r1, r2)
-int r1;
-int r2;
+int OFreal_Dlt(int r1, int r2)
 {
     float f1, f2;
 
@@ -458,9 +433,7 @@ int r2;
  * le = proc(r1, r2: real) returns(bool)
  */
 
-int OFreal_Dle(r1, r2)
-int r1;
-int r2;
+int OFreal_Dle(int r1, int r2)
 {
     float f1, f2;
 
@@ -474,9 +447,7 @@ int r2;
  * ge = proc(r1, r2: real) returns(bool)
  */
 
-int OFreal_Dge(r1, r2)
-int r1;
-int r2;
+int OFreal_Dge(int r1, int r2)
 {
     float f1, f2;
 
@@ -490,9 +461,7 @@ int r2;
  * gt = proc(r1, r2: real) returns(bool)
  */
 
-int OFreal_Dgt(r1, r2)
-int r1;
-int r2;
+int OFreal_Dgt(int r1, int r2)
 {
     float f1, f2;
 
@@ -506,9 +475,7 @@ int r2;
  * equal = proc(r1, r2: real) returns(bool)
  */
 
-int OFreal_Dequal(r1, r2)
-int r1;
-int r2;
+int OFreal_Dequal(int r1, int r2)
 {
     float f1, f2;
 
@@ -522,9 +489,7 @@ int r2;
  * similar = proc(r1, r2: real) returns(bool)
  */
 
-int OFreal_Dsimilar(r1, r2)
-int r1;
-int r2;
+int OFreal_Dsimilar(int r1, int r2)
 {
     float f1, f2;
 
@@ -538,8 +503,7 @@ int r2;
  * copy = proc(r: real) returns(bool)
  */
 
-int OFreal_Dcopy(r)
-int r;
+int OFreal_Dcopy(int r)
 {
     RETURN1(r);
 }
@@ -549,9 +513,7 @@ int r;
  * print = proc(r: real, pst: pstream)
  */
 
-int OFreal_Dprint(r, pst)
-int r;
-object pst;			/* pstream */
+int OFreal_Dprint(int r, object pst)
 {
     OFreal_Dunparse(r);
     if (OFpstream_Dtext(pst, retval_area[0]) == SIG) {
@@ -566,9 +528,7 @@ object pst;			/* pstream */
  * encode = proc(r: real, ist: istream) signals(not_possible(string))
  */
 
-int OFreal_Dencode(r, ist)
-int r;
-object ist;			/* istream */
+int OFreal_Dencode(int r, object ist)
 {
     return OFistream_Dputi(ist, (int) r);
 }
@@ -579,8 +539,7 @@ object ist;			/* istream */
  *          signals(end_of_file, not_possible(string))
  */
 
-int OFreal_Ddecode(ist)
-object ist;			/* istream */
+int OFreal_Ddecode(object ist)
 {
     return OFistream_Dgeti(ist);
 }
@@ -590,9 +549,7 @@ object ist;			/* istream */
  * _gcd = proc(r: real, tab: gcd_tab) returns(int)
  */
 
-int OFreal_D__gcd(r, tab)
-int r;
-object tab;
+int OFreal_D__gcd(int r, object tab)
 {
     /* stub version */
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("real$_gcd: not implemented"));
@@ -658,8 +615,7 @@ int OFreal_D__exp__width()
  *		 when represented in standard form.
  */
 
-int OFreal_D__unparse(r)
-int r;
+int OFreal_D__unparse(int r)
 {
     static char *mantissa = 0;
     int exponent;
@@ -681,8 +637,7 @@ int r;
  * lit - process real literal
  */
 
-int OFreal_Dlit(x)
-double x;
+int OFreal_Dlit(double x)
 {
     return f2i((float) x);
 }
@@ -692,8 +647,7 @@ double x;
  * _d2r - convert C's double to CLU's real
  */
 
-real OFreal_D__d2r(d)
-double d;
+real OFreal_D__d2r(double d)
 {
     return f2i(d);
 }
@@ -703,8 +657,7 @@ double d;
  * _r2d - convert CLU's real to C's double
  */
 
-double OFreal_D__r2d(r)
-real r;
+double OFreal_D__r2d(real r)
 {
     return i2f(r);
 }
@@ -714,8 +667,7 @@ real r;
  * _checkrange = proc(v: [double]) signals(overflow, underflow)
  */
 
-int OFreal_D__checkrange(v)
-double v;
+int OFreal_D__checkrange(double v)
 {
 #ifndef DJGPP_EMU387_BROKEN
     if (fabs(v) >= OFreal_D__huge__val() && errno == ERANGE) {
@@ -751,8 +703,7 @@ static int OFreal_D__owninit()
  * _approx
  */
 
-static int OFreal_D__approx(v)
-double v;
+static int OFreal_D__approx(double v)
 {
     static double upper = 0.0;
     static double lower = 0.0;
@@ -820,9 +771,7 @@ static double OFreal_D__huge__val()
  *	The string pointed to by MANTISSA.
  */
 
-static int OFreal_D____unparse(v, mantissa)
-double v;
-char *mantissa;
+static int OFreal_D____unparse(double v, char *mantissa)
 {
     /* This function uses the algorithm (FPP)^2 described in "How to
        Print Floating-Point Numbers Accurately" by Guy L. Steele
@@ -988,8 +937,7 @@ static mpn_t *mpn_new()
  *	of zero.
  */
 
-static void mpn_clear(v)
-mpn_t *v;
+static void mpn_clear(mpn_t *v)
 {
     int i;
 
@@ -1010,9 +958,7 @@ mpn_t *v;
  *	returns a negative integer.
  */
 
-static int mpn_resize(v, size)
-mpn_t *v;
-int size;
+static int mpn_resize(mpn_t *v, int size)
 {
     unsigned *digits;		/* new digits */
     int i;			/* index for digits */
@@ -1048,10 +994,7 @@ int size;
  *	value F * FLT_RADIX^X.
  */
 
-static int mpn_init(v, f, x)
-mpn_t *v;
-double f;
-int x;
+static int mpn_init(mpn_t *v, double f, int x)
 {
     int i;
     double quotient;
@@ -1085,8 +1028,7 @@ int x;
  *	to zero for all I in the range [X + 1, V->size].
  */
 
-static int mpn_significant_size(v)
-mpn_t *v;
+static int mpn_significant_size(mpn_t *v)
 {
     int size;
 
@@ -1107,9 +1049,7 @@ mpn_t *v;
  *	of the sum of the two numbers pointed to by V1 and V2.
  */
 
-static void mpn_add(v1, v2)
-mpn_t *v1;
-mpn_t *v2;
+static void mpn_add(mpn_t *v1, mpn_t *v2)
 {
     int size;
     unsigned carry;
@@ -1159,8 +1099,7 @@ mpn_t *v2;
  *	the number pointed to by V1.
  */
 
-static void mpn_sub(v1, v2)
-mpn_t *v1, *v2;
+static void mpn_sub(mpn_t *v1, mpn_t *v2)
 {
     int size;
     unsigned borrow;
@@ -1203,9 +1142,7 @@ mpn_t *v1, *v2;
  *	resulting from multiplying the number pointed to by V by N.
  */
 
-static void mpn_mul(v, n)
-mpn_t *v;
-unsigned n;
+static void mpn_mul(mpn_t *v, unsigned n)
 {
     int size;
     unsigned limit;
@@ -1254,8 +1191,7 @@ unsigned n;
  *	a franction part (if any) being rounded up.
  */
 
-static void mpn_div10(v)
-mpn_t *v;
+static void mpn_div10(mpn_t *v)
 {
     static unsigned one_digits[] = {1};
     static mpn_t one= {1, one_digits};
@@ -1293,9 +1229,7 @@ mpn_t *v;
  *	and returns the quotient.
  */
 
-static int mpn_divmod(v1, v2)
-mpn_t *v1;
-mpn_t *v2;
+static int mpn_divmod(mpn_t *v1, mpn_t *v2)
 {
     int q;
 
@@ -1319,9 +1253,7 @@ mpn_t *v2;
  *	pointed to by V1.
  */
 
-static void mpn_copy(v1, v2)
-mpn_t *v1;
-mpn_t *v2;
+static void mpn_copy(mpn_t *v1, mpn_t *v2)
 {
     int size;
     int i;
@@ -1346,9 +1278,7 @@ mpn_t *v2;
  *	equal to, or less than the number pointed to by V2.
  */
 
-static int mpn_cmp(v1, v2)
-mpn_t *v1;
-mpn_t *v2;
+static int mpn_cmp(mpn_t *v1, mpn_t *v2)
 {
     int size1, size2;
     int i;

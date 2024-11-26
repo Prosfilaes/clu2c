@@ -13,6 +13,7 @@
 #include <clu2c.h>
 #include <stdio.h>
 #include "array.h"
+#include "string.h"
 
 #ifdef J10N
 #   error
@@ -133,8 +134,7 @@ static int WVstring_Dbufsize = ja_BUFSIZ;
  *	character is left to the caller.
  */
 
-static string OFstring_D__alloc(size)
-int size;
+static string OFstring_D__alloc(int size)
 {
     string result;
 
@@ -149,8 +149,7 @@ int size;
 /*
  */
 
-static OFstring_D__setupbuf(size)
-int size;
+static OFstring_D__setupbuf(int size)
 {
     if (WVstring_Dbuf && WVstring_Dbufsize >= size) {
 	return;
@@ -179,8 +178,7 @@ int size;
  * size = proc(s: string) returns(int)
  */
 
-int OFstring_Dsize(s)
-string s;
+int OFstring_Dsize(string s)
 {
     RETURN1(OMstring_Dsize(s));
 }
@@ -190,8 +188,7 @@ string s;
  * empty = proc(s: string) returns(bool)
  */
 
-int OFstring_Dempty(s)
-string s;
+int OFstring_Dempty(string s)
 {
     RETURN1(OMstring_Dempty(s));
 }
@@ -201,9 +198,7 @@ string s;
  * indexs = proc(s1, s2: string) returns(int)
  */
 
-int OFstring_Dindexs(s1, s2)
-string s1;
-string s2;
+int OFstring_Dindexs(string s1, string s2)
 {
     int c, size;
     char_t *p0, *p;
@@ -289,9 +284,7 @@ string s2;
  * indexc = proc(c: char, s: string) returns(int)
  */
 
-int OFstring_Dindexc(c, s)
-int c;
-string s;
+int OFstring_Dindexc(int c, string s)
 {
 #if CLU2C_STRING_VERSION == 1
     char *p;
@@ -323,8 +316,7 @@ string s;
  * c2s = proc(c: char) returns(string)
  */
 
-int OFstring_Dc2s(c)
-int c;
+int OFstring_Dc2s(int c)
 {
     string res;
   
@@ -338,9 +330,7 @@ int c;
  * concat = proc(s1, s2: string) returns(string)
  */
 
-int OFstring_Dconcat(s1, s2)
-string s1;
-string s2;
+int OFstring_Dconcat(string s1, string s2)
 {
     int size;			/* size of result */
     string res;			/* result */
@@ -361,9 +351,7 @@ string s2;
  * append = proc(s: string, c: char) returns(string)
  */
 
-int OFstring_Dappend(s, c)
-string s;
-int c;
+int OFstring_Dappend(string s, int c)
 {
     int size;			/* size of S */
     string result;		/* result */
@@ -380,9 +368,7 @@ int c;
  * fetch = proc(s: string, i: int) returns(char)
  */
 
-int OFstring_Dfetch(s, i)
-string s;
-int i;
+int OFstring_Dfetch(string s, int i)
 {
     if (OMstring_Dbounds(s, i)) {
 	SIGNAL0(SLBOUNDS);
@@ -395,9 +381,7 @@ int i;
  * rest = proc(s: string, i: int) returns(string) signals(bounds)
  */
 
-int OFstring_Drest(s, i)
-string s;
-int i;
+int OFstring_Drest(string s, int i)
 {
     string result;
     int size;
@@ -422,10 +406,7 @@ int i;
  *          signals(bounds, negative_size)
  */
 
-int OFstring_Dsubstr(s, at, cnt)
-string s;
-int at;
-int cnt;
+int OFstring_Dsubstr(string s, int at, int cnt)
 {
     int size;			/* size of S */
     int rsize;			/* size of result */
@@ -456,8 +437,7 @@ int cnt;
  * s2ac = proc(s: string) returns(array[char])
  */
 
-int OFstring_Ds2ac(s)
-string s;
+int OFstring_Ds2ac(string s)
 {
     int size;			/* size of S */
     array res;
@@ -477,8 +457,7 @@ string s;
  * ac2s = proc(a: array[char]) returns(string)
  */
 
-int OFstring_Dac2s(a)
-array a;
+int OFstring_Dac2s(array a)
 {
     int low;			/* low bound of A */
     int size;			/* size of A and result */
@@ -502,8 +481,7 @@ array a;
  * s2sc = proc(s: string) returns(sequence[char])
  */
 
-int OFstring_Ds2sc(s)
-string s;
+int OFstring_Ds2sc(string s)
 {
     int size;			/* size of S and result */
     sequence res;		/* result */
@@ -522,8 +500,7 @@ string s;
  * sc2s = proc(s: sequence[char]) returns(string)
  */
 
-int OFstring_Dsc2s(s)
-sequence s;
+int OFstring_Dsc2s(sequence s)
 {
     int size;			/* size of S and result */
     string res;			/* result */
@@ -550,10 +527,7 @@ sequence s;
 #define LVsize	((*ivarp)[1])
 #define LVi	((*ivarp)[2])
 
-int OFstring_Dchars(init, ivarp, s)
-bool init;
-object **ivarp;
-string s;
+int OFstring_Dchars(bool init, object **ivarp, string s)
 {
     /*
      * Iterator prologue.
@@ -589,9 +563,7 @@ string s;
  * lt = proc(s1, s2: string) returns(bool)
  */
 
-int OFstring_Dlt(s1, s2)
-string s1;
-string s2;
+int OFstring_Dlt(string s1, string s2)
 {
     RETURN1(OMstring_Dlt(s1, s2));
 }
@@ -601,9 +573,7 @@ string s2;
  * le = proc(s1, s2: string) returns(bool)
  */
 
-int OFstring_Dle(s1, s2)
-string s1;
-string s2;
+int OFstring_Dle(string s1, string s2)
 {
     RETURN1(OMstring_Dle(s1, s2));
 }
@@ -613,9 +583,7 @@ string s2;
  * ge = proc(s1, s2: string) returns(bool)
  */
 
-int OFstring_Dge(s1, s2)
-string s1;
-string s2;
+int OFstring_Dge(string s1, string s2)
 {
     RETURN1(OMstring_Dge(s1, s2));
 }
@@ -625,9 +593,7 @@ string s2;
  * gt = proc(s1, s2: string) returns(bool)
  */
 
-int OFstring_Dgt(s1, s2)
-string s1;
-string s2;
+int OFstring_Dgt(string s1, string s2)
 {
     RETURN1(OMstring_Dgt(s1, s2));
 }
@@ -637,9 +603,7 @@ string s2;
  * equal = proc(s1, s2: string) returns(bool)
  */
 
-int OFstring_Dequal(s1, s2)
-string s1;
-string s2;
+int OFstring_Dequal(string s1, string s2)
 {
     RETURN1(OMstring_Dequal(s1, s2));
 }
@@ -649,9 +613,7 @@ string s2;
  * similar = proc(s1, s2: string)returns(bool)
  */
 
-int OFstring_Dsimilar(s1, s2)
-string s1;
-string s2;
+int OFstring_Dsimilar(string s1, string s2)
 {
     RETURN1(OMstring_Dsimilar(s1, s2));
 }
@@ -661,8 +623,7 @@ string s2;
  * copy = proc(s: string) returns(string)
  */
 
-int OFstring_Dcopy(s)
-string s;
+int OFstring_Dcopy(string s)
 {
     RETURN1(OMstring_Dcopy(s));
 }
@@ -672,9 +633,7 @@ string s;
  * print = proc(s: string, pst: pstream)
  */
 
-int OFstring_Dprint(s, pst)
-string s;
-object pst;			/* pstream */
+int OFstring_Dprint(string s, object pst)
 {
     static string ldots = NULL;
     static string bhat = NULL;
@@ -796,9 +755,7 @@ object pst;			/* pstream */
  * encode = proc(s: string, ist: istream) signals(not_possible(string))
  */
 
-int OFstring_Dencode(s, ist)
-string s;
-object ist;			/* istream */
+int OFstring_Dencode(string s, object ist)
 {
     int size;			/* size of S */
     int i;			/* index */
@@ -821,8 +778,7 @@ object ist;			/* istream */
  *          signals(end_of_file, not_possible(string))
  */
 
-int OFstring_Ddecode(ist)
-object ist;			/* istream */
+int OFstring_Ddecode(object ist)
 {
     int size;			/* size of result */
     int i;			/* index */
@@ -853,9 +809,7 @@ object ist;			/* istream */
  * _gcd = proc(s: string, tab: gcd_tab) returns(int)
  */
 
-int OFstring_D__gcd(s, tab)
-string s;
-object tab;			/* gcd_tab */
+int OFstring_D__gcd(string s, object tab)
 {
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("string$_gcd: not implemented"));
 }
@@ -865,8 +819,7 @@ object tab;			/* gcd_tab */
  * width = proc(s: string) returns(int)
  */
 
-int OFstring_Dwidth(s)
-string s;
+int OFstring_Dwidth(string s)
 {
     int res;			/* result */
     int size;			/* size of S */
@@ -904,9 +857,7 @@ string s;
  *	strings.
  */
 
-int OFstring_D__cmp(s1, s2)
-string s1;
-string s2;
+int OFstring_D__cmp(string s1, string s2)
 {
     int size1, size2, min, i, cmp;
     char_t *chars1, *chars2;
@@ -934,9 +885,7 @@ string s2;
  * _equal
  */
 
-int OFstring_D__equal(s1, s2)
-string s1;
-string s2;
+int OFstring_D__equal(string s1, string s2)
 {
 #if CLU2C_STRING_VERSION == 1
     return strcmp(s1, s2) == 0;
@@ -959,8 +908,7 @@ string s2;
  *	as S.
  */
 
-char *OFstring_D__s2cs(s)
-string s;
+char *OFstring_D__s2cs(string s)
 {
     char *result;
 #if CLU2C_STRING_VERSION != 1
@@ -1020,8 +968,7 @@ string s;
  *	sequence as S.
  */
 
-string OFstring_D__cs2s(s)
-char *s;
+string OFstring_D__cs2s(char *s)
 {
     string result;
 #if CLU2C_STRING_VERSION != 1
@@ -1096,8 +1043,7 @@ char *s;
  *	without creating any extra garbage.
  */
 
-char *OFstring_D__copy(s)
-char *s;
+char *OFstring_D__copy(char *s)
 {
     char *result;
 
@@ -1124,8 +1070,7 @@ char *s;
  *	using the _concat operation.
  */
 
-string OFstring_D__predict(size)
-int size;
+string OFstring_D__predict(int size)
 {
     string result;
 
@@ -1154,8 +1099,7 @@ int size;
  *	function is sufficient for non-Japanized string.
  */
 
-int OFstring_D__concat(s1, s2)
-string s1, s2;
+int OFstring_D__concat(string s1, string s2)
 {
 #if CLU2C_STRING_VERSION == 1
     strcat(s1, s2);

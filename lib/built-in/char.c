@@ -10,7 +10,7 @@
 
 #include <clu2c.h>
 #include <stdio.h>
-
+#include "char.h"
 /*
  * Operations
  */
@@ -20,8 +20,7 @@
  * i2c = proc(i: int) returns(char) signals(illegal_char)
  */
 
-int OFchar_Di2c(i)
-int i;
+int OFchar_Di2c(int i)
 {
     if (OMchar_Dillegal__char(i)) {
 	SIGNAL0(SLILLEGAL_CHAR);
@@ -34,8 +33,7 @@ int i;
  * c2i = proc(c: char) returns(int)
  */
 
-int OFchar_Dc2i(c)
-int c;
+int OFchar_Dc2i(int c)
 {
     RETURN1(OMchar_Dc2i(c));
 }
@@ -45,9 +43,7 @@ int c;
  * lt = proc(c1, c2: char) returns(bool)
  */
 
-int OFchar_Dlt(c1, c2)
-int c1;
-int c2;
+int OFchar_Dlt(int c1, int c2)
 {
     RETURN1(OMchar_Dlt(c1, c2));
 }
@@ -57,9 +53,7 @@ int c2;
  * le = proc(c1, c2: char) returns(bool)
  */
 
-int OFchar_Dle(c1, c2)
-int c1;
-int c2;
+int OFchar_Dle(int c1, int c2)
 {
     RETURN1(OMchar_Dle(c1, c2));
 }
@@ -69,9 +63,7 @@ int c2;
  * ge = proc(c1, c2: char) returns(bool)
  */
 
-int OFchar_Dge(c1, c2)
-int c1;
-int c2;
+int OFchar_Dge(int c1, int c2)
 {
     RETURN1(OMchar_Dge(c1, c2));
 }
@@ -81,9 +73,7 @@ int c2;
  * gt = proc(c1, c2: char) returns(bool)
  */
 
-int OFchar_Dgt(c1, c2)
-int c1;
-int c2;
+int OFchar_Dgt(int c1, int c2)
 {
     RETURN1(OMchar_Dgt(c1, c2));
 }
@@ -93,9 +83,7 @@ int c2;
  * equal = proc(c1, c2: char) returns(bool)
  */
 
-int OFchar_Dequal(c1, c2)
-int c1;
-int c2;
+int OFchar_Dequal(int c1, int c2)
 {
     RETURN1(OMchar_Dequal(c1, c2));
 }
@@ -105,9 +93,7 @@ int c2;
  * similar = proc(c1, c2: char) returns(bool)
  */
 
-int OFchar_Dsimilar(c1, c2)
-int c1;
-int c2;
+int OFchar_Dsimilar(int c1, int c2)
 {
     RETURN1(OMchar_Dsimilar(c1, c2));
 }
@@ -117,8 +103,7 @@ int c2;
  * copy = proc(c: char) returns(char)
  */
 
-int OFchar_Dcopy(c)
-int c;
+int OFchar_Dcopy(int c)
 {
     RETURN1(OMchar_Dcopy(c));
 }
@@ -128,9 +113,7 @@ int c;
  * print = proc(c: char, pst: pstream)
  */
 
-int OFchar_Dprint(c, pst)
-int c;
-object pst;
+int OFchar_Dprint(int c, object pst)
 {
     static string quote = 0;
     char text[5];
@@ -170,9 +153,7 @@ object pst;
  * encode = proc(c: char, ist: istream) signals(not_possible(string))
  */
 
-int OFchar_Dencode(c, ist)
-int c;
-object ist;			/* istream */
+int OFchar_Dencode(int c, object ist)
 {
     return OFistream_Dputi(ist, (int) c);
 }
@@ -183,8 +164,7 @@ object ist;			/* istream */
  *          signals(end_of_file, not_possible(string))
  */
 
-int OFchar_Ddecode(ist)
-object ist;			/* istream */
+int OFchar_Ddecode(object ist)
 {
     return OFistream_Dgeti(ist);
 }
@@ -194,9 +174,7 @@ object ist;			/* istream */
  * _gcd = proc(c: char, tab: gcd_tab) returns(int)
  */
 
-int OFchar_D__gcd(c, tab)
-int c;
-object tab;
+int OFchar_D__gcd(int c, object tab)
 {
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("char$_gcd: not implemented"));
 }
@@ -206,8 +184,7 @@ object tab;
  * width = proc(c: char) returns(int)
  */
 
-int OFchar_Dwidth(c)
-int c;
+int OFchar_Dwidth(int c)
 {
     RETURN1(OMchar_Dwidth(c));
 }

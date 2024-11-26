@@ -9,7 +9,7 @@
  */
 
 #include <clu2c.h>
-
+#include "itertype.h"
 
 /*
  * Operations
@@ -20,9 +20,7 @@
  * equal = proc(i1, i2: itertype(...)) returns(bool)
  */
 
-int OFitertype_Dequal(i1, i2)
-itertype i1;			/* left hand side */
-itertype i2;			/* right hand side */
+int OFitertype_Dequal(itertype i1, itertype i2)
 {
     RETURN1(OMitertype_Dequal(i1, i2));
 }
@@ -32,9 +30,7 @@ itertype i2;			/* right hand side */
  * similar = proc(i1, i2: itertype(...)) returns(bool)
  */
 
-int OFitertype_Dsimilar(i1, i2)
-itertype i1;			/* left hand side */
-itertype i2;			/* right hand side */
+int OFitertype_Dsimilar(itertype i1, itertype i2)
 {
     RETURN1(OMitertype_Dsimilar(i1, i2));
 }
@@ -44,8 +40,7 @@ itertype i2;			/* right hand side */
  * copy = proc(i: itertype(...)) returns(itertype(...))
  */
 
-int OFitertype_Dcopy(i)
-itertype i;			/* target */
+int OFitertype_Dcopy(itertype i)
 {
     RETURN1(OMitertype_Dcopy(i));
 }

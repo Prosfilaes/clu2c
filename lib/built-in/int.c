@@ -10,6 +10,7 @@
 
 #include <clu2c.h>
 #include <stdio.h>
+#include "int.h"
 
 #define INT_MAX 2147483647	/* maximum integer: 2^31 - 1 */
 #define INT_MIN (-INT_MAX - 1)	/* minimum integer: -(2^31) */
@@ -33,8 +34,7 @@
  *	Returns the integer part of the base-two logarithm of X.
  */
 
-static int OFint_D__log2(x)
-int x;
+static int OFint_D__log2(int x)
 {
     int log;
 
@@ -56,9 +56,7 @@ int x;
  * add = proc(i1, i2: int) returns(int) signals(overflow)
  */
 
-int OFint_Dadd(i1, i2)
-int i1;
-int i2;
+int OFint_Dadd(int i1, int i2)
 {
     if ((i2 > 0 && i1 > INT_MAX - i2) || (i2 < 0 && i1 < INT_MIN - i2)) {
 	SIGNAL0(SLOVERFLOW);
@@ -71,9 +69,7 @@ int i2;
  * sub = proc(i1, i2: int) returns(int) signals(overflow)
  */
 
-int OFint_Dsub(i1, i2)
-int i1;
-int i2;
+int OFint_Dsub(int i1, int i2)
 {
     if ((i2 < 0 && i1 > INT_MAX + i2) || (i2 > 0 && i1 < INT_MIN + i2)) {
 	SIGNAL0(SLOVERFLOW);
@@ -86,9 +82,7 @@ int i2;
  * mul = proc(i1, i2: int) returns(int) signals(overflow)
  */
 
-int OFint_Dmul(i1, i2)
-int i1;
-int i2;
+int OFint_Dmul(int i1, int i2)
 {
     int a1, a2, d1, d2;
 
@@ -154,8 +148,7 @@ int i2;
  * minus = proc(i: int) returns(int) signals(overflow)
  */
 
-int OFint_Dminus(i)
-int i;
+int OFint_Dminus(int i)
 {
     if (i == INT_MIN) {
 	SIGNAL0(SLOVERFLOW);
@@ -168,9 +161,7 @@ int i;
  * div = proc(i1, i2: int) returns(int) signals(zero_divide, overflow)
  */
 
-int OFint_Ddiv(i1, i2)
-int i1;
-int i2;
+int OFint_Ddiv(int i1, int i2)
 {
     /*
      * Note that the behavior of C's division operator is
@@ -194,9 +185,7 @@ int i2;
  * mod = proc(i1, i2: int) returns(int) signals(zero_divide, overflow)
  */
 
-int OFint_Dmod(i1, i2)
-int i1;
-int i2;
+int OFint_Dmod(int i1, int i2)
 {
     /*
      * Note that the behavior of C's modulo operator is underspecified
@@ -216,9 +205,7 @@ int i2;
  * power = proc(i1, i2: int) returns(int) signals(negative_exponent, overflow)
  */
 
-int OFint_Dpower(i1, i2)
-int i1;
-int i2;
+int OFint_Dpower(int i1, int i2)
 {
     int res, i;
 
@@ -245,8 +232,7 @@ int i2;
  * abs = proc(i: int) returns(int) signals(overflow)
  */
 
-int OFint_Dabs(i)
-int i;
+int OFint_Dabs(int i)
 {
     if (i == INT_MIN) {
 	SIGNAL0(SLOVERFLOW);
@@ -259,9 +245,7 @@ int i;
  * max = proc(i1, i2: int) returns(int)
  */
 
-int OFint_Dmax(i1, i2)
-int i1;
-int i2;
+int OFint_Dmax(int i1, int i2)
 {
     RETURN1(OMint_Dmax(i1, i2));
 }
@@ -271,9 +255,7 @@ int i2;
  * min = proc(i1, i2: int) returns(int)
  */
 
-int OFint_Dmin(i1, i2)
-int i1;
-int i2;
+int OFint_Dmin(int i1, int i2)
 {
     RETURN1(OMint_Dmin(i1, i2));
 }
@@ -288,12 +270,7 @@ int i2;
 #define LVto	((*ivarp)[1])
 #define LVby	((*ivarp)[2])
 
-int OFint_Dfrom__to__by(init, ivarp, from, to, by)
-bool init;
-object **ivarp;
-int from;
-int to;
-int by;
+int OFint_Dfrom__to__by(bool init, object **ivarp, int from, int to, int by)
 {
     if (init) {
 	*ivarp = (object *) malloc_atomic(ARSIZE * sizeof(object));
@@ -330,11 +307,7 @@ int by;
 #define LVfrom	((*ivarp)[0])
 #define LVto	((*ivarp)[1])
 
-int OFint_Dfrom__to(init, ivarp, from, to)
-bool init;
-object **ivarp;
-int from;
-int to;
+int OFint_Dfrom__to(bool init, object **ivarp, int from, int to)
 {
     if (init) {
 	*ivarp = (object *) malloc_atomic(ARSIZE * sizeof(object));
@@ -362,8 +335,7 @@ int to;
  * parse = proc(s: string) returns(int) signals(bad_format, overflow)
  */
 
-int OFint_Dparse(s)
-string s;
+int OFint_Dparse(string s)
 {
     int size;			/* size of S */
     int sign;			/* sign of result */
@@ -402,8 +374,7 @@ string s;
  * unparse = proc(i: int) returns(string)
  */
 
-int OFint_Dunparse(i)
-int i;
+int OFint_Dunparse(int i)
 {
     static char res[MAX_NUM_LEN];
 
@@ -416,9 +387,7 @@ int i;
  * lt = proc(i1, i2: int) returns(bool)
  */
 
-int OFint_Dlt(i1, i2)
-int i1;
-int i2;
+int OFint_Dlt(int i1, int i2)
 {
     RETURN1(OMint_Dlt(i1, i2));
 }
@@ -428,9 +397,7 @@ int i2;
  * le = proc(i1, i2: int) returns(bool)
  */
 
-int OFint_Dle(i1, i2)
-int i1;
-int i2;
+int OFint_Dle(int i1, int i2)
 {
     RETURN1(OMint_Dle(i1, i2));
 }
@@ -440,9 +407,7 @@ int i2;
  * ge = proc(i1, i2: int) returns(bool)
  */
 
-int OFint_Dge(i1, i2)
-int i1;
-int i2;
+int OFint_Dge(int i1, int i2)
 {
     RETURN1(OMint_Dge(i1, i2));
 }
@@ -452,9 +417,7 @@ int i2;
  * gt = proc(i1, i2: int) returns(bool)
  */
 
-int OFint_Dgt(i1, i2)
-int i1;
-int i2;
+int OFint_Dgt(int i1, int i2)
 {
     RETURN1(OMint_Dgt(i1, i2));
 }
@@ -464,9 +427,7 @@ int i2;
  * equal = proc(i1, i2: int) returns(bool)
  */
 
-int OFint_Dequal(i1, i2)
-int i1;
-int i2;
+int OFint_Dequal(int i1, int i2)
 {
     RETURN1(OMint_Dequal(i1, i2));
 }
@@ -476,9 +437,7 @@ int i2;
  * similar = proc(i1, i2: int) returns(bool)
  */
 
-int OFint_Dsimilar(i1, i2)
-int i1;
-int i2;
+int OFint_Dsimilar(int i1, int i2)
 {
     RETURN1(OMint_Dsimilar(i1, i2));
 }
@@ -488,8 +447,7 @@ int i2;
  * copy = proc(i: int) returns(bool)
  */
 
-int OFint_Dcopy(i)
-int i;
+int OFint_Dcopy(int i)
 {
     RETURN1(OMint_Dcopy(i));
 }
@@ -499,9 +457,7 @@ int i;
  * print = proc(i: int, pst: pstream)
  */
 
-int OFint_Dprint(i, pst)
-int i;
-object pst;			/* pstream */
+int OFint_Dprint(int i, object pst)
 {
     OFint_Dunparse(i);
     if (OFpstream_Dtext(pst, retval_area[0]) == SIG) {
@@ -516,9 +472,7 @@ object pst;			/* pstream */
  * encode = proc(i: int, ist: istream) signals(not_possible(string))
  */
 
-int OFint_Dencode(i, ist)
-int i;
-object ist;			/* istream */
+int OFint_Dencode(int i, object ist)
 {
     return OFistream_Dputi(ist, i);
 }
@@ -529,8 +483,7 @@ object ist;			/* istream */
  *          signals(end_of_file, not_possible(string))
  */
 
-int OFint_Ddecode(ist)
-object ist;			/* istream */
+int OFint_Ddecode(object ist)
 {
     return OFistream_Dgeti(ist);
 }
@@ -540,9 +493,7 @@ object ist;			/* istream */
  * _gcd = proc(i: int, tab: gcd_tab) returns(int)
  */
 
-int OFint_D__gcd(i, tab)
-int i;
-object tab;			/* gcd_tab */
+int OFint_D__gcd(int i, object tab)
 {
     /* stub version */
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("int$_gcd: not implemented"));
@@ -558,9 +509,7 @@ object tab;			/* gcd_tab */
  * _div
  */
 
-int OFint_D__div(i1, i2)
-int i1;
-int i2;
+int OFint_D__div(int i1, int i2)
 {
     int quotient;
     int remainder;
@@ -581,9 +530,7 @@ int i2;
  * _mod
  */
 
-int OFint_D__mod(i1, i2)
-int i1;
-int i2;
+int OFint_D__mod(int i1, int i2)
 {
     int remainder;
 

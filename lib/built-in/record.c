@@ -9,7 +9,7 @@
  */
 
 #include <clu2c.h>
-
+#include "record.h"
 
 /*
  * Evaluates to the number of the components of R
@@ -34,9 +34,7 @@ static int OFrecord_D__similar();
  * get_Ni = proc(r: record[N1: T1, ..., Nn: Tn]) returns(Ti)
  */
 
-int OFrecord_Dget(i, r)
-int i;				/* selector number */
-record r;			/* target */
+int OFrecord_Dget(int i, record r)
 {
     RETURN1(OMrecord_Dget(i, r));
 }
@@ -46,10 +44,7 @@ record r;			/* target */
  * set_Ni = proc(r: record[N1: T1, ..., Nn: Tn], e: Ti)
  */
 
-int OFrecord_Dset(i, r, e)
-int i;				/* selector number */
-record r;			/* target */
-object e;			/* component to be set */
+int OFrecord_Dset(int i, record r, object e)
 {
     OMrecord_Dset(i, r, e);
     RETURN0;
@@ -60,9 +55,7 @@ object e;			/* component to be set */
  * r_gets_r = proc(r1, r2: record[N1: T1, ..., Nn: Tn])
  */
 
-int OFrecord_Dr__gets__r(r1, r2)
-record r1;
-record r2;
+int OFrecord_Dr__gets__r(record r1, record r2)
 {
     int nr_components;		/* number of components */
     int i;			/* selector number of each component */
@@ -80,9 +73,7 @@ record r2;
  *                 s: struct[N1: T1, ..., Nn: Tn])
  */
 
-int OFrecord_Dr__gets__s(r, s)
-record r;			/* target */
-struct_ s;
+int OFrecord_Dr__gets__s(record r, struct_ s)
 {
     int nr_components;		/* number of components */
     int i;			/* index for each component */
@@ -99,9 +90,7 @@ struct_ s;
  * equal = proc(r1, r2: record[N1: T1, ..., Nn: Tn]) returns(bool)
  */
 
-int OFrecord_Dequal(r1, r2)
-record r1;			/* left hand side */
-record r2;			/* right hand side */
+int OFrecord_Dequal(record r1, record r2)
 {
     RETURN1(r1 == r2);
 }
@@ -112,10 +101,7 @@ record r2;			/* right hand side */
  *           where each Ti has similar: proctype(Ti, Ti) returns(bool)
  */
 
-int OFrecord_Dsimilar(op_list, r1, r2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-record r1;			/* left hand side */
-record r2;			/* right hand side */
+int OFrecord_Dsimilar(oplist_t op_list, record r1, record r2)
 {
     return OFrecord_D__similar(op_list, r1, r2);
 }
@@ -126,10 +112,7 @@ record r2;			/* right hand side */
  *            where each Ti has equal: proctype(Ti, Ti) returns(bool)
  */
 
-int OFrecord_Dsimilar1(op_list, r1, r2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-record r1;			/* left hand side */
-record r2;			/* right hand side */
+int OFrecord_Dsimilar1(oplist_t op_list, record r1, record r2)
 {
     return OFrecord_D__similar(op_list, r1, r2);
 }
@@ -140,8 +123,7 @@ record r2;			/* right hand side */
  *         returns(record[N1: T1, ..., Nn: Tn])
  */
 
-int OFrecord_Dcopy1(r)
-record r;			/* target */
+int OFrecord_Dcopy1(record r)
 {
     int nr_components;		/* number of the components */
     record res;			/* result */
@@ -162,9 +144,7 @@ record r;			/* target */
  *        where each Ti has copy: proctype(Ti) returns(bool)
  */
 
-int OFrecord_Dcopy(op_list, r)
-oplist_t op_list;		/* list of parameter-dependent operations */
-record r;			/* target */
+int OFrecord_Dcopy(oplist_t op_list, record r)
 {
     int nr_components;		/* number of the components */
     record res;			/* result */
@@ -190,10 +170,7 @@ record r;			/* target */
  *                                    signals(not_possible(stirng))
  */
 
-int OFrecord_Dencode(op_list, r, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-record r;			/* target */
-object ist;			/* istream */
+int OFrecord_Dencode(oplist_t op_list, record r, object ist)
 {
     int id;			/* identification number for R */
     int nr_components;		/* number of components */
@@ -239,9 +216,7 @@ object ist;			/* istream */
  *                                            not_possible(string))
  */
 
-int OFrecord_Ddecode(op_list, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-object ist;			/* istream */
+int OFrecord_Ddecode(oplist_t op_list, object ist)
 {
     int id;			/* identification number for the result */
     int nr_components;		/* number of the components */
@@ -300,10 +275,7 @@ object ist;			/* istream */
  *         where each Ti has print: proctype(Ti, pstream)
  */
 
-int OFrecord_Dprint(op_list, r, pst)
-oplist_t op_list;		/* list of parameter-dependent operations */
-record r;			/* targer record */
-object pst;			/* pstream */
+int OFrecord_Dprint(oplist_t op_list, record r, object pst)
 {
     static string lbrace = 0;
     static string rbrace = 0;
@@ -346,10 +318,7 @@ object pst;			/* pstream */
  *        where each Ti has _gcd: proctype(Ti, gcd_tab) returns(int)
  */
 
-int OFrecord_D__gcd(op_list, r, tab)
-oplist_t op_list;		/* list of parameter-dependent operations */
-record r;			/* target */
-object tab;			/* gcd_tab */
+int OFrecord_D__gcd(oplist_t op_list, record r, object tab)
 {
     /* Stub version. */
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("record$_gcd: not implemented"));
@@ -372,8 +341,7 @@ object tab;			/* gcd_tab */
  *	Components are not initialized.
  */
 
-record OFrecord_D__alloc(nr_components)
-int nr_components;		/* number of components */
+record OFrecord_D__alloc(int nr_components)
 {
     int size;			/* size of the result */
     record res;			/* result */
@@ -394,10 +362,7 @@ int nr_components;		/* number of components */
  * _similar - common task for similar/similar1
  */
 
-static int OFrecord_D__similar(op_list, r1, r2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-record r1;			/* left hand side */
-record r2;			/* right hand side */
+static int OFrecord_D__similar(oplist_t op_list, record r1, record r2)
 {
     int nr_components;		/* number of the components */
     int i;			/* selector number of each component */

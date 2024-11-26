@@ -11,7 +11,7 @@
 #include <config/string.h>
 
 #include <clu2c.h>
-
+#include "struct.h"
 
 /*
  * Evaluates to the number of the components of S
@@ -36,9 +36,7 @@ static int OFstruct_D__equal();
  * get_Ni = proc(s: struct[N1: T1, ..., Nn: Tn]) returns(Ti)
  */
 
-int OFstruct_Dget(i, s)
-int i;				/* selector number */
-struct_ s;			/* target */
+int OFstruct_Dget(int i, struct_ s)
 {
     RETURN1(OMstruct_Dget(i, s));
 }
@@ -49,10 +47,7 @@ struct_ s;			/* target */
  *              returns(struct[N1: T1, ..., Nn: Tn])
  */
 
-int OFstruct_Dreplace(i, s, e)
-int i;				/* selector number */
-struct_ s;			/* target */
-object e;			/* replacement */
+int OFstruct_Dreplace(int i, struct_ s, object e)
 {
     int nr_components;		/* number of the components */
     struct_ res;		/* result */
@@ -72,8 +67,7 @@ object e;			/* replacement */
  *       returns(record[N1: T1, ..., Nn: Tn])
  */
 
-int OFstruct_Ds2r(s)
-struct_ s;
+int OFstruct_Ds2r(struct_ s)
 {
     int nr_components;		/* number of the components */
     record res;			/* result */
@@ -93,8 +87,7 @@ struct_ s;
  *       returns(struct[N1: T1, ..., Nn: Tn])
  */
 
-int OFstruct_Dr2s(r)
-record r;
+int OFstruct_Dr2s(record r)
 {
     int nr_components;		/* number of the components */
     struct_ res;		/* result */
@@ -114,10 +107,7 @@ record r;
  *         where each Ti has equal: proctype(Ti, Ti) returns(bool)
  */
 
-int OFstruct_Dequal(op_list, s1, s2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-struct_ s1;			/* left hand side */
-struct_ s2;			/* right hand side */
+int OFstruct_Dequal(oplist_t op_list, struct_ s1, struct_ s2)
 {
     return OFstruct_D__equal(op_list, s1, s2);
 }
@@ -128,10 +118,7 @@ struct_ s2;			/* right hand side */
  *           where each Ti has similar: proctype(Ti, Ti) returns(bool)
  */
 
-int OFstruct_Dsimilar(op_list, s1, s2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-struct_ s1;			/* left hand side */
-struct_ s2;			/* right hand side */
+int OFstruct_Dsimilar(oplist_t op_list, struct_ s1, struct_ s2)
 {
     return OFstruct_D__equal(op_list, s1, s2);
 }
@@ -143,9 +130,7 @@ struct_ s2;			/* right hand side */
  *        where each Ti has copy: proctype(Ti) returns(bool)
  */
 
-int OFstruct_Dcopy(op_list, s)
-oplist_t op_list;		/* list of parameter-dependent operations */
-struct_ s;			/* target */
+int OFstruct_Dcopy(oplist_t op_list, struct_ s)
 {
     int nr_components;		/* number of the components */
     struct_ res;		/* result */
@@ -178,10 +163,7 @@ struct_ s;			/* target */
  *                                    signals(not_possible(stirng))
  */
 
-int OFstruct_Dencode(op_list, s, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-struct_ s;			/* target */
-object ist;			/* istream */
+int OFstruct_Dencode(oplist_t op_list, struct_ s, object ist)
 {
     int id;			/* identification number for S */
     int nr_components;		/* number of components */
@@ -227,9 +209,7 @@ object ist;			/* istream */
  *                                            not_possible(string))
  */
 
-int OFstruct_Ddecode(op_list, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-object ist;			/* istream */
+int OFstruct_Ddecode(oplist_t op_list, object ist)
 {
     int id;			/* identification number for the result */
     int nr_components;		/* number of the components */
@@ -288,10 +268,7 @@ object ist;			/* istream */
  *         where each Ti has print: proctype(Ti, pstream)
  */
 
-int OFstruct_Dprint(op_list, s, pst)
-oplist_t op_list;		/* list of parameter-dependent operations */
-struct_ s;			/* target */
-object pst;			/* pstream */
+int OFstruct_Dprint(oplist_t op_list, struct_ s, object pst)
 {
     static string lbrace = 0;
     static string rbrace = 0;
@@ -337,10 +314,7 @@ object pst;			/* pstream */
  *        where each Ti has _gcd: proctype(Ti, gcd_tab) returns(int)
  */
 
-int OFstruct_D__gcd(op_list, s, tab)
-oplist_t op_list;		/* list of parameter-dependent operations */
-struct_ s;			/* target */
-object tab;			/* gcd_tab */
+int OFstruct_D__gcd(oplist_t op_list, struct_ s, object tab)
 {
     /* Stub version. */
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("struct$_gcd: not implemented"));
@@ -363,8 +337,7 @@ object tab;			/* gcd_tab */
  *	Components are not initialized.
  */
 
-struct_ OFstruct_D__alloc(nr_components)
-int nr_components;		/* number of components */
+struct_ OFstruct_D__alloc(int nr_components)
 {
     int size;			/* size of the result */
     struct_ res;		/* result */
@@ -385,10 +358,7 @@ int nr_components;		/* number of components */
  * _equal - comman task for equal/similar
  */
 
-static int OFstruct_D__equal(op_list, s1, s2)
-oplist_t op_list;
-struct_ s1;
-struct_ s2;
+static int OFstruct_D__equal(oplist_t op_list, struct_ s1, struct_ s2)
 {
     int i, com_sz;
     

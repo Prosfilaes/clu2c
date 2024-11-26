@@ -20,9 +20,7 @@
  * equal = proc(n1, n2: null) returns(bool)
  */
 
-int OFnull_Dequal(n1, n2)
-null n1;
-null n2;
+int OFnull_Dequal(null n1, null n2)
 {
     RETURN1(OMnull_Dequal(n1, n2));
 }
@@ -32,9 +30,7 @@ null n2;
  * similar = proc(n1, n2: null) returns(null)
  */
 
-int OFnull_Dsimilar(n1, n2)
-null n1;
-null n2;
+int OFnull_Dsimilar(null n1, null n2)
 {
     RETURN1(OMnull_Dsimilar(n1, n2));
 }
@@ -44,8 +40,7 @@ null n2;
  * copy = proc(n: null) returns(null)
  */
 
-int OFnull_Dcopy(n)
-null n;
+int OFnull_Dcopy(null n)
 {
     RETURN1(OMnull_Dcopy(n));
 }
@@ -55,9 +50,7 @@ null n;
  * print = proc(n: null, pst: pstream) 
  */
 
-int OFnull_Dprint(n, pst)
-null n;
-object pst;			/* pstream */
+int OFnull_Dprint(null n, object pst)
 {
     static string nil = 0;
 
@@ -77,9 +70,7 @@ object pst;			/* pstream */
  * encode = proc(n: null, ist: istream) signals(not_possible(string))
  */
 
-int OFnull_Dencode(n, ist)
-null n;
-object ist;			/* istream */
+int OFnull_Dencode(null n, object ist)
 {
     return OFistream_Dputi(ist, NIL);
 }
@@ -90,8 +81,7 @@ object ist;			/* istream */
  *          signals(end_of_file, not_possible(string))
  */
 
-int OFnull_Ddecode(ist)
-object ist;			/* istream */
+int OFnull_Ddecode(object ist)
 {
     if (OFistream_Dgeti(ist) == SIG) {
 	return SIG;
@@ -107,9 +97,7 @@ object ist;			/* istream */
  * _gcd = proc(n: null, tab: gcd_tab) returns(int)
  */
 
-int OFnull_D__gcd(n, tab)
-null n;
-object tab;			/* gcd_tab */
+int OFnull_D__gcd(null n, object tab)
 {
     /* stub version */
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("null$_gcd: not implemented"));

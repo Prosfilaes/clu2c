@@ -9,6 +9,7 @@
  */
 
 #include <clu2c.h>
+#include "proctype.h"
 
 
 /*
@@ -20,9 +21,7 @@
  * equal = proc(p1, p2: proctype(...)) returns(bool)
  */
 
-int OFproctype_Dequal(p1, p2)
-proctype p1;			/* left hand side */
-proctype p2;			/* right hand side */
+int OFproctype_Dequal(proctype p1, proctype p2)
 {
     RETURN1(OMproctype_Dequal(p1, p2));
 }
@@ -32,9 +31,7 @@ proctype p2;			/* right hand side */
  * similar = proc(p1, p2: proctype(...)) returns(bool)
  */
 
-int OFproctype_Dsimilar(p1, p2)
-proctype p1;			/* left hand side */
-proctype p2;			/* right hand side */
+int OFproctype_Dsimilar(proctype p1, proctype p2)
 {
     RETURN1(OMproctype_Dsimilar(p1, p2));
 }
@@ -44,8 +41,7 @@ proctype p2;			/* right hand side */
  * copy = proc(p: proctype(...)) returns(proctype(...))
  */
 
-int OFproctype_Dcopy(p)
-proctype p;			/* target */
+int OFproctype_Dcopy(proctype p)
 {
     RETURN1(OMproctype_Dcopy(p));
 }

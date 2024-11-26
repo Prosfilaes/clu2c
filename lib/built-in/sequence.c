@@ -11,7 +11,8 @@
 #include <config/string.h>
 
 #include <clu2c.h>
-
+#include "bool.h"
+#include "sequence.h"
 
 /*
  * Internal routine declarations
@@ -64,7 +65,7 @@ static int OFsequence_D__equal();
  * new = proc() returns(sequence[T])
  */
 
-int OFsequence_Dnew()
+int OFsequence_Dnew(void)
 {
     RETURN1(OFsequence_D__alloc(0));
 }
@@ -74,8 +75,7 @@ int OFsequence_Dnew()
  * size = proc(s: sequence[T]) returns(int)
  */
 
-int OFsequence_Dsize(s)
-sequence s;			/* target sequence */
+int OFsequence_Dsize(sequence s)
 {
     RETURN1(OMsequence_Dsize(s));
 }
@@ -85,8 +85,7 @@ sequence s;			/* target sequence */
  * empty = proc(s: sequence[T]) returns(bool)
  */
 
-int OFsequence_Dempty(s)
-sequence s;			/* target sequence */
+int OFsequence_Dempty(sequence s)
 {
     RETURN1(OMsequence_Dempty(s));
 }
@@ -97,10 +96,7 @@ sequence s;			/* target sequence */
  *          signals(bounds, negative_size)
  */
 
-int OFsequence_Dsubseq(s, start, size)
-sequence s;			/* target sequence */
-int start;			/* index at which the result starts */
-int size;			/* request for the size of the result */
+int OFsequence_Dsubseq(sequence s, int start, int size)
 {
     int max_size;		/* max size of the result */
     sequence res;		/* result */
@@ -136,9 +132,7 @@ int size;			/* request for the size of the result */
  * fill = proc(size: int, e: T) returns(sequence[T]) signals(negative_size)
  */
 
-int OFsequence_Dfill(size, e)
-int size;			/* size of the result */
-object e;			/* element with which the result is filled */
+int OFsequence_Dfill(int size, object e)
 {
     sequence res;		/* result */
     int i;			/* index for each element of the result */
@@ -161,10 +155,7 @@ object e;			/* element with which the result is filled */
  *             where T has copy: proctype(T) returns(T)
  */
 
-int OFsequence_Dfill__copy(op_list, size, elem)
-oplist_t op_list;		/* list of parameter-dependent operations */
-int size;			/* size of the result */
-object elem;
+int OFsequence_Dfill__copy(oplist_t op_list, int size, object elem)
 {
     sequence res;		/* result */
     int i;			/* index for each element of the result */
@@ -195,9 +186,7 @@ object elem;
  * fetch = proc(s: sequence[T], i: int) returns(T) signals(bounds)
  */
 
-int OFsequence_Dfetch(s, i)
-sequence s;			/* target sequence */
-int i;				/* index of the result */
+int OFsequence_Dfetch(sequence s, int i)
 {
     if (OMsequence_Dbounds(s, i)) {
 	SIGNAL0(SLBOUNDS);
@@ -210,8 +199,7 @@ int i;				/* index of the result */
  * bottom = proc(s: sequence[T]) returns(T) signals(bounds)
  */
 
-int OFsequence_Dbottom(s)
-sequence s;			/* target sequence */
+int OFsequence_Dbottom(sequence s)
 {
     if (OMsequence_Dempty(s)) {
 	SIGNAL0(SLBOUNDS);
@@ -224,8 +212,7 @@ sequence s;			/* target sequence */
  * top = proc(s: sequence[T]) returns(T) signals(bounds)
  */
 
-int OFsequence_Dtop(s)
-sequence s;			/* target sequence */
+int OFsequence_Dtop(sequence s)
 {
     if (OMsequence_Dempty(s)) {
 	SIGNAL0(SLBOUNDS);
@@ -239,10 +226,7 @@ sequence s;			/* target sequence */
  *           signals(bounds)
  */
 
-int OFsequence_Dreplace(s, i, e)
-sequence s;			/* target sequence */
-int i;				/* index at which element is replaced */
-object e;			/* replacement */
+int OFsequence_Dreplace(sequence s, int i, object e)
 {
     sequence res;		/* result */
 
@@ -261,9 +245,7 @@ object e;			/* replacement */
  * addh = proc(s: sequence[T], e: T) returns(sequence[T]) signals(bounds)
  */
 
-int OFsequence_Daddh(s, e)
-sequence s;			/* target sequence */
-object e;			/* element to be added */
+int OFsequence_Daddh(sequence s, object e)
 {
     int size;			/* size of S */
     sequence res;		/* result */
@@ -280,9 +262,7 @@ object e;			/* element to be added */
  * addl = proc(s: sequence[T], e: T) returns(sequence[T]) signals(bounds)
  */
 
-int OFsequence_Daddl(s, e)
-sequence s;			/* target sequence */
-object e;			/* element to be added */
+int OFsequence_Daddl(sequence s, object e)
 {
     int size;			/* size of S */
     sequence res;		/* result */
@@ -299,8 +279,7 @@ object e;			/* element to be added */
  * remh = proc(s: sequence[T]) returns(sequence[T]) signals(bounds)
  */
 
-int OFsequence_Dremh(s)
-sequence s;			/* target sequence */
+int OFsequence_Dremh(sequence s)
 {
     int size;			/* size of result */
     sequence res;		/* result */
@@ -321,8 +300,7 @@ sequence s;			/* target sequence */
  * reml = proc(s: sequence[T]) returns(sequence[T]) signals(bounds)
  */
 
-int OFsequence_Dreml(s)
-sequence s;			/* target sequence */
+int OFsequence_Dreml(sequence s)
 {
     int size;			/* size of result */
     sequence res;		/* result */
@@ -343,8 +321,7 @@ sequence s;			/* target sequence */
  * e2s = proc(e: T) returns(sequence[T])
  */
 
-int OFsequence_De2s(e)
-object e;			/* element of the result */
+int OFsequence_De2s(object e)
 {
     sequence res;		/* result */
 
@@ -358,9 +335,7 @@ object e;			/* element of the result */
  * concat = proc(s1, s2: sequence[T]) returns(sequence[T])
  */
 
-int OFsequence_Dconcat(s1, s2)
-sequence s1;			/* left hand side */
-sequence s2;			/* right hand side */
+int OFsequence_Dconcat(sequence s1, sequence s2)
 {
     sequence res;		/* result */
     int size1;			/* size of S1 */
@@ -379,8 +354,7 @@ sequence s2;			/* right hand side */
  * a2s = proc(a: array[T]) returns(sequence[T])
  */
 
-int OFsequence_Da2s(a)
-array a;
+int OFsequence_Da2s(array a)
 {
     int size;			/* size common to A and the result */
     sequence res;		/* result */
@@ -400,8 +374,7 @@ array a;
  * s2a = proc(s: sequence[T]) returns(array[T])
  */
 
-int OFsequence_Ds2a(s)
-sequence s;			/* target sequence */
+int OFsequence_Ds2a(sequence s)
 {
     int size;			/* size common to S and the result */
     array res;			/* result */
@@ -426,10 +399,7 @@ sequence s;			/* target sequence */
 #define LMi	((*ivarp)[1])
 #define LMsize	((*ivarp)[2])
 
-int OFsequence_Delements(init, ivarp, s)
-bool init;			/* initialization flag */
-object **ivarp;			/* (pointer to the)^2 activation recored */
-sequence s;			/* target sequence */
+int OFsequence_Delements(bool init, object **ivarp, sequence s)
 {
     if (init) {
 	*ivarp = (object *) malloc(ARSIZE * sizeof(object));
@@ -463,10 +433,7 @@ sequence s;			/* target sequence */
 #define LMsize	((*ivarp)[1])
 #define LMi	((*ivarp)[2])
 
-int OFsequence_Dindexes(init, ivarp, s)
-bool init;			/* initialization flag */
-object **ivarp;			/* (pointer to the)^2 activation record */
-sequence s;			/* target sequence */
+int OFsequence_Dindexes(bool init, object **ivarp, sequence s)
 {
     if (init) {
 	*ivarp = (object *) malloc(ARSIZE * sizeof(object));
@@ -496,10 +463,7 @@ sequence s;			/* target sequence */
  *         where T has equal: proctype(T, T) returns(bool)
  */
 
-int OFsequence_Dequal(op_list, s1, s2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-sequence s1;			/* left hand side */
-sequence s2;			/* right hand side */
+int OFsequence_Dequal(oplist_t op_list, sequence s1, sequence s2)
 {
     return OFsequence_D__equal(op_list, s1, s2);
 }
@@ -510,10 +474,7 @@ sequence s2;			/* right hand side */
  *           where T has similar: proctype(T, T) returns(bool)
  */
 
-int OFsequence_Dsimilar(op_list, s1, s2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-sequence s1;			/* left hand side */
-sequence s2;			/* right hand side */
+int OFsequence_Dsimilar(oplist_t op_list, sequence s1, sequence s2)
 {
     return OFsequence_D__equal(op_list, s1, s2);
 }
@@ -524,9 +485,7 @@ sequence s2;			/* right hand side */
  *        where T has copy: proctype(T) returns(T)
  */
 
-int OFsequence_Dcopy(op_list, s)
-oplist_t op_list;		/* list of parameter-dependent operations */
-sequence s;			/* target sequence */
+int OFsequence_Dcopy(oplist_t op_list, sequence s)
 {
     int size;			/* size common to S and the result */
     sequence res;		/* result */
@@ -551,10 +510,7 @@ sequence s;			/* target sequence */
  *                              signals(not_possible(stirng))
  */
 
-int OFsequence_Dencode(op_list, s, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-sequence s;			/* target sequence */
-object ist;			/* istream */
+int OFsequence_Dencode(oplist_t op_list, sequence s, object ist)
 {
     int id;			/* identification number for S */
     int size;			/* size of S */
@@ -595,9 +551,7 @@ object ist;			/* istream */
  *                              signals(end_of_file, not_possible(string))
  */
 
-int OFsequence_Ddecode(op_list, ist)
-oplist_t op_list;		/* list of parameter-dependent operations */
-object ist;			/* istream */
+int OFsequence_Ddecode(oplist_t op_list, object ist)
 {
     int id;			/* identification number for the result */
     int size;			/* size of the result */
@@ -659,10 +613,7 @@ object ist;			/* istream */
  *         where T has print: proctype(T, pstream)
  */
 
-int OFsequence_Dprint(op_list, s, pst)
-oplist_t op_list;		/* list of parameter-dependent operations */
-sequence s;			/* target sequence */
-object pst;			/* pstream */
+int OFsequence_Dprint(oplist_t op_list, sequence s, object pst)
 {
     static string lbkt = 0;
     static string rbkt = 0;
@@ -706,10 +657,7 @@ object pst;			/* pstream */
  *        where T has _gcd: proctype(T, gcd_tab) returns(int)
  */
 
-int OFsequence_D__gcd(op_list, s, tab)
-oplist_t op_list;		/* list of parameter-dependent operations */
-sequence s;			/* target sequence */
-object tab;			/* gcd_tab */
+int OFsequence_D__gcd(oplist_t op_list, sequence s, object tab)
 {
     /* stub version */
     SIGNAL1(SLFAILURE, OFstring_D__cs2s("sequence$_gcd: not implemented"));
@@ -733,8 +681,7 @@ object tab;			/* gcd_tab */
  *	component is not done.
  */
 
-sequence OFsequence_D__alloc(size)
-int size;			/* size of the result */
+sequence OFsequence_D__alloc(int size)
 {
     sequence res;		/* result */
 
@@ -764,10 +711,7 @@ int size;			/* size of the result */
  * _equal - common task for equal/similar
  */
 
-static int OFsequence_D__equal(op_list, s1, s2)
-oplist_t op_list;		/* list of parameter-dependent operations */
-sequence s1;			/* left hand side */
-sequence s2;			/* right hand side */
+static int OFsequence_D__equal(oplist_t op_list, sequence s1, sequence s2)
 {
     int size;			/* size of S1 (and S2) */
     int i;			/* index of each element of S1 and S2 */

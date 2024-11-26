@@ -15,9 +15,9 @@
  * anyize
  */
 
-any anyize(tid, obj)
-int tid;			/* type ID */
-object obj;			/* object to be anyized */
+any anyize(int tid, object obj)
+// int tid;			type ID 
+// object obj;			 object to be anyized 
 {
     any res;			/* result */
 
@@ -32,9 +32,7 @@ object obj;			/* object to be anyized */
  * force = proc[t: type](x: any) returns(t) signals(wrong_type)
  */
 
-int AFforce(tid, x)
-int tid;
-any x;
+int AFforce(int tid, any x)
 {
     if (x->tid != tid) {
 	SIGNAL0(SLWRONG_TYPE);

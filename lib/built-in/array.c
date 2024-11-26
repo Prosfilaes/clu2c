@@ -12,6 +12,7 @@
 
 #include <clu2c.h>
 #include "array.h"
+#include "int.h"
 
 
 /*

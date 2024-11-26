@@ -12,6 +12,7 @@
 #define CLU2C_H
 
 #include <gc.h>
+#include <stdint.h>
 
 /* Return values of C functions that corresponds to CLU routines.  */
 /* XXX: Taking compatibility with `SIG' and `RET' into account, `YLD'
@@ -81,7 +82,7 @@
 	return YIELD
 
 /* Generic CLU object descriptor.  */
-typedef int object;
+typedef intptr_t object;
 typedef object elt;		/* XXX: OBSOLETE */
 
 /* Built-in types and type generators. */
